@@ -1,0 +1,48 @@
+{{define "content"}}
+<div class="page-header">
+  <div><div class="breadcrumb">ca &middot; history</div><h1>История операций</h1></div>
+</div>
+<div class="card" style="margin-bottom:12px">
+  <div class="card-body" style="padding:10px 16px">
+    <form method="GET" action="/history" style="display:flex;gap:10px;align-items:center">
+      <select name="action" style="width:160px">
+        <option value="">Все действия</option>
+        <option value="issue" {{if eq .FilterAction "issue"}}selected{{end}}>Выпуск</option>
+        <option value="renew" {{if eq .FilterAction "renew"}}selected{{end}}>Перевыпуск</option>
+        <option value="revoke" {{if eq .FilterAction "revoke"}}selected{{end}}>Отзыв</option>
+        <option value="import" {{if eq .FilterAction "import"}}selected{{end}}>Импорт</option>
+      </select>
+      <button type="submit" class="btn btn-sm">Фильтр</button>
+      <span style="color:var(--muted);font-size:11px;margin-left:auto">Всего: {{.Total}}</span>
+    </form>
+  </div>
+</div>
+<div class="card">
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr><th>Время</th><th>Действие</th><th>Сертификат</th><th>Домен</th><th>Детали</th><th>Пользователь</th></tr></thead>
+    <tbody>
+    {{range .Entries}}
+    <tr>
+      <td style="color:var(--muted);font-size:11px">{{fmtLog .CreatedAt}}</td>
+      <td><span class="badge {{if eq .Action "issue"}}ok{{else if eq .Action "renew"}}blue{{else if eq .Action "revoke"}}danger{{else}}gray{{end}}">{{.Action}}</span></td>
+      <td><strong>{{.CertName}}</strong></td>
+      <td><code>{{.Domain}}</code></td>
+      <td style="color:var(--muted)">{{.Details}}</td>
+      <td>{{.Username}}</td>
+    </tr>
+    {{else}}
+    <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">Нет записей</td></tr>
+    {{end}}
+    </tbody>
+  </table>
+  </div>
+</div>
+{{if gt .TotalPages 1}}
+<div style="display:flex;gap:6px;justify-content:center;margin-top:12px">
+  {{range seq 1 .TotalPages}}
+  <a href="/history?page={{.}}&action={{$.FilterAction}}" class="btn btn-sm {{if eq . $.CurrentPage}}{{else}}btn-ghost{{end}}">{{.}}</a>
+  {{end}}
+</div>
+{{end}}
+{{end}}

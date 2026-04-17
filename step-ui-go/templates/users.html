@@ -1,0 +1,69 @@
+{{define "content"}}
+<div class="page-header">
+  <div><div class="breadcrumb">users</div><h1>Все пользователи</h1></div>
+</div>
+<div class="card" style="margin-bottom:16px">
+  <div class="card-header"><h3>Список пользователей</h3></div>
+  <div style="overflow-x:auto">
+  <table style="min-width:700px">
+    <thead><tr><th>Логин</th><th>Роль</th><th>Статус</th><th>Последний вход</th><th>Последний IP</th><th>Ошибок 24ч</th><th>Создан</th><th>Действия</th></tr></thead>
+    <tbody>
+    {{range .Users}}
+    <tr>
+      <td><strong>{{.Username}}</strong>{{if eq .ID $.Session.UserID}} <span style="color:var(--muted);font-size:10px">(Вы)</span>{{end}}</td>
+      <td>
+        {{if eq .Role "admin"}}<span class="badge purple">admin</span>
+        {{else if eq .Role "manager"}}<span class="badge blue">manager</span>
+        {{else}}<span class="badge gray">viewer</span>{{end}}
+      </td>
+      <td>{{if .IsActive}}<span class="badge ok">активен</span>{{else}}<span class="badge danger">заблокирован</span>{{end}}</td>
+      <td style="color:var(--muted)">{{fmtTime .LastLogin}}</td>
+      <td style="color:var(--muted)">{{if .LastIP}}{{deref .LastIP}}{{else}}&mdash;{{end}}</td>
+      <td>{{$fc := index $.FailCounts .ID}}{{if gt $fc 0}}<span class="badge danger">{{$fc}}</span>{{else}}0{{end}}</td>
+      <td style="color:var(--muted)">{{fmtTime .CreatedAt}}</td>
+      <td>
+        {{if ne .ID $.Session.UserID}}
+        <a href="/users/{{.ID}}" class="btn btn-ghost btn-sm">&#x1F464; Профиль</a>
+        <form method="POST" action="/users" style="display:inline" data-confirm="{{if .IsActive}}Заблокировать{{else}}Разблокировать{{end}} пользователя {{.Username}}?" data-confirm-btn="{{if .IsActive}}Заблокировать{{else}}Разблокировать{{end}}" data-confirm-class="warning" data-confirm-title="Изменение статуса">
+          <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+          <input type="hidden" name="action" value="toggle_active">
+          <input type="hidden" name="uid" value="{{.ID}}">
+          <button type="submit" class="btn btn-sm {{if .IsActive}}btn-warn{{else}}btn-success{{end}}">&#x1F512;</button>
+        </form>
+        <form method="POST" action="/users" style="display:inline" data-confirm="Удалить пользователя {{.Username}}? Действие необратимо." data-confirm-btn="Удалить" data-confirm-title="Удаление пользователя">
+          <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+          <input type="hidden" name="action" value="delete">
+          <input type="hidden" name="uid" value="{{.ID}}">
+          <button type="submit" class="btn btn-danger btn-sm">&#x2715;</button>
+        </form>
+        {{end}}
+      </td>
+    </tr>
+    {{end}}
+    </tbody>
+  </table>
+  </div>
+</div>
+<div class="card" style="max-width:560px">
+  <div class="card-header"><h3>Добавить пользователя</h3></div>
+  <div class="card-body">
+    <form method="POST" action="/users">
+      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+      <input type="hidden" name="action" value="create">
+      <div class="form-row">
+        <div><label>Логин</label><input type="text" name="username" placeholder="user1" required></div>
+        <div><label>Пароль</label><input type="password" name="password" placeholder="Мин. 8 симв. + цифра + спецсимвол" required></div>
+      </div>
+      <div class="form-full">
+        <label>Роль</label>
+        <select name="role">
+          <option value="viewer">viewer &mdash; только просмотр</option>
+          <option value="manager">manager &mdash; управление сертификатами</option>
+          <option value="admin">admin &mdash; полный доступ</option>
+        </select>
+      </div>
+      <button type="submit" class="btn">+ Создать пользователя</button>
+    </form>
+  </div>
+</div>
+{{end}}

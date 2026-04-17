@@ -1,0 +1,54 @@
+{{define "content"}}
+<div class="page-header">
+  <div><div class="breadcrumb">dashboard</div><h1>Дашборд</h1></div>
+</div>
+<div class="stats-grid">
+  <div class="stat-card"><div class="stat-label">Всего сертификатов</div><div class="stat-value">{{.Total}}</div></div>
+  <div class="stat-card"><div class="stat-label">Активных</div><div class="stat-value ok">{{.OkC}}</div></div>
+  <div class="stat-card"><div class="stat-label">Истекают (30д)</div><div class="stat-value warn">{{.WarnC}}</div></div>
+  <div class="stat-card"><div class="stat-label">Просроченных</div><div class="stat-value danger">{{.ExpC}}</div></div>
+</div>
+<div class="card">
+  <div class="card-header"><h3>Сертификаты (по сроку)</h3></div>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr><th>Имя</th><th>Домен</th><th>Истекает</th><th>Осталось</th><th>Тип</th><th>Действия</th></tr></thead>
+    <tbody>
+    {{range .Certs}}
+    <tr>
+      <td><strong>{{.Name}}</strong></td>
+      <td><code>{{.Domain}}</code></td>
+      <td>{{fmtTime .ExpiresAt}}</td>
+      <td><span class="badge {{badgeClass .ExpiresAt}}">{{daysLeft .ExpiresAt}} дн.</span></td>
+      <td><span class="badge gray">{{.KeyType}}</span></td>
+      <td>
+        {{if hasRole $.Session.Role "manager"}}
+        <a href="/renew/{{.ID}}" class="btn btn-warn btn-sm confirm-renew" data-name="{{.Name}}">Перевыпустить</a>
+        <a href="/download/cert/{{.ID}}" class="btn btn-ghost btn-sm">&#x2913; CRT</a>
+        {{end}}
+      </td>
+    </tr>
+    {{else}}
+    <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">Нет активных сертификатов</td></tr>
+    {{end}}
+    </tbody>
+  </table>
+  </div>
+</div>
+<script>
+document.querySelectorAll('.confirm-renew').forEach(function(el){
+  el.addEventListener('click',function(e){
+    e.preventDefault();
+    var href=this.getAttribute('href'),name=this.getAttribute('data-name')||'сертификат';
+    var f=document.createElement('form');
+    f.setAttribute('data-confirm','Перевыпустить сертификат "'+name+'"? Текущий файл будет заменён новым.');
+    f.setAttribute('data-confirm-btn','Перевыпустить');
+    f.setAttribute('data-confirm-class','warning');
+    f.setAttribute('data-confirm-title','Перевыпуск сертификата');
+    f.submit=function(){window.location.href=href;};
+    document.body.appendChild(f);
+    f.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));
+  });
+});
+</script>
+{{end}}

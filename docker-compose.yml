@@ -1,0 +1,101 @@
+version: "3.8"
+
+services:
+
+  # ─── PostgreSQL ────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       stepui
+      POSTGRES_USER:     stepui
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-stepui_secret}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - step-net
+    privileged: true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stepui -d stepui"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ─── Step-CA ───────────────────────────────────────────────────────────────
+  step-ca:
+    image: smallstep/step-ca:latest
+    container_name: step-ca
+    privileged: true
+    restart: unless-stopped
+    ports:
+      - "9443:9443"
+    volumes:
+      - step-ca-data:/home/step
+    environment:
+      DOCKER_STEPCA_INIT_NAME:             "Home CA"
+      DOCKER_STEPCA_INIT_DNS_NAMES:        "step-ca,${HOST_IP}"
+      DOCKER_STEPCA_INIT_ADDRESS:          ":9443"
+      DOCKER_STEPCA_INIT_PROVISIONER_NAME: "${PROVISIONER}"
+      DOCKER_STEPCA_INIT_PASSWORD:         "${CA_PASSWORD}"
+      DOCKER_STEPCA_INIT_SSH:              "false"
+    networks:
+      - step-net
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    healthcheck:
+      test: ["CMD", "curl", "-sk", "https://localhost:9443/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  # ─── Step-CA UI (Go) ───────────────────────────────────────────────────────
+  step-ui:
+    privileged: true
+    build:
+      context: ./step-ui-go
+      dockerfile: Dockerfile
+    container_name: step-ui
+    restart: unless-stopped
+    ports:
+      - "443:8443"
+    volumes:
+      - step-ui-certs:/opt/step-ui/certs
+      - step-ui-ssl:/opt/step-ui/ssl
+      - step-ca-data:/home/step:ro
+    environment:
+      DATABASE_URL: "postgres://stepui:${POSTGRES_PASSWORD:-stepui_secret}@postgres:5432/stepui?sslmode=disable"
+      CA_URL:        "https://step-ca:9443"
+      ROOT_CERT:     "/home/step/certs/root_ca.crt"
+      PROVISIONER:   "${PROVISIONER}"
+      PASSWORD_FILE: "/home/step/secrets/password"
+      SECRET_KEY:    "${SECRET_KEY}"
+      HOST_IP:       "${HOST_IP}"
+      PORT:          "8443"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      step-ca:
+        condition: service_healthy
+    networks:
+      - step-net
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+
+# ─── Volumes ───────────────────────────────────────────────────────────────
+volumes:
+  postgres-data:
+  step-ca-data:
+  step-ui-certs:
+  step-ui-ssl:
+
+# ─── Networks ──────────────────────────────────────────────────────────────
+networks:
+  step-net:
+    driver: bridge
+    name: step-network
+    driver_opts:
+      com.docker.network.bridge.enable_ip_masquerade: "true"

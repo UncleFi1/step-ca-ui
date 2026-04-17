@@ -1,0 +1,21 @@
+{{define "content"}}
+<div class="page-header">
+  <div><div class="breadcrumb">ca &middot; provisioners</div><h1>Провижионеры</h1></div>
+</div>
+<div class="card" style="margin-bottom:16px">
+  <div class="card-header"><h3>Подключение к CA</h3></div>
+  <div class="card-body">
+    <div class="info-row"><div class="info-key">CA URL</div><div class="info-val"><code>{{.CAURL}}</code></div></div>
+    <div class="info-row"><div class="info-key">Root Cert</div><div class="info-val"><code>{{.RootCert}}</code></div></div>
+    <div class="info-row"><div class="info-key">Provisioner</div><div class="info-val"><code>{{.Provisioner}}</code></div></div>
+  </div>
+</div>
+{{range .Provisioners}}
+<div class="prov-card">
+  <div class="prov-name">{{index . "name"}}</div>
+  <div class="prov-type">Тип: {{index . "type"}}</div>
+</div>
+{{else}}
+<div class="card"><div class="card-body" style="color:var(--muted);text-align:center;padding:24px">Нет провижионеров или CA недоступен</div></div>
+{{end}}
+{{end}}

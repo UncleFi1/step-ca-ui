@@ -1,0 +1,116 @@
+{{define "content"}}
+<div class="page-header">
+  <div>
+    <div class="breadcrumb">users &middot; profile</div>
+    <h1>
+      {{.U.Username}}
+      {{if .U.IsActive}}<span class="badge ok" style="font-size:12px;margin-left:8px">активен</span>
+      {{else}}<span class="badge danger" style="font-size:12px;margin-left:8px">заблокирован</span>{{end}}
+    </h1>
+  </div>
+  <a href="/users" class="btn btn-ghost">&larr; Назад</a>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+<div class="card">
+  <div class="card-header"><h3>Информация</h3></div>
+  <div class="card-body">
+    <div class="info-row"><div class="info-key">Логин</div><div class="info-val">{{.U.Username}}</div></div>
+    <div class="info-row"><div class="info-key">Роль</div><div class="info-val">
+      {{if eq .U.Role "admin"}}<span class="badge purple">admin</span>
+      {{else if eq .U.Role "manager"}}<span class="badge blue">manager</span>
+      {{else}}<span class="badge gray">viewer</span>{{end}}
+    </div></div>
+    <div class="info-row"><div class="info-key">Создан</div><div class="info-val">{{fmtTime .U.CreatedAt}}</div></div>
+    <div class="info-row"><div class="info-key">Последний вход</div><div class="info-val">{{fmtTime .U.LastLogin}}</div></div>
+    <div class="info-row"><div class="info-key">Последний IP</div><div class="info-val">{{if .U.LastIP}}{{deref .U.LastIP}}{{else}}&mdash;{{end}}</div></div>
+    <div class="info-row"><div class="info-key">Успешных входов</div><div class="info-val" style="color:var(--green)">{{.TotalOK}}</div></div>
+    <div class="info-row"><div class="info-key">Неудачных попыток</div><div class="info-val" style="color:var(--danger)">{{.TotalFail}}</div></div>
+    <div class="info-row"><div class="info-key">IP блокировка</div><div class="info-val">
+      {{if .IPBlocked}}<span class="badge danger">&#x26D4; заблокирован</span>
+      {{else}}<span class="badge ok">&#x2705; не заблокирован</span>{{end}}
+    </div></div>
+  </div>
+</div>
+<div style="display:flex;flex-direction:column;gap:14px">
+  <div class="card">
+    <div class="card-header"><h3>Сменить роль</h3></div>
+    <div class="card-body">
+      <form method="POST" action="/users">
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+        <input type="hidden" name="action" value="change_role">
+        <input type="hidden" name="uid" value="{{.U.ID}}">
+        <div class="form-full">
+          <select name="role">
+            <option value="viewer" {{if eq .U.Role "viewer"}}selected{{end}}>viewer</option>
+            <option value="manager" {{if eq .U.Role "manager"}}selected{{end}}>manager</option>
+            <option value="admin" {{if eq .U.Role "admin"}}selected{{end}}>admin</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-sm">Сохранить роль</button>
+      </form>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><h3>Сбросить пароль</h3></div>
+    <div class="card-body">
+      <form method="POST" action="/users">
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+        <input type="hidden" name="action" value="reset_password">
+        <input type="hidden" name="uid" value="{{.U.ID}}">
+        <div class="form-full"><label>Новый пароль</label><input type="password" name="new_password" placeholder="Мин. 8 симв. + цифра + спецсимвол" required></div>
+        <button type="submit" class="btn btn-warn btn-sm">&#x1F511; Сбросить пароль</button>
+      </form>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><h3>Управление доступом</h3></div>
+    <div class="card-body" style="display:flex;gap:8px;flex-wrap:wrap">
+      {{if .IPBlocked}}
+      <form method="POST" action="/users" style="display:inline">
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+        <input type="hidden" name="action" value="unblock_ip">
+        <input type="hidden" name="uid" value="{{.U.ID}}">
+        {{if .U.LastIP}}<input type="hidden" name="target_ip" value="{{deref .U.LastIP}}">{{end}}
+        <button type="submit" class="btn btn-success btn-sm">&#x1F513; Разблокировать IP</button>
+      </form>
+      {{end}}
+      <form method="POST" action="/users" data-confirm="{{if .U.IsActive}}Заблокировать{{else}}Разблокировать{{end}} аккаунт {{.U.Username}}?" data-confirm-btn="{{if .U.IsActive}}Заблокировать{{else}}Разблокировать{{end}}" data-confirm-class="warning" data-confirm-title="{{if .U.IsActive}}Блокировка{{else}}Разблокировка{{end}} аккаунта">
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+        <input type="hidden" name="action" value="toggle_active">
+        <input type="hidden" name="uid" value="{{.U.ID}}">
+        <button type="submit" class="btn btn-sm {{if .U.IsActive}}btn-warn{{else}}btn-success{{end}}">{{if .U.IsActive}}&#x1F512; Заблокировать{{else}}&#x1F513; Разблокировать{{end}}</button>
+      </form>
+      <form method="POST" action="/users" data-confirm="Удалить пользователя {{.U.Username}}? Действие необратимо." data-confirm-btn="Удалить" data-confirm-title="Удаление пользователя">
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+        <input type="hidden" name="action" value="delete">
+        <input type="hidden" name="uid" value="{{.U.ID}}">
+        <button type="submit" class="btn btn-danger btn-sm">&#x1F5D1; Удалить пользователя</button>
+      </form>
+    </div>
+  </div>
+</div>
+</div>
+<div class="card">
+  <div class="card-header">
+    <h3>История входов (последние 50)</h3>
+    <div><span class="badge ok">{{.TotalOK}} успешных</span> &nbsp; <span class="badge danger">{{.TotalFail}} неудачных</span></div>
+  </div>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr><th>Время</th><th>IP адрес</th><th>Событие</th><th>Детали</th></tr></thead>
+    <tbody>
+    {{range .Logs}}
+    <tr>
+      <td style="color:var(--muted);font-size:11px">{{fmtLog .CreatedAt}}</td>
+      <td><code>{{.IP}}</code></td>
+      <td>{{if .Success}}<span class="badge ok">&#x2713; Вход</span>{{else}}<span class="badge danger">&#x2715; Отказ</span>{{end}}</td>
+      <td style="color:var(--muted)">{{.Reason}}</td>
+    </tr>
+    {{else}}
+    <tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px">Нет записей</td></tr>
+    {{end}}
+    </tbody>
+  </table>
+  </div>
+</div>
+{{end}}

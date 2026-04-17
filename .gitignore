@@ -1,0 +1,36 @@
+# Секреты
+.env
+*.env.local
+
+# Бинарники Go
+step-ui-go/step-ui
+step-ui-go/*.exe
+
+# Данные
+*.db
+*.sqlite
+*.sql.gz
+backups/
+
+# SSL сертификаты (генерируются автоматически)
+step-ui-go/ssl/
+ssl/
+
+# Docker
+.docker/
+
+# Go build cache
+step-ui-go/vendor/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Логи
+*.log

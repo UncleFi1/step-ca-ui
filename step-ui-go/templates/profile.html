@@ -1,0 +1,17 @@
+{{define "content"}}
+<div class="page-header">
+  <div><div class="breadcrumb">account &middot; profile</div><h1>Мой профиль</h1></div>
+</div>
+<div class="card" style="max-width:480px">
+  <div class="card-header"><h3>Сменить пароль</h3></div>
+  <div class="card-body">
+    <form method="POST" action="/profile">
+      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+      <div class="form-full"><label>Текущий пароль</label><input type="password" name="current_password" required></div>
+      <div class="form-full"><label>Новый пароль</label><input type="password" name="new_password" placeholder="Мин. 8 симв. + цифра + спецсимвол" required></div>
+      <div class="form-full"><label>Подтвердить пароль</label><input type="password" name="confirm_password" required></div>
+      <button type="submit" class="btn">Сохранить пароль</button>
+    </form>
+  </div>
+</div>
+{{end}}

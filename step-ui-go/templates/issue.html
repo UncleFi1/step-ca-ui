@@ -1,0 +1,38 @@
+{{define "content"}}
+<div class="page-header">
+  <div><div class="breadcrumb">certificates &middot; issue</div><h1>Выпустить сертификат</h1></div>
+</div>
+<div class="card" style="max-width:560px">
+  <div class="card-header"><h3>Новый сертификат</h3></div>
+  <div class="card-body">
+    <form method="POST" action="/issue">
+      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+      <div class="form-row">
+        <div><label>Название</label><input type="text" name="name" placeholder="my-service" required></div>
+        <div><label>Домен / IP</label><input type="text" name="domain" placeholder="example.com" required></div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>Срок действия</label>
+          <select name="duration">
+            <option value="8760h">1 год</option>
+            <option value="4380h">6 месяцев</option>
+            <option value="720h">1 месяц</option>
+            <option value="87600h">10 лет</option>
+          </select>
+        </div>
+        <div>
+          <label>Тип ключа</label>
+          <select name="key_type">
+            <option value="EC:P-256">EC P-256 (рекомендуется)</option>
+            <option value="EC:P-384">EC P-384</option>
+            <option value="RSA:2048">RSA 2048</option>
+            <option value="RSA:4096">RSA 4096</option>
+          </select>
+        </div>
+      </div>
+      <button type="submit" class="btn">&#x2713; Выпустить сертификат</button>
+    </form>
+  </div>
+</div>
+{{end}}

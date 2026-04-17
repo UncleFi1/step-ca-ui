@@ -1,0 +1,145 @@
+{{define "content"}}
+<div class="page-header">
+  <div><div class="breadcrumb">certificates &middot; import</div><h1>Импорт сертификатов</h1></div>
+</div>
+<div class="tabs">
+  <a href="/import?tab=upload" class="tab {{if or (eq .ActiveTab "upload") (eq .ActiveTab "")}}active{{end}}">&#x2B06; Загрузить файл</a>
+  <a href="/import?tab=scan" class="tab {{if eq .ActiveTab "scan"}}active{{end}}">&#x1F50D; Сканировать сервер</a>
+  <a href="/import?tab=manual" class="tab {{if eq .ActiveTab "manual"}}active{{end}}">&#x270E; Вручную</a>
+</div>
+
+{{if or (eq .ActiveTab "upload") (eq .ActiveTab "")}}
+<div class="card" style="max-width:580px">
+  <div class="card-header"><h3>Загрузить с компьютера</h3></div>
+  <div class="card-body">
+    <form method="POST" action="/import" enctype="multipart/form-data" id="uploadForm">
+      <input type="hidden" name="action" value="upload">
+      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+      <div class="form-row">
+        <div><label>Название</label><input type="text" name="name" id="certName" placeholder="my-cert" required></div>
+        <div><label>Домен</label><input type="text" name="domain" id="certDomain" placeholder="example.com" required></div>
+      </div>
+
+      <!-- Drag & Drop зона для .crt -->
+      <div class="form-full">
+        <label>Файл .crt</label>
+        <div class="drop-zone" id="dropCrt" onclick="document.getElementById('cert_file').click()">
+          <div class="drop-icon">&#x1F4DC;</div>
+          <div class="drop-text" id="dropCrtText">Перетащите .crt файл сюда или нажмите для выбора</div>
+          <div class="drop-hint">.crt, .pem</div>
+        </div>
+        <input type="file" name="cert_file" id="cert_file" accept=".crt,.pem" required style="display:none">
+      </div>
+
+      <!-- Drag & Drop зона для .key -->
+      <div class="form-full">
+        <label>Файл .key <span style="color:var(--muted)">(опционально)</span></label>
+        <div class="drop-zone" id="dropKey" onclick="document.getElementById('key_file').click()">
+          <div class="drop-icon">&#x1F511;</div>
+          <div class="drop-text" id="dropKeyText">Перетащите .key файл сюда или нажмите для выбора</div>
+          <div class="drop-hint">.key, .pem</div>
+        </div>
+        <input type="file" name="key_file" id="key_file" accept=".key,.pem" style="display:none">
+      </div>
+
+      <button type="submit" class="btn">&#x2B06; Загрузить</button>
+    </form>
+  </div>
+</div>
+
+<style>
+.drop-zone{
+  border:2px dashed var(--border);border-radius:8px;padding:24px 16px;
+  text-align:center;cursor:pointer;transition:.2s;background:var(--bg);
+  user-select:none;
+}
+.drop-zone:hover,.drop-zone.drag-over{
+  border-color:var(--accent);background:rgba(68,147,248,.05);
+}
+.drop-zone.has-file{
+  border-color:var(--green);background:rgba(39,174,96,.05);
+}
+.drop-icon{font-size:28px;margin-bottom:6px}
+.drop-text{font-size:12px;color:var(--muted);margin-bottom:4px}
+.drop-hint{font-size:10px;color:var(--border);font-family:var(--mono)}
+.drop-zone.has-file .drop-text{color:var(--green)}
+</style>
+
+<script>
+function setupDrop(zoneId, inputId, textId) {
+  var zone = document.getElementById(zoneId);
+  var input = document.getElementById(inputId);
+  var text = document.getElementById(textId);
+
+  input.addEventListener('change', function() {
+    if (this.files[0]) {
+      text.textContent = '✓ ' + this.files[0].name;
+      zone.classList.add('has-file');
+      zone.classList.remove('drag-over');
+      // Автозаполнение имени из файла если поле пустое
+      if (zoneId === 'dropCrt') {
+        var nameField = document.getElementById('certName');
+        if (!nameField.value) {
+          nameField.value = this.files[0].name.replace(/\.(crt|pem)$/i, '');
+        }
+      }
+    }
+  });
+
+  zone.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    this.classList.add('drag-over');
+  });
+  zone.addEventListener('dragleave', function() {
+    this.classList.remove('drag-over');
+  });
+  zone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    this.classList.remove('drag-over');
+    var file = e.dataTransfer.files[0];
+    if (!file) return;
+    var dt = new DataTransfer();
+    dt.items.add(file);
+    input.files = dt.files;
+    input.dispatchEvent(new Event('change'));
+  });
+}
+
+setupDrop('dropCrt', 'cert_file', 'dropCrtText');
+setupDrop('dropKey', 'key_file', 'dropKeyText');
+</script>
+{{end}}
+
+{{if eq .ActiveTab "scan"}}
+<div class="card" style="max-width:560px">
+  <div class="card-header"><h3>Сканировать сервер</h3></div>
+  <div class="card-body">
+    <p style="color:var(--muted);margin-bottom:16px;font-size:12px">Найдено незарегистрированных: <strong>{{len .Unregistered}}</strong></p>
+    <form method="POST" action="/import">
+      <input type="hidden" name="action" value="scan">
+      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+      <button type="submit" class="btn">&#x1F50D; Сканировать и импортировать</button>
+    </form>
+  </div>
+</div>
+{{end}}
+
+{{if eq .ActiveTab "manual"}}
+<div class="card" style="max-width:560px">
+  <div class="card-header"><h3>Указать путь вручную</h3></div>
+  <div class="card-body">
+    <form method="POST" action="/import">
+      <input type="hidden" name="action" value="manual">
+      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+      <div class="form-row">
+        <div><label>Название</label><input type="text" name="name" required></div>
+        <div><label>Домен</label><input type="text" name="domain" required></div>
+      </div>
+      <div class="form-full"><label>Путь к .crt</label><input type="text" name="cert_path" placeholder="/opt/step-ui/certs/name/certificate.crt" required></div>
+      <div class="form-full"><label>Путь к .key (опционально)</label><input type="text" name="key_path" placeholder="/opt/step-ui/certs/name/private.key"></div>
+      <button type="submit" class="btn">Импортировать</button>
+    </form>
+  </div>
+</div>
+{{end}}
+{{end}}

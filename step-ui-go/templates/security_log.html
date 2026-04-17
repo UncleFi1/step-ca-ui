@@ -1,0 +1,51 @@
+{{define "content"}}
+<div class="page-header">
+  <div><div class="breadcrumb">users &middot; security</div><h1>&#x1F6E1; Журнал безопасности</h1></div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
+  <div class="stat-card"><div class="stat-label">Всего записей</div><div class="stat-value">{{.Total}}</div></div>
+  <div class="stat-card"><div class="stat-label">Успешных входов</div><div class="stat-value ok">{{.TotalOK}}</div></div>
+  <div class="stat-card"><div class="stat-label">Неудачных попыток</div><div class="stat-value danger">{{.TotalFail}}</div></div>
+</div>
+<div class="card" style="margin-bottom:12px">
+  <div class="card-body" style="padding:10px 16px">
+    <form method="GET" action="/security" style="display:flex;gap:10px;align-items:center">
+      <input type="text" name="q" placeholder="Поиск по логину или IP..." value="{{.SearchQ}}" style="max-width:280px">
+      <select name="filter" style="width:160px">
+        <option value="">Все события</option>
+        <option value="ok" {{if eq .Filter "ok"}}selected{{end}}>Успешные</option>
+        <option value="fail" {{if eq .Filter "fail"}}selected{{end}}>Неудачные</option>
+      </select>
+      <button type="submit" class="btn btn-sm">Поиск</button>
+      {{if or .SearchQ .Filter}}<a href="/security" class="btn btn-ghost btn-sm">Сбросить</a>{{end}}
+    </form>
+  </div>
+</div>
+<div class="card">
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr><th>Время</th><th>Пользователь</th><th>IP адрес</th><th>Событие</th><th>Детали</th></tr></thead>
+    <tbody>
+    {{range .Entries}}
+    <tr>
+      <td style="color:var(--muted);font-size:11px">{{fmtLog .CreatedAt}}</td>
+      <td><strong>{{.Username}}</strong></td>
+      <td><code>{{.IP}}</code></td>
+      <td>{{if .Success}}<span class="badge ok">&#x2713; Вход</span>{{else}}<span class="badge danger">&#x2715; Отказ</span>{{end}}</td>
+      <td style="color:var(--muted)">{{.Reason}}</td>
+    </tr>
+    {{else}}
+    <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px">Нет записей</td></tr>
+    {{end}}
+    </tbody>
+  </table>
+  </div>
+</div>
+{{if gt .TotalPages 1}}
+<div style="display:flex;gap:6px;justify-content:center;margin-top:12px">
+  {{range seq 1 .TotalPages}}
+  <a href="/security?page={{.}}&q={{$.SearchQ}}&filter={{$.Filter}}" class="btn btn-sm {{if eq . $.CurrentPage}}{{else}}btn-ghost{{end}}">{{.}}</a>
+  {{end}}
+</div>
+{{end}}
+{{end}}

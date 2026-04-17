@@ -1,0 +1,60 @@
+{{define "content"}}
+<div class="page-header">
+  <div><div class="breadcrumb">certificates</div><h1>Все сертификаты</h1></div>
+  {{if hasRole .Session.Role "manager"}}
+  <a href="/issue" class="btn">+ Выпустить новый</a>
+  {{end}}
+</div>
+<div class="card">
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr><th>Имя</th><th>Домен</th><th>Выдан</th><th>Истекает</th><th>Статус</th><th>Тип</th><th>Серийный</th><th>Действия</th></tr></thead>
+    <tbody>
+    {{range .Certs}}
+    <tr>
+      <td><strong>{{.Name}}</strong></td>
+      <td><code>{{.Domain}}</code></td>
+      <td style="color:var(--muted)">{{fmtTime .IssuedAt}}</td>
+      <td>{{fmtTime .ExpiresAt}}</td>
+      <td><span class="badge {{if eq .Status "active"}}{{badgeClass .ExpiresAt}}{{else}}danger{{end}}">{{.Status}}</span></td>
+      <td><span class="badge gray">{{.KeyType}}</span></td>
+      <td style="font-family:var(--mono);font-size:10px;color:var(--muted)">{{.Serial}}</td>
+      <td>
+        {{if hasRole $.Session.Role "manager"}}
+        <a href="/renew/{{.ID}}" class="btn btn-warn btn-sm confirm-renew" data-name="{{.Name}}">&#x21BA;</a>
+        <a href="/download/cert/{{.ID}}" class="btn btn-ghost btn-sm">CRT</a>
+        {{if .KeyPath}}<a href="/download/key/{{.ID}}" class="btn btn-ghost btn-sm">KEY</a>{{end}}
+        {{end}}
+        {{if eq $.Session.Role "admin"}}{{if eq .Status "active"}}
+        <a href="/revoke/{{.ID}}" class="btn btn-danger btn-sm confirm-revoke" data-name="{{.Name}}">Отозвать</a>
+        {{end}}{{end}}
+      </td>
+    </tr>
+    {{else}}
+    <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px">Нет сертификатов</td></tr>
+    {{end}}
+    </tbody>
+  </table>
+  </div>
+</div>
+<script>
+function certConfirm(cls){
+  return function(e){
+    e.preventDefault();
+    var href=this.getAttribute('href'),name=this.getAttribute('data-name')||'сертификат';
+    var msg=cls==='confirm-renew'?'Перевыпустить сертификат "'+name+'"? Файл будет заменён.':'ОТОЗВАТЬ "'+name+'"? Действие необратимо.';
+    var btn=cls==='confirm-renew'?'Перевыпустить':'Отозвать';
+    var title=cls==='confirm-renew'?'Перевыпуск':'Отзыв сертификата';
+    var f=document.createElement('form');
+    f.setAttribute('data-confirm',msg);f.setAttribute('data-confirm-btn',btn);
+    f.setAttribute('data-confirm-class',cls==='confirm-renew'?'warning':'danger');
+    f.setAttribute('data-confirm-title',title);
+    f.submit=function(){window.location.href=href;};
+    document.body.appendChild(f);
+    f.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));
+  };
+}
+document.querySelectorAll('.confirm-renew').forEach(function(el){el.addEventListener('click',certConfirm('confirm-renew'));});
+document.querySelectorAll('.confirm-revoke').forEach(function(el){el.addEventListener('click',certConfirm('confirm-revoke'));});
+</script>
+{{end}}

@@ -1,0 +1,57 @@
+{{define "login.html"}}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Step-CA &middot; Вход</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e8e8e8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh}
+.login-wrap{width:100%;max-width:400px;padding:20px}
+.logo{text-align:center;margin-bottom:32px}
+.logo h1{font-size:28px;font-weight:800;letter-spacing:-1px}
+.logo span{font-size:11px;color:#666;letter-spacing:2px;text-transform:uppercase}
+.card{background:#141414;border:1px solid #222;border-radius:12px;padding:28px}
+.card h2{font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#666;margin-bottom:20px}
+.error{background:rgba(231,76,60,.12);border:1px solid rgba(231,76,60,.25);color:#e74c3c;padding:10px 14px;border-radius:6px;font-size:12px;margin-bottom:16px}
+.form-group{margin-bottom:14px}
+label{display:block;font-size:10px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+input{width:100%;background:#0d0d0d;border:1px solid #222;border-radius:6px;padding:10px 12px;color:#e8e8e8;font-size:13px}
+input:focus{outline:none;border-color:#4493f8}
+.btn{width:100%;padding:11px;background:#4493f8;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;margin-top:6px}
+.btn:hover{background:#3a85e8}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+</style>
+</head>
+<body>
+<div class="login-wrap">
+  <div class="logo">
+    <h1>&#x1F510; Step-CA</h1>
+    <span>Certificate Manager</span>
+  </div>
+  <div class="card">
+    <h2>Вход в систему</h2>
+    {{if .Error}}
+    <div class="error">{{.Error}}</div>
+    {{end}}
+    {{range .Msgs}}
+    <div class="error">{{.Text}}</div>
+    {{end}}
+    <form method="POST" action="/login">
+      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+      <div class="form-group">
+        <label>Логин</label>
+        <input type="text" name="username" required autofocus {{if .Blocked}}disabled{{end}}>
+      </div>
+      <div class="form-group">
+        <label>Пароль</label>
+        <input type="password" name="password" required {{if .Blocked}}disabled{{end}}>
+      </div>
+      <button class="btn" type="submit" {{if .Blocked}}disabled{{end}}>Войти &rarr;</button>
+    </form>
+  </div>
+</div>
+</body>
+</html>
+{{end}}
