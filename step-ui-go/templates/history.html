@@ -3,16 +3,19 @@
   <div><div class="breadcrumb">ca &middot; history</div><h1>История операций</h1></div>
 </div>
 <div class="card" style="margin-bottom:12px">
-  <div class="card-body" style="padding:10px 16px">
-    <form method="GET" action="/history" style="display:flex;gap:10px;align-items:center">
-      <select name="action" style="width:160px">
+  <div class="card-body" style="padding:12px 16px">
+    <form method="GET" action="/history" id="historyForm" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <label style="margin-bottom:0;width:auto">Действие:</label>
+      <select name="action" id="actionFilter" style="width:200px" onchange="document.getElementById('historyForm').submit()">
         <option value="">Все действия</option>
-        <option value="issue" {{if eq .FilterAction "issue"}}selected{{end}}>Выпуск</option>
-        <option value="renew" {{if eq .FilterAction "renew"}}selected{{end}}>Перевыпуск</option>
+        <option value="issue"  {{if eq .FilterAction "issue"}}selected{{end}}>Выпуск</option>
+        <option value="renew"  {{if eq .FilterAction "renew"}}selected{{end}}>Перевыпуск</option>
         <option value="revoke" {{if eq .FilterAction "revoke"}}selected{{end}}>Отзыв</option>
         <option value="import" {{if eq .FilterAction "import"}}selected{{end}}>Импорт</option>
       </select>
-      <button type="submit" class="btn btn-sm">Фильтр</button>
+      {{if .FilterAction}}
+      <a href="/history" class="btn btn-ghost btn-sm">Сбросить</a>
+      {{end}}
       <span style="color:var(--muted);font-size:11px;margin-left:auto">Всего: {{.Total}}</span>
     </form>
   </div>

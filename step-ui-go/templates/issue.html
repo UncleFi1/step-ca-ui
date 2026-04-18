@@ -2,37 +2,187 @@
 <div class="page-header">
   <div><div class="breadcrumb">certificates &middot; issue</div><h1>Выпустить сертификат</h1></div>
 </div>
-<div class="card" style="max-width:560px">
-  <div class="card-header"><h3>Новый сертификат</h3></div>
-  <div class="card-body">
-    <form method="POST" action="/issue">
-      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-      <div class="form-row">
-        <div><label>Название</label><input type="text" name="name" placeholder="my-service" required></div>
-        <div><label>Домен / IP</label><input type="text" name="domain" placeholder="example.com" required></div>
-      </div>
-      <div class="form-row">
-        <div>
-          <label>Срок действия</label>
-          <select name="duration">
-            <option value="8760h">1 год</option>
-            <option value="4380h">6 месяцев</option>
-            <option value="720h">1 месяц</option>
-            <option value="87600h">10 лет</option>
-          </select>
-        </div>
-        <div>
-          <label>Тип ключа</label>
-          <select name="key_type">
-            <option value="EC:P-256">EC P-256 (рекомендуется)</option>
-            <option value="EC:P-384">EC P-384</option>
-            <option value="RSA:2048">RSA 2048</option>
-            <option value="RSA:4096">RSA 4096</option>
-          </select>
+
+<div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(260px,1fr);gap:16px;align-items:start">
+
+  <!-- ═ Основная форма ═ -->
+  <form method="POST" action="/issue" id="issueForm">
+    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+    <input type="hidden" name="key_type" id="keyTypeInput" value="EC:P-256">
+    <input type="hidden" name="duration" id="durationInput" value="8760h">
+
+    <!-- ── Общие поля ── -->
+    <div class="card">
+      <div class="card-header"><h3>Основные параметры</h3></div>
+      <div class="card-body">
+        <div class="form-row">
+          <div>
+            <label>Название</label>
+            <input type="text" name="name" id="fName" placeholder="my-service" autocomplete="off" required>
+          </div>
+          <div>
+            <label>Домен или IP</label>
+            <input type="text" name="domain" id="fDomain" placeholder="example.com" autocomplete="off" required>
+          </div>
         </div>
       </div>
-      <button type="submit" class="btn">&#x2713; Выпустить сертификат</button>
-    </form>
+    </div>
+
+    <!-- ── Тип ключа (карточки) ── -->
+    <div class="card">
+      <div class="card-header"><h3>Тип ключа</h3></div>
+      <div class="card-body">
+        <div class="key-grid">
+          <div class="key-card active" data-val="EC:P-256">
+            <div class="key-title">EC P-256</div>
+            <div class="key-sub">Эллиптическая, 256 бит</div>
+            <div class="key-badge ok">Рекомендуется</div>
+          </div>
+          <div class="key-card" data-val="EC:P-384">
+            <div class="key-title">EC P-384</div>
+            <div class="key-sub">Эллиптическая, 384 бит</div>
+            <div class="key-badge gray">Повышенная</div>
+          </div>
+          <div class="key-card" data-val="RSA:2048">
+            <div class="key-title">RSA 2048</div>
+            <div class="key-sub">Совместимость</div>
+            <div class="key-badge gray">Классика</div>
+          </div>
+          <div class="key-card" data-val="RSA:4096">
+            <div class="key-title">RSA 4096</div>
+            <div class="key-sub">Максимальная защита</div>
+            <div class="key-badge warn">Медленная</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Срок действия (чипы) ── -->
+    <div class="card">
+      <div class="card-header"><h3>Срок действия</h3></div>
+      <div class="card-body">
+        <div class="chip-row">
+          <button type="button" class="chip" data-val="720h">1 месяц</button>
+          <button type="button" class="chip" data-val="4380h">6 месяцев</button>
+          <button type="button" class="chip active" data-val="8760h">1 год</button>
+          <button type="button" class="chip" data-val="87600h">10 лет</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Submit ── -->
+    <button type="submit" class="btn" style="padding:10px 24px;font-size:13px;font-weight:600">
+      Выпустить сертификат
+    </button>
+  </form>
+
+  <!-- ═ Боковая панель — превью ═ -->
+  <div class="card" style="position:sticky;top:16px">
+    <div class="card-header"><h3>Предпросмотр</h3></div>
+    <div class="card-body">
+      <div class="info-row"><div class="info-key">Название</div><div class="info-val"><strong id="pvName" style="color:var(--muted)">—</strong></div></div>
+      <div class="info-row"><div class="info-key">Домен</div><div class="info-val"><code id="pvDomain">—</code></div></div>
+      <div class="info-row"><div class="info-key">Тип ключа</div><div class="info-val"><span class="badge blue" id="pvType">EC P-256</span></div></div>
+      <div class="info-row"><div class="info-key">Срок</div><div class="info-val"><span id="pvDuration">1 год</span></div></div>
+      <div class="info-row"><div class="info-key">Истекает</div><div class="info-val" style="color:var(--muted)" id="pvExpires">—</div></div>
+    </div>
   </div>
 </div>
+
+<style>
+/* Карточки выбора типа ключа */
+.key-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.key-card{
+  border:1px solid var(--border);border-radius:8px;padding:14px 14px;cursor:pointer;
+  transition:border-color .15s,background .15s;background:var(--bg);
+  position:relative;
+}
+.key-card:hover{border-color:var(--muted)}
+.key-card.active{border-color:var(--accent);background:var(--active-nav)}
+.key-card.active::after{
+  content:'';position:absolute;top:8px;right:8px;width:6px;height:6px;
+  border-radius:50%;background:var(--accent);
+}
+.key-title{font-size:13px;font-weight:700;margin-bottom:4px}
+.key-sub{font-size:11px;color:var(--muted);margin-bottom:8px}
+.key-badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.key-badge.ok{background:rgba(39,174,96,.15);color:var(--green)}
+.key-badge.warn{background:rgba(230,126,34,.15);color:var(--warn)}
+.key-badge.gray{background:rgba(102,102,102,.15);color:var(--muted)}
+
+/* Чипы срока */
+.chip-row{display:flex;gap:8px;flex-wrap:wrap}
+.chip{
+  padding:7px 14px;border-radius:20px;border:1px solid var(--border);
+  background:var(--bg);color:var(--text);font-size:12px;cursor:pointer;
+  transition:.15s;font-family:inherit;
+}
+.chip:hover{border-color:var(--muted)}
+.chip.active{border-color:var(--accent);background:var(--active-nav);color:var(--accent);font-weight:600}
+</style>
+
+<script>
+(function(){
+  var DURATIONS = {
+    '720h':    { label: '1 месяц',   days: 30 },
+    '4380h':   { label: '6 месяцев', days: 182 },
+    '8760h':   { label: '1 год',     days: 365 },
+    '87600h':  { label: '10 лет',    days: 3650 }
+  };
+  var KEYTYPE_LABEL = {
+    'EC:P-256':  'EC P-256',
+    'EC:P-384':  'EC P-384',
+    'RSA:2048':  'RSA 2048',
+    'RSA:4096':  'RSA 4096'
+  };
+
+  var pvName     = document.getElementById('pvName');
+  var pvDomain   = document.getElementById('pvDomain');
+  var pvType     = document.getElementById('pvType');
+  var pvDuration = document.getElementById('pvDuration');
+  var pvExpires  = document.getElementById('pvExpires');
+  var keyInput   = document.getElementById('keyTypeInput');
+  var durInput   = document.getElementById('durationInput');
+  var fName      = document.getElementById('fName');
+  var fDomain    = document.getElementById('fDomain');
+
+  function updatePreview(){
+    pvName.textContent    = fName.value   || '—';
+    pvName.style.color    = fName.value   ? 'var(--text)'  : 'var(--muted)';
+    pvDomain.textContent  = fDomain.value || '—';
+    var kt = keyInput.value;
+    pvType.textContent = KEYTYPE_LABEL[kt] || kt;
+    var d = DURATIONS[durInput.value];
+    if(d){
+      pvDuration.textContent = d.label;
+      var exp = new Date(Date.now() + d.days * 86400000);
+      pvExpires.textContent = exp.toISOString().slice(0,10);
+    }
+  }
+
+  // Карточки типа ключа
+  document.querySelectorAll('.key-card').forEach(function(card){
+    card.addEventListener('click', function(){
+      document.querySelectorAll('.key-card').forEach(function(c){c.classList.remove('active');});
+      this.classList.add('active');
+      keyInput.value = this.getAttribute('data-val');
+      updatePreview();
+    });
+  });
+
+  // Чипы срока
+  document.querySelectorAll('.chip').forEach(function(chip){
+    chip.addEventListener('click', function(){
+      document.querySelectorAll('.chip').forEach(function(c){c.classList.remove('active');});
+      this.classList.add('active');
+      durInput.value = this.getAttribute('data-val');
+      updatePreview();
+    });
+  });
+
+  fName.addEventListener('input', updatePreview);
+  fDomain.addEventListener('input', updatePreview);
+  updatePreview();
+})();
+</script>
 {{end}}

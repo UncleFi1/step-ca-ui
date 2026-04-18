@@ -2,144 +2,296 @@
 <div class="page-header">
   <div><div class="breadcrumb">certificates &middot; import</div><h1>Импорт сертификатов</h1></div>
 </div>
+
 <div class="tabs">
-  <a href="/import?tab=upload" class="tab {{if or (eq .ActiveTab "upload") (eq .ActiveTab "")}}active{{end}}">&#x2B06; Загрузить файл</a>
-  <a href="/import?tab=scan" class="tab {{if eq .ActiveTab "scan"}}active{{end}}">&#x1F50D; Сканировать сервер</a>
-  <a href="/import?tab=manual" class="tab {{if eq .ActiveTab "manual"}}active{{end}}">&#x270E; Вручную</a>
+  <a href="/import?tab=upload" class="tab {{if or (eq .ActiveTab "upload") (eq .ActiveTab "")}}active{{end}}">Загрузить файл</a>
+  <a href="/import?tab=scan"   class="tab {{if eq .ActiveTab "scan"}}active{{end}}">Сканировать сервер</a>
+  <a href="/import?tab=manual" class="tab {{if eq .ActiveTab "manual"}}active{{end}}">Вручную</a>
 </div>
 
 {{if or (eq .ActiveTab "upload") (eq .ActiveTab "")}}
-<div class="card" style="max-width:580px">
+<!-- ═══ UPLOAD ═══ -->
+<div class="card" style="max-width:720px">
   <div class="card-header"><h3>Загрузить с компьютера</h3></div>
   <div class="card-body">
     <form method="POST" action="/import" enctype="multipart/form-data" id="uploadForm">
       <input type="hidden" name="action" value="upload">
       <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
       <div class="form-row">
-        <div><label>Название</label><input type="text" name="name" id="certName" placeholder="my-cert" required></div>
-        <div><label>Домен</label><input type="text" name="domain" id="certDomain" placeholder="example.com" required></div>
+        <div><label>Название</label><input type="text" name="name" id="certName" placeholder="my-cert" required autocomplete="off"></div>
+        <div><label>Домен</label><input type="text" name="domain" id="certDomain" placeholder="example.com" required autocomplete="off"></div>
       </div>
 
-      <!-- Drag & Drop зона для .crt -->
+      <!-- Drop-зона для .crt -->
       <div class="form-full">
-        <label>Файл .crt</label>
-        <div class="drop-zone" id="dropCrt" onclick="document.getElementById('cert_file').click()">
-          <div class="drop-icon">&#x1F4DC;</div>
-          <div class="drop-text" id="dropCrtText">Перетащите .crt файл сюда или нажмите для выбора</div>
-          <div class="drop-hint">.crt, .pem</div>
+        <label>Файл сертификата (.crt)</label>
+        <div class="drop-zone" id="dropCrt" data-accept=".crt,.pem">
+          <div class="drop-empty">
+            <div class="drop-cloud">
+              <svg viewBox="0 0 48 48" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 30a7 7 0 0 1 2-13.7 10 10 0 0 1 19 2 7 7 0 0 1 1 13.7z"/>
+                <path d="M24 22v12M19 27l5-5 5 5"/>
+              </svg>
+            </div>
+            <div class="drop-title">Перетащите .crt сюда</div>
+            <div class="drop-hint">или <span class="drop-pick">нажмите для выбора</span></div>
+            <div class="drop-accept">.crt &middot; .pem</div>
+          </div>
+          <div class="drop-loaded" style="display:none">
+            <div class="file-preview">
+              <div class="file-icon">
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                </svg>
+              </div>
+              <div class="file-info">
+                <div class="file-name"></div>
+                <div class="file-size"></div>
+              </div>
+              <button type="button" class="file-remove" title="Убрать">&times;</button>
+            </div>
+          </div>
+          <input type="file" name="cert_file" accept=".crt,.pem" required hidden>
         </div>
-        <input type="file" name="cert_file" id="cert_file" accept=".crt,.pem" required style="display:none">
       </div>
 
-      <!-- Drag & Drop зона для .key -->
+      <!-- Drop-зона для .key -->
       <div class="form-full">
-        <label>Файл .key <span style="color:var(--muted)">(опционально)</span></label>
-        <div class="drop-zone" id="dropKey" onclick="document.getElementById('key_file').click()">
-          <div class="drop-icon">&#x1F511;</div>
-          <div class="drop-text" id="dropKeyText">Перетащите .key файл сюда или нажмите для выбора</div>
-          <div class="drop-hint">.key, .pem</div>
+        <label>Файл ключа (.key) <span style="color:var(--muted);font-weight:400;text-transform:none">— опционально</span></label>
+        <div class="drop-zone" id="dropKey" data-accept=".key,.pem">
+          <div class="drop-empty">
+            <div class="drop-cloud">
+              <svg viewBox="0 0 48 48" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="18" cy="24" r="6"/>
+                <path d="M24 24h18M36 24v6M42 24v4"/>
+              </svg>
+            </div>
+            <div class="drop-title">Перетащите .key сюда</div>
+            <div class="drop-hint">или <span class="drop-pick">нажмите для выбора</span></div>
+            <div class="drop-accept">.key &middot; .pem</div>
+          </div>
+          <div class="drop-loaded" style="display:none">
+            <div class="file-preview">
+              <div class="file-icon">
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="8" cy="12" r="4"/>
+                  <path d="M12 12h10M18 12v4"/>
+                </svg>
+              </div>
+              <div class="file-info">
+                <div class="file-name"></div>
+                <div class="file-size"></div>
+              </div>
+              <button type="button" class="file-remove" title="Убрать">&times;</button>
+            </div>
+          </div>
+          <input type="file" name="key_file" accept=".key,.pem" hidden>
         </div>
-        <input type="file" name="key_file" id="key_file" accept=".key,.pem" style="display:none">
       </div>
 
-      <button type="submit" class="btn">&#x2B06; Загрузить</button>
+      <button type="submit" class="btn" style="padding:10px 24px;font-weight:600">Загрузить</button>
     </form>
   </div>
 </div>
-
-<style>
-.drop-zone{
-  border:2px dashed var(--border);border-radius:8px;padding:24px 16px;
-  text-align:center;cursor:pointer;transition:.2s;background:var(--bg);
-  user-select:none;
-}
-.drop-zone:hover,.drop-zone.drag-over{
-  border-color:var(--accent);background:rgba(68,147,248,.05);
-}
-.drop-zone.has-file{
-  border-color:var(--green);background:rgba(39,174,96,.05);
-}
-.drop-icon{font-size:28px;margin-bottom:6px}
-.drop-text{font-size:12px;color:var(--muted);margin-bottom:4px}
-.drop-hint{font-size:10px;color:var(--border);font-family:var(--mono)}
-.drop-zone.has-file .drop-text{color:var(--green)}
-</style>
-
-<script>
-function setupDrop(zoneId, inputId, textId) {
-  var zone = document.getElementById(zoneId);
-  var input = document.getElementById(inputId);
-  var text = document.getElementById(textId);
-
-  input.addEventListener('change', function() {
-    if (this.files[0]) {
-      text.textContent = '✓ ' + this.files[0].name;
-      zone.classList.add('has-file');
-      zone.classList.remove('drag-over');
-      // Автозаполнение имени из файла если поле пустое
-      if (zoneId === 'dropCrt') {
-        var nameField = document.getElementById('certName');
-        if (!nameField.value) {
-          nameField.value = this.files[0].name.replace(/\.(crt|pem)$/i, '');
-        }
-      }
-    }
-  });
-
-  zone.addEventListener('dragover', function(e) {
-    e.preventDefault();
-    this.classList.add('drag-over');
-  });
-  zone.addEventListener('dragleave', function() {
-    this.classList.remove('drag-over');
-  });
-  zone.addEventListener('drop', function(e) {
-    e.preventDefault();
-    this.classList.remove('drag-over');
-    var file = e.dataTransfer.files[0];
-    if (!file) return;
-    var dt = new DataTransfer();
-    dt.items.add(file);
-    input.files = dt.files;
-    input.dispatchEvent(new Event('change'));
-  });
-}
-
-setupDrop('dropCrt', 'cert_file', 'dropCrtText');
-setupDrop('dropKey', 'key_file', 'dropKeyText');
-</script>
 {{end}}
 
 {{if eq .ActiveTab "scan"}}
+<!-- ═══ SCAN ═══ -->
 <div class="card" style="max-width:560px">
   <div class="card-header"><h3>Сканировать сервер</h3></div>
   <div class="card-body">
-    <p style="color:var(--muted);margin-bottom:16px;font-size:12px">Найдено незарегистрированных: <strong>{{len .Unregistered}}</strong></p>
+    <p style="color:var(--muted);margin-bottom:16px;font-size:12px">
+      Найдено незарегистрированных: <strong style="color:var(--text)">{{len .Unregistered}}</strong>
+    </p>
     <form method="POST" action="/import">
       <input type="hidden" name="action" value="scan">
       <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-      <button type="submit" class="btn">&#x1F50D; Сканировать и импортировать</button>
+      <button type="submit" class="btn">Сканировать и импортировать</button>
     </form>
   </div>
 </div>
 {{end}}
 
 {{if eq .ActiveTab "manual"}}
-<div class="card" style="max-width:560px">
+<!-- ═══ MANUAL ═══ -->
+<div class="card" style="max-width:720px">
   <div class="card-header"><h3>Указать путь вручную</h3></div>
   <div class="card-body">
     <form method="POST" action="/import">
       <input type="hidden" name="action" value="manual">
       <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
       <div class="form-row">
-        <div><label>Название</label><input type="text" name="name" required></div>
-        <div><label>Домен</label><input type="text" name="domain" required></div>
+        <div><label>Название</label><input type="text" name="name" id="manName" placeholder="my-cert" required autocomplete="off"></div>
+        <div><label>Домен</label><input type="text" name="domain" placeholder="example.com" required autocomplete="off"></div>
       </div>
-      <div class="form-full"><label>Путь к .crt</label><input type="text" name="cert_path" placeholder="/opt/step-ui/certs/name/certificate.crt" required></div>
-      <div class="form-full"><label>Путь к .key (опционально)</label><input type="text" name="key_path" placeholder="/opt/step-ui/certs/name/private.key"></div>
-      <button type="submit" class="btn">Импортировать</button>
+
+      <div class="form-full">
+        <label>Путь к .crt</label>
+        <div class="path-input-wrap">
+          <span class="path-prefix">/</span>
+          <input type="text" name="cert_path" id="manCrtPath" placeholder="opt/step-ui/certs/my-cert/certificate.crt" required autocomplete="off">
+        </div>
+        <div class="input-hint">Абсолютный путь до файла на сервере</div>
+      </div>
+
+      <div class="form-full">
+        <label>Путь к .key <span style="color:var(--muted);font-weight:400;text-transform:none">— опционально</span></label>
+        <div class="path-input-wrap">
+          <span class="path-prefix">/</span>
+          <input type="text" name="key_path" id="manKeyPath" placeholder="opt/step-ui/certs/my-cert/private.key" autocomplete="off">
+        </div>
+        <div class="input-hint">Если ключ хранится отдельно</div>
+      </div>
+
+      <button type="submit" class="btn" style="padding:10px 24px;font-weight:600">Импортировать</button>
     </form>
   </div>
 </div>
 {{end}}
+
+<style>
+/* ── Drop-зоны ───────────────────────────────────────────────────────── */
+.drop-zone{
+  position:relative;border:2px dashed var(--border);border-radius:10px;
+  background:var(--bg);cursor:pointer;transition:border-color .2s,background .2s,padding .2s;
+  user-select:none;overflow:hidden;
+}
+.drop-zone:hover{border-color:var(--muted)}
+.drop-zone.drag-over{border-color:var(--accent);background:var(--active-nav)}
+.drop-zone.has-file{border-color:var(--green);border-style:solid;background:rgba(39,174,96,.04);cursor:default}
+
+/* Пустое состояние — крупное, с облаком */
+.drop-empty{
+  padding:28px 16px;text-align:center;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+}
+.drop-cloud{color:var(--muted);margin-bottom:2px;transition:.2s}
+.drop-zone:hover .drop-cloud,.drop-zone.drag-over .drop-cloud{color:var(--accent)}
+.drop-title{font-size:13px;font-weight:600;color:var(--text)}
+.drop-hint{font-size:12px;color:var(--muted)}
+.drop-pick{color:var(--accent);text-decoration:underline;cursor:pointer}
+.drop-accept{font-size:10px;color:var(--muted);font-family:var(--mono);letter-spacing:.5px;margin-top:4px;opacity:.7}
+
+/* Загруженное состояние — компактная карточка */
+.drop-loaded{padding:14px 16px}
+.file-preview{display:flex;align-items:center;gap:12px}
+.file-icon{
+  width:42px;height:42px;border-radius:8px;background:rgba(39,174,96,.12);
+  color:var(--green);display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.file-info{flex:1;min-width:0}
+.file-name{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.file-size{font-size:11px;color:var(--muted);margin-top:2px;font-family:var(--mono)}
+.file-remove{
+  width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:transparent;
+  color:var(--muted);cursor:pointer;font-size:18px;line-height:1;transition:.15s;flex-shrink:0;
+}
+.file-remove:hover{border-color:var(--danger);color:var(--danger);background:rgba(231,76,60,.08)}
+
+/* ── Поле ввода пути ──────────────────────────────────────────────── */
+.path-input-wrap{
+  display:flex;align-items:stretch;border:1px solid var(--border);border-radius:6px;
+  background:var(--bg);overflow:hidden;transition:border-color .15s;
+}
+.path-input-wrap:focus-within{border-color:var(--accent)}
+.path-prefix{
+  padding:0 12px;display:flex;align-items:center;color:var(--muted);
+  font-family:var(--mono);font-size:12px;background:rgba(0,0,0,.15);
+  border-right:1px solid var(--border);
+}
+.path-input-wrap input{border:none;border-radius:0;background:transparent;flex:1;font-family:var(--mono);font-size:12px}
+.path-input-wrap input:focus{border:none}
+.input-hint{font-size:10px;color:var(--muted);margin-top:5px}
+</style>
+
+<script>
+function fmtSize(bytes){
+  if(bytes < 1024) return bytes + ' B';
+  if(bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/(1024*1024)).toFixed(2) + ' MB';
+}
+
+function setupDropZone(zone){
+  if(!zone) return;
+  var input   = zone.querySelector('input[type="file"]');
+  var emptyEl = zone.querySelector('.drop-empty');
+  var loaded  = zone.querySelector('.drop-loaded');
+  var nameEl  = loaded ? loaded.querySelector('.file-name') : null;
+  var sizeEl  = loaded ? loaded.querySelector('.file-size') : null;
+  var removeB = loaded ? loaded.querySelector('.file-remove') : null;
+
+  function showLoaded(file){
+    if(nameEl) nameEl.textContent = file.name;
+    if(sizeEl) sizeEl.textContent = fmtSize(file.size);
+    if(emptyEl) emptyEl.style.display = 'none';
+    if(loaded) loaded.style.display = 'block';
+    zone.classList.add('has-file');
+    // автозаполнение имени для .crt
+    if(zone.id === 'dropCrt'){
+      var nameField = document.getElementById('certName');
+      if(nameField && !nameField.value){
+        nameField.value = file.name.replace(/\.(crt|pem|cer)$/i, '');
+      }
+    }
+  }
+  function showEmpty(){
+    input.value = '';
+    if(emptyEl) emptyEl.style.display = 'flex';
+    if(loaded) loaded.style.display = 'none';
+    zone.classList.remove('has-file');
+  }
+
+  zone.addEventListener('click', function(e){
+    if(zone.classList.contains('has-file')) return;
+    if(e.target.closest('.file-remove')) return;
+    input.click();
+  });
+  input.addEventListener('change', function(){
+    if(this.files && this.files[0]) showLoaded(this.files[0]);
+  });
+  if(removeB){
+    removeB.addEventListener('click', function(e){
+      e.stopPropagation();
+      showEmpty();
+    });
+  }
+  zone.addEventListener('dragover', function(e){
+    e.preventDefault();
+    if(!zone.classList.contains('has-file')) zone.classList.add('drag-over');
+  });
+  zone.addEventListener('dragleave', function(){ zone.classList.remove('drag-over'); });
+  zone.addEventListener('drop', function(e){
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    if(zone.classList.contains('has-file')) return;
+    var file = e.dataTransfer.files[0];
+    if(!file) return;
+    var dt = new DataTransfer();
+    dt.items.add(file);
+    input.files = dt.files;
+    showLoaded(file);
+  });
+}
+document.querySelectorAll('.drop-zone').forEach(setupDropZone);
+
+// Автозаполнение пути из имени в manual-вкладке
+(function(){
+  var manName = document.getElementById('manName');
+  var crt = document.getElementById('manCrtPath');
+  var key = document.getElementById('manKeyPath');
+  if(!manName || !crt) return;
+  var crtTouched = false, keyTouched = false;
+  if(crt) crt.addEventListener('input', function(){ crtTouched = true; });
+  if(key) key.addEventListener('input', function(){ keyTouched = true; });
+  manName.addEventListener('input', function(){
+    var v = this.value.trim();
+    if(!v) return;
+    if(!crtTouched) crt.value = 'opt/step-ui/certs/' + v + '/certificate.crt';
+    if(key && !keyTouched) key.value = 'opt/step-ui/certs/' + v + '/private.key';
+  });
+})();
+</script>
 {{end}}

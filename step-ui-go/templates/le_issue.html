@@ -1,0 +1,82 @@
+{{define "content"}}
+<div class="page-header">
+  <div><div class="breadcrumb">let's encrypt &middot; issue</div><h1>Выпустить LE сертификат</h1></div>
+  <a href="/le" class="btn btn-ghost">&larr; Назад</a>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+<div class="card">
+  <div class="card-header"><h3>Новый сертификат</h3></div>
+  <div class="card-body">
+    <form method="POST" action="/le/issue">
+      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+      <div class="form-full">
+        <label>Домен</label>
+        <input type="text" name="domain" placeholder="example.com" required>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px">Домен должен быть публично доступен</div>
+      </div>
+      <div class="form-full">
+        <label>Email</label>
+        <input type="email" name="email" placeholder="admin@example.com"
+          value="{{if .LESettings}}{{.LESettings.Email}}{{end}}" required>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px">Для уведомлений Let's Encrypt</div>
+      </div>
+      <div class="form-full">
+        <label>Challenge провайдер</label>
+        <select name="provider" id="providerSelect" onchange="showProviderHelp(this.value)">
+          <option value="http01" {{if eq .LESettings.Provider "http01"}}selected{{end}}>HTTP-01 (порт 80 должен быть открыт)</option>
+          <option value="cloudflare" {{if eq .LESettings.Provider "cloudflare"}}selected{{end}}>DNS-01 &mdash; Cloudflare</option>
+          <option value="route53" {{if eq .LESettings.Provider "route53"}}selected{{end}}>DNS-01 &mdash; AWS Route53</option>
+        </select>
+      </div>
+      <div id="helpHttp01" class="le-help">
+        <strong>HTTP-01:</strong> Let's Encrypt обратится на <code>http://example.com/.well-known/acme-challenge/</code>.
+        Порт 80 должен быть открыт и доступен из интернета.
+      </div>
+      <div id="helpCloudflare" class="le-help" style="display:none">
+        <strong>DNS-01 Cloudflare:</strong> Автоматически создаёт TXT запись через Cloudflare API.
+        Настрой API Token в <a href="/le/settings" style="color:var(--accent)">Настройках</a>.
+      </div>
+      <div id="helpRoute53" class="le-help" style="display:none">
+        <strong>DNS-01 Route53:</strong> Автоматически создаёт TXT запись через AWS Route53.
+        Настрой ключи в <a href="/le/settings" style="color:var(--accent)">Настройках</a>.
+      </div>
+      <div class="form-full" style="margin-top:12px">
+        <label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:12px">
+          <input type="checkbox" name="auto_renew" checked style="width:auto">
+          Авто-обновление за 30 дней до истечения
+        </label>
+      </div>
+      <button type="submit" class="btn" style="margin-top:8px">&#x1F512; Выпустить сертификат</button>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header"><h3>&#x2139; Как это работает</h3></div>
+  <div class="card-body">
+    <div style="font-size:12px;color:var(--muted);line-height:1.8">
+      <p style="margin-bottom:12px">Let's Encrypt выпускает бесплатные SSL сертификаты для публичных доменов сроком на <strong style="color:var(--text)">90 дней</strong>.</p>
+      <div style="margin-bottom:8px"><span class="badge ok">HTTP-01</span></div>
+      <p style="margin-bottom:12px">Подходит если сервер доступен из интернета на порту 80.</p>
+      <div style="margin-bottom:8px"><span class="badge blue">DNS-01</span></div>
+      <p style="margin-bottom:12px">Подходит для любых доменов. Требует доступ к DNS через API.</p>
+      <hr style="border-color:var(--border);margin:12px 0">
+      <p>&#x21BB; Авто-обновление проверяет сертификаты каждые 24 часа и обновляет за 30 дней до истечения.</p>
+    </div>
+  </div>
+</div>
+</div>
+
+<style>
+.le-help{background:rgba(68,147,248,.08);border:1px solid rgba(68,147,248,.2);border-radius:6px;padding:10px 12px;font-size:11px;color:var(--muted);margin-top:4px;line-height:1.6}
+</style>
+<script>
+function showProviderHelp(v){
+  document.querySelectorAll('.le-help').forEach(function(el){el.style.display='none';});
+  var m={'http01':'helpHttp01','cloudflare':'helpCloudflare','route53':'helpRoute53'};
+  if(m[v]) document.getElementById(m[v]).style.display='block';
+}
+showProviderHelp(document.getElementById('providerSelect').value);
+</script>
+{{end}}

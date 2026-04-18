@@ -1,0 +1,96 @@
+{{define "content"}}
+<div class="page-header">
+  <div><div class="breadcrumb">let's encrypt</div><h1>&#x1F512; Let's Encrypt</h1></div>
+  <div style="display:flex;gap:8px">
+    <a href="/le/settings" class="btn btn-ghost">&#x2699; Настройки</a>
+    <a href="/le/issue" class="btn">+ Выпустить сертификат</a>
+  </div>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card"><div class="stat-label">Всего сертификатов</div><div class="stat-value">{{.LETotal}}</div></div>
+  <div class="stat-card"><div class="stat-label">Активных</div><div class="stat-value ok">{{.LEActive}}</div></div>
+  <div class="stat-card"><div class="stat-label">Истекают (30д)</div><div class="stat-value warn">{{.LEExpiring}}</div></div>
+  <div class="stat-card"><div class="stat-label">Просроченных</div><div class="stat-value danger">{{.LEExpired}}</div></div>
+</div>
+
+<div class="card">
+  <div class="card-header"><h3>Сертификаты Let's Encrypt</h3></div>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr><th>Домен</th><th>Email</th><th>Провайдер</th><th>Выдан</th><th>Истекает</th><th>Статус</th><th>Авто</th><th>Действия</th></tr></thead>
+    <tbody>
+    {{range .LECerts}}
+    <tr>
+      <td><strong>{{.Domain}}</strong></td>
+      <td style="color:var(--muted)">{{.Email}}</td>
+      <td><span class="badge gray">{{.Provider}}</span></td>
+      <td style="color:var(--muted)">{{fmtTime .IssuedAt}}</td>
+      <td>{{fmtTime .ExpiresAt}}</td>
+      <td>
+        {{if eq .Status "active"}}<span class="badge ok">&#x2713; активен</span>
+        {{else if eq .Status "pending"}}<span class="badge blue">&#x23F3; выпускается</span>
+        {{else if eq .Status "error"}}<span class="badge danger" title="{{.LastError}}">&#x2715; ошибка</span>
+        {{else}}<span class="badge gray">{{.Status}}</span>{{end}}
+      </td>
+      <td>
+        <form method="POST" action="/le/{{.ID}}/autorenew" style="display:inline">
+          <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+          <button type="submit" class="btn btn-sm {{if .AutoRenew}}btn-success{{else}}btn-ghost{{end}}" title="{{if .AutoRenew}}Авто-обновление включено{{else}}Авто-обновление выключено{{end}}">
+            {{if .AutoRenew}}&#x21BB; Авто{{else}}&#x23F8; Выкл{{end}}
+          </button>
+        </form>
+      </td>
+      <td style="display:flex;gap:4px;flex-wrap:wrap">
+        {{if eq .Status "active"}}
+        <a href="/le/download/cert/{{.ID}}" class="btn btn-ghost btn-sm">CRT</a>
+        <a href="/le/download/key/{{.ID}}" class="btn btn-ghost btn-sm">KEY</a>
+        {{end}}
+        <form method="POST" action="/le/{{.ID}}/renew" style="display:inline"
+          data-confirm="Перевыпустить сертификат для {{.Domain}}?"
+          data-confirm-btn="Перевыпустить" data-confirm-class="warning" data-confirm-title="Обновление LE сертификата">
+          <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+          <button type="submit" class="btn btn-warn btn-sm">&#x21BA;</button>
+        </form>
+        <form method="POST" action="/le/{{.ID}}/delete" style="display:inline"
+          data-confirm="Удалить сертификат для {{.Domain}}? Файлы останутся на диске."
+          data-confirm-btn="Удалить" data-confirm-title="Удаление LE сертификата">
+          <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+          <button type="submit" class="btn btn-danger btn-sm">&#x2715;</button>
+        </form>
+      </td>
+    </tr>
+    {{else}}
+    <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:32px">
+      Нет сертификатов. <a href="/le/issue" style="color:var(--accent)">Выпустить первый</a>
+    </td></tr>
+    {{end}}
+    </tbody>
+  </table>
+  </div>
+</div>
+
+{{if .LELogs}}
+<div class="card">
+  <div class="card-header">
+    <h3>Последние события</h3>
+    <a href="/le/logs" style="font-size:11px;color:var(--accent)">Все логи &rarr;</a>
+  </div>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr><th>Время</th><th>Домен</th><th>Событие</th><th>Сообщение</th></tr></thead>
+    <tbody>
+    {{range .LELogs}}
+    <tr>
+      <td style="color:var(--muted);font-size:11px">{{fmtLog .CreatedAt}}</td>
+      <td><code>{{.Domain}}</code></td>
+      <td><span class="badge {{if eq .Action "error"}}danger{{else if eq .Action "issue"}}ok{{else if eq .Action "renew"}}blue{{else}}gray{{end}}">{{.Action}}</span></td>
+      <td style="color:var(--muted)">{{.Message}}</td>
+    </tr>
+    {{end}}
+    </tbody>
+  </table>
+  </div>
+</div>
+{{end}}
+{{end}}

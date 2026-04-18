@@ -14,6 +14,15 @@ import (
 	"step-ui/security"
 )
 
+var StartedAt time.Time
+
+// Версионирование — переопределяется через ldflags при сборке
+var (
+	Version   = "1.1.0"
+	BuildDate = "2026-04-18"
+	GitCommit = "d9ce23e"
+)
+
 type Handler struct {
 	db    *sql.DB
 	cfg   *config.Config
@@ -33,6 +42,7 @@ func (h *Handler) loadTemplates() {
 		"dashboard", "certificates", "issue", "import",
 		"provisioners", "history", "users", "user_profile",
 		"profile", "security_log",
+		"le_dashboard", "le_issue", "le_settings", "le_logs",
 	}
 	for _, page := range pages {
 		t, err := template.New("base.html").Funcs(funcs).ParseFiles(

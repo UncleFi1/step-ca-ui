@@ -1,6 +1,7 @@
 package main
 
 import (
+	"time"
 	"encoding/gob"
 	"crypto/sha256"
 	"crypto/tls"
@@ -16,10 +17,12 @@ import (
 	"step-ui/config"
 	"step-ui/db"
 	"step-ui/handlers"
+	"step-ui/le"
 	mw "step-ui/middleware"
 )
 
 func main() {
+	handlers.StartedAt = time.Now()
 	// Регистрируем типы для gob (gorilla/sessions)
 	gob.Register(int(0))
 	gob.Register(int64(0))
@@ -36,6 +39,9 @@ func main() {
 	if err := db.InitSchema(conn); err != nil {
 		log.Fatalf("Cannot init DB schema: %v", err)
 	}
+	if err := db.InitLESchema(conn); err != nil {
+		log.Fatalf("Cannot init LE schema: %v", err)
+	}
 
 	// ─── Sessions ────────────────────────────────────────────────────────────
 	hashKey := sha256.Sum256([]byte(cfg.SecretKey))
@@ -50,6 +56,9 @@ func main() {
 
 	// ─── Handlers ────────────────────────────────────────────────────────────
 	h := handlers.New(conn, cfg, store)
+
+	// ─── Let's Encrypt auto-renewer ──────────────────────────────────────────
+	le.StartRenewer(conn)
 
 	// ─── Router ──────────────────────────────────────────────────────────────
 	r := chi.NewRouter()
@@ -105,6 +114,22 @@ func main() {
 			r.Post("/users",       h.UsersPost)
 			r.Get("/users/{id}",   h.UserProfile)
 			r.Get("/security",     h.SecurityLog)
+		})
+
+		// Let's Encrypt (manager+)
+		r.Group(func(r chi.Router) {
+			r.Use(mw.RequireRole("manager", store))
+			r.Get("/le",                      h.LEDashboard)
+			r.Get("/le/issue",                h.LEIssueGet)
+			r.Post("/le/issue",               h.LEIssuePost)
+			r.Post("/le/{id}/renew",          h.LERenew)
+			r.Post("/le/{id}/delete",         h.LEDelete)
+			r.Post("/le/{id}/autorenew",      h.LEToggleAutoRenew)
+			r.Get("/le/download/cert/{id}",   h.LEDownloadCert)
+			r.Get("/le/download/key/{id}",    h.LEDownloadKey)
+			r.Get("/le/settings",             h.LESettingsGet)
+			r.Post("/le/settings",            h.LESettingsPost)
+			r.Get("/le/logs",                 h.LELogs)
 		})
 
 		// Профиль (любой авторизованный)

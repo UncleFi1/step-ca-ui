@@ -1,0 +1,81 @@
+{{define "content"}}
+<div class="page-header">
+  <div><div class="breadcrumb">let's encrypt &middot; settings</div><h1>Настройки Let's Encrypt</h1></div>
+  <a href="/le" class="btn btn-ghost">&larr; Назад</a>
+</div>
+
+<div style="max-width:600px">
+<div class="card">
+  <div class="card-header"><h3>Общие настройки</h3></div>
+  <div class="card-body">
+    <form method="POST" action="/le/settings">
+      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+      <div class="form-full">
+        <label>Email для уведомлений</label>
+        <input type="email" name="email" placeholder="admin@example.com"
+          value="{{if .LESettings}}{{.LESettings.Email}}{{end}}">
+        <div style="font-size:10px;color:var(--muted);margin-top:4px">Let's Encrypt будет слать уведомления об истечении сертификатов</div>
+      </div>
+      <div class="form-full">
+        <label>Провайдер по умолчанию</label>
+        <select name="provider" onchange="showSettings(this.value)">
+          <option value="http01" {{if eq .LESettings.Provider "http01"}}selected{{end}}>HTTP-01</option>
+          <option value="cloudflare" {{if eq .LESettings.Provider "cloudflare"}}selected{{end}}>DNS-01 &mdash; Cloudflare</option>
+          <option value="route53" {{if eq .LESettings.Provider "route53"}}selected{{end}}>DNS-01 &mdash; AWS Route53</option>
+        </select>
+      </div>
+
+      <!-- Cloudflare -->
+      <div id="cfSettings" style="display:none">
+        <hr style="border-color:var(--border);margin:12px 0">
+        <div style="font-size:11px;color:var(--accent);margin-bottom:10px">&#x2601; Cloudflare DNS настройки</div>
+        <div class="form-full">
+          <label>API Token</label>
+          <input type="password" name="cf_token" placeholder="Cloudflare API Token"
+            value="{{if .LESettings}}{{.LESettings.CFToken}}{{end}}">
+          <div style="font-size:10px;color:var(--muted);margin-top:4px">Permissions: Zone DNS Edit</div>
+        </div>
+        <div class="form-full">
+          <label>Zone ID (опционально)</label>
+          <input type="text" name="cf_zone_id" placeholder="Cloudflare Zone ID"
+            value="{{if .LESettings}}{{.LESettings.CFZoneID}}{{end}}">
+        </div>
+      </div>
+
+      <!-- Route53 -->
+      <div id="r53Settings" style="display:none">
+        <hr style="border-color:var(--border);margin:12px 0">
+        <div style="font-size:11px;color:var(--warn);margin-bottom:10px">&#x2601; AWS Route53 настройки</div>
+        <div class="form-row">
+          <div>
+            <label>Access Key ID</label>
+            <input type="text" name="r53_key_id" placeholder="AKIAIOSFODNN7EXAMPLE"
+              value="{{if .LESettings}}{{.LESettings.R53KeyID}}{{end}}">
+          </div>
+          <div>
+            <label>Region</label>
+            <input type="text" name="r53_region" placeholder="us-east-1"
+              value="{{if .LESettings}}{{.LESettings.R53Region}}{{end}}">
+          </div>
+        </div>
+        <div class="form-full">
+          <label>Secret Access Key</label>
+          <input type="password" name="r53_secret" placeholder="AWS Secret Access Key"
+            value="{{if .LESettings}}{{.LESettings.R53SecretKey}}{{end}}">
+        </div>
+      </div>
+
+      <button type="submit" class="btn" style="margin-top:8px">&#x2713; Сохранить настройки</button>
+    </form>
+  </div>
+</div>
+</div>
+
+<script>
+function showSettings(v){
+  document.getElementById('cfSettings').style.display = v==='cloudflare' ? 'block' : 'none';
+  document.getElementById('r53Settings').style.display = v==='route53' ? 'block' : 'none';
+}
+showSettings('{{if .LESettings}}{{.LESettings.Provider}}{{else}}http01{{end}}');
+</script>
+{{end}}

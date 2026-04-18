@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"database/sql"
+	"time"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -27,13 +29,77 @@ func (h *Handler) Dashboard(w http.ResponseWriter, r *http.Request) {
 			okC++
 		}
 	}
+
+	// ── Активность CA за периоды ──
+	act := map[string]map[string]int{
+		"24h":  dashCountActions(h.db, 24*time.Hour),
+		"7d":   dashCountActions(h.db, 7*24*time.Hour),
+		"30d":  dashCountActions(h.db, 30*24*time.Hour),
+	}
+
+	// ── Общая статистика ──
+	var allCerts, leCerts, usersCount int
+	h.db.QueryRow("SELECT COUNT(*) FROM certificates").Scan(&allCerts)
+	h.db.QueryRow("SELECT COUNT(*) FROM le_certificates").Scan(&leCerts)
+	h.db.QueryRow("SELECT COUNT(*) FROM users WHERE is_active = true").Scan(&usersCount)
+
+	// ── Аптайм сервера ──
+	uptime := time.Since(StartedAt)
+
 	data := h.base(w, r, "dash")
-	data["Certs"] = certs
-	data["Total"] = total
-	data["OkC"] = okC
-	data["WarnC"] = warnC
-	data["ExpC"] = expC
+	data["Certs"]       = certs
+	data["Total"]       = total
+	data["OkC"]         = okC
+	data["WarnC"]       = warnC
+	data["ExpC"]        = expC
+	data["Activity"]    = act
+	data["AllCerts"]    = allCerts
+	data["LECerts"]     = leCerts
+	data["UsersCount"]  = usersCount
+	data["Uptime"]      = fmtUptime(uptime)
+	data["StartedAt"]   = StartedAt.Format("2006-01-02 15:04")
+	data["Version"]     = Version
+	data["BuildDate"]   = BuildDate
+	data["GitCommit"]   = GitCommit
 	h.render(w, "dashboard", data)
+}
+
+// ─── helper: считает действия по типам за последний период ──────────────────
+func dashCountActions(db *sql.DB, since time.Duration) map[string]int {
+	result := map[string]int{"issue": 0, "renew": 0, "revoke": 0, "import": 0, "total": 0}
+	rows, err := db.Query(
+		`SELECT action, COUNT(*) FROM cert_history WHERE created_at >= $1 GROUP BY action`,
+		time.Now().Add(-since),
+	)
+	if err != nil {
+		return result
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var action string
+		var count int
+		if err := rows.Scan(&action, &count); err == nil {
+			if _, ok := result[action]; ok {
+				result[action] = count
+			}
+			result["total"] += count
+		}
+	}
+	return result
+}
+
+// ─── helper: форматирует длительность ───────────────────────────────────────
+func fmtUptime(d time.Duration) string {
+	days := int(d.Hours()) / 24
+	hours := int(d.Hours()) % 24
+	mins := int(d.Minutes()) % 60
+	if days > 0 {
+		return fmt.Sprintf("%dд %dч %dм", days, hours, mins)
+	}
+	if hours > 0 {
+		return fmt.Sprintf("%dч %dм", hours, mins)
+	}
+	return fmt.Sprintf("%dм", mins)
 }
 
 func (h *Handler) Certificates(w http.ResponseWriter, r *http.Request) {

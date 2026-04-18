@@ -1,15 +1,112 @@
 {{define "content"}}
 <div class="page-header">
-  <div><div class="breadcrumb">dashboard</div><h1>Дашборд</h1></div>
+  <div><div class="breadcrumb">dashboard</div><h1>Приветствуем, {{.Session.Username}}</h1></div>
 </div>
+
+<!-- Основные счётчики по активным сертификатам -->
 <div class="stats-grid">
-  <div class="stat-card"><div class="stat-label">Всего сертификатов</div><div class="stat-value">{{.Total}}</div></div>
-  <div class="stat-card"><div class="stat-label">Активных</div><div class="stat-value ok">{{.OkC}}</div></div>
+  <div class="stat-card"><div class="stat-label">Активные сертификаты</div><div class="stat-value">{{.Total}}</div></div>
+  <div class="stat-card"><div class="stat-label">Здоровых</div><div class="stat-value ok">{{.OkC}}</div></div>
   <div class="stat-card"><div class="stat-label">Истекают (30д)</div><div class="stat-value warn">{{.WarnC}}</div></div>
   <div class="stat-card"><div class="stat-label">Просроченных</div><div class="stat-value danger">{{.ExpC}}</div></div>
 </div>
+
+<!-- Статистика сервера и активность CA — две карточки рядом -->
+<div style="display:grid;grid-template-columns:1fr 2fr;gap:14px;margin-bottom:14px">
+
+  <!-- Сервер -->
+  <div class="card" style="margin-bottom:0">
+    <div class="card-header"><h3>Сервер</h3></div>
+    <div class="card-body">
+      <div class="info-row"><div class="info-key">Аптайм</div><div class="info-val"><strong>{{.Uptime}}</strong></div></div>
+      <div class="info-row"><div class="info-key">Запущен</div><div class="info-val" style="color:var(--muted)">{{.StartedAt}}</div></div>
+      <div class="info-row"><div class="info-key">Всего certs</div><div class="info-val">{{.AllCerts}}</div></div>
+      <div class="info-row"><div class="info-key">Let's Encrypt</div><div class="info-val">{{.LECerts}}</div></div>
+      <div class="info-row"><div class="info-key">Пользователи</div><div class="info-val">{{.UsersCount}}</div></div>
+    </div>
+  </div>
+
+  <!-- Активность CA -->
+  <div class="card" style="margin-bottom:0">
+    <div class="card-header"><h3>Активность центра сертификации</h3></div>
+    <div class="card-body" style="padding:0">
+      <table style="table-layout:fixed">
+        <thead>
+          <tr>
+            <th style="width:110px">Период</th>
+            <th>Выпуск</th>
+            <th>Перевыпуск</th>
+            <th>Отзыв</th>
+            <th>Импорт</th>
+            <th>Всего</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{with index .Activity "24h"}}
+          <tr>
+            <td><strong>24 часа</strong></td>
+            <td><span class="badge ok">{{index . "issue"}}</span></td>
+            <td><span class="badge blue">{{index . "renew"}}</span></td>
+            <td><span class="badge danger">{{index . "revoke"}}</span></td>
+            <td><span class="badge gray">{{index . "import"}}</span></td>
+            <td><strong>{{index . "total"}}</strong></td>
+          </tr>
+          {{end}}
+          {{with index .Activity "7d"}}
+          <tr>
+            <td><strong>7 дней</strong></td>
+            <td><span class="badge ok">{{index . "issue"}}</span></td>
+            <td><span class="badge blue">{{index . "renew"}}</span></td>
+            <td><span class="badge danger">{{index . "revoke"}}</span></td>
+            <td><span class="badge gray">{{index . "import"}}</span></td>
+            <td><strong>{{index . "total"}}</strong></td>
+          </tr>
+          {{end}}
+          {{with index .Activity "30d"}}
+          <tr>
+            <td><strong>30 дней</strong></td>
+            <td><span class="badge ok">{{index . "issue"}}</span></td>
+            <td><span class="badge blue">{{index . "renew"}}</span></td>
+            <td><span class="badge danger">{{index . "revoke"}}</span></td>
+            <td><span class="badge gray">{{index . "import"}}</span></td>
+            <td><strong>{{index . "total"}}</strong></td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+
+<!-- О системе -->
 <div class="card">
-  <div class="card-header"><h3>Сертификаты (по сроку)</h3></div>
+  <div class="card-header"><h3>О системе</h3></div>
+  <div class="card-body" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px">
+    <div>
+      <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Версия ядра</div>
+      <div style="font-size:18px;font-weight:700">v{{.Version}}</div>
+    </div>
+    <div>
+      <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Версия билда</div>
+      <div style="font-size:14px;font-weight:600"><code style="font-size:12px">{{.GitCommit}}</code></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px">собран: {{.BuildDate}}</div>
+    </div>
+    <div>
+      <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Обновления</div>
+      <div style="font-size:14px;font-weight:600">
+        <span class="badge ok">Актуально</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">
+        <a href="https://github.com/UncleFi1/step-ca-ui/releases" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">Список релизов &rarr;</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Сертификаты (только активные, по сроку) -->
+<div class="card">
+  <div class="card-header"><h3>Активные сертификаты · по сроку истечения</h3></div>
   <div style="overflow-x:auto">
   <table>
     <thead><tr><th>Имя</th><th>Домен</th><th>Истекает</th><th>Осталось</th><th>Тип</th><th>Действия</th></tr></thead>
@@ -24,7 +121,7 @@
       <td>
         {{if hasRole $.Session.Role "manager"}}
         <a href="/renew/{{.ID}}" class="btn btn-warn btn-sm confirm-renew" data-name="{{.Name}}">Перевыпустить</a>
-        <a href="/download/cert/{{.ID}}" class="btn btn-ghost btn-sm">&#x2913; CRT</a>
+        <a href="/download/cert/{{.ID}}" class="btn btn-ghost btn-sm">CRT</a>
         {{end}}
       </td>
     </tr>
@@ -35,6 +132,7 @@
   </table>
   </div>
 </div>
+
 <script>
 document.querySelectorAll('.confirm-renew').forEach(function(el){
   el.addEventListener('click',function(e){

@@ -1,17 +1,44 @@
 {{define "content"}}
 <div class="page-header">
   <div><div class="breadcrumb">certificates</div><h1>Все сертификаты</h1></div>
-  {{if hasRole .Session.Role "manager"}}
-  <a href="/issue" class="btn">+ Выпустить новый</a>
-  {{end}}
 </div>
+
+<!-- Панель фильтров -->
+<div class="card" style="margin-bottom:12px">
+  <div class="card-body" style="display:grid;grid-template-columns:minmax(220px,1fr) 180px 180px auto;gap:10px;align-items:end">
+    <div>
+      <label>Поиск по имени или домену</label>
+      <input type="text" id="f-search" placeholder="start.example.com" autocomplete="off">
+    </div>
+    <div>
+      <label>Статус</label>
+      <select id="f-status">
+        <option value="">Все</option>
+        <option value="active">Активные</option>
+        <option value="expired">Истекли</option>
+        <option value="revoked">Отозваны</option>
+      </select>
+    </div>
+    <div>
+      <label>Тип ключа</label>
+      <select id="f-type">
+        <option value="">Все</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;justify-content:flex-end">
+      <span id="f-counter" style="color:var(--muted);font-size:11px;white-space:nowrap">Всего: 0</span>
+      <button type="button" id="f-reset" class="btn btn-ghost btn-sm">Сбросить</button>
+    </div>
+  </div>
+</div>
+
 <div class="card">
   <div style="overflow-x:auto">
-  <table>
+  <table id="certsTable">
     <thead><tr><th>Имя</th><th>Домен</th><th>Выдан</th><th>Истекает</th><th>Статус</th><th>Тип</th><th>Серийный</th><th>Действия</th></tr></thead>
     <tbody>
     {{range .Certs}}
-    <tr>
+    <tr data-name="{{.Name}}" data-domain="{{.Domain}}" data-status="{{.Status}}" data-type="{{.KeyType}}">
       <td><strong>{{.Name}}</strong></td>
       <td><code>{{.Domain}}</code></td>
       <td style="color:var(--muted)">{{fmtTime .IssuedAt}}</td>
@@ -21,7 +48,7 @@
       <td style="font-family:var(--mono);font-size:10px;color:var(--muted)">{{.Serial}}</td>
       <td>
         {{if hasRole $.Session.Role "manager"}}
-        <a href="/renew/{{.ID}}" class="btn btn-warn btn-sm confirm-renew" data-name="{{.Name}}">&#x21BA;</a>
+        <a href="/renew/{{.ID}}" class="btn btn-warn btn-sm confirm-renew" data-name="{{.Name}}" title="Перевыпустить">&#x21BA;</a>
         <a href="/download/cert/{{.ID}}" class="btn btn-ghost btn-sm">CRT</a>
         {{if .KeyPath}}<a href="/download/key/{{.ID}}" class="btn btn-ghost btn-sm">KEY</a>{{end}}
         {{end}}
@@ -31,13 +58,70 @@
       </td>
     </tr>
     {{else}}
-    <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px">Нет сертификатов</td></tr>
+    <tr id="emptyRow"><td colspan="8" style="text-align:center;color:var(--muted);padding:24px">Нет сертификатов</td></tr>
     {{end}}
     </tbody>
   </table>
   </div>
 </div>
+
 <script>
+(function(){
+  var table  = document.getElementById('certsTable');
+  if(!table) return;
+  var rows    = Array.prototype.slice.call(table.querySelectorAll('tbody tr')).filter(function(r){ return r.hasAttribute('data-name'); });
+  var fSearch = document.getElementById('f-search');
+  var fStatus = document.getElementById('f-status');
+  var fType   = document.getElementById('f-type');
+  var fReset  = document.getElementById('f-reset');
+  var counter = document.getElementById('f-counter');
+  var total   = rows.length;
+
+  // Заполняем список типов ключей из таблицы
+  var types = {};
+  rows.forEach(function(r){ var t=r.getAttribute('data-type'); if(t) types[t]=1; });
+  Object.keys(types).sort().forEach(function(t){
+    var opt = document.createElement('option');
+    opt.value = t; opt.textContent = t;
+    fType.appendChild(opt);
+  });
+
+  function applyFilters(){
+    var q      = (fSearch.value || '').toLowerCase().trim();
+    var status = fStatus.value;
+    var keytype = fType.value;
+    var shown = 0;
+    rows.forEach(function(r){
+      var name    = (r.getAttribute('data-name')   || '').toLowerCase();
+      var domain  = (r.getAttribute('data-domain') || '').toLowerCase();
+      var rStatus = r.getAttribute('data-status') || '';
+      var rType   = r.getAttribute('data-type')   || '';
+      var okQuery  = !q || name.indexOf(q) !== -1 || domain.indexOf(q) !== -1;
+      var okStatus = !status || rStatus === status;
+      var okType   = !keytype || rType === keytype;
+      var visible  = okQuery && okStatus && okType;
+      r.style.display = visible ? '' : 'none';
+      if(visible) shown++;
+    });
+    counter.textContent = (shown === total) ? ('Всего: ' + total) : ('Найдено: ' + shown + ' из ' + total);
+  }
+
+  fSearch.addEventListener('input', applyFilters);
+  fStatus.addEventListener('change', applyFilters);
+  fType.addEventListener('change', applyFilters);
+  fReset.addEventListener('click', function(){
+    fSearch.value = '';
+    fStatus.value = '';
+    fType.value = '';
+    fStatus.dispatchEvent(new Event('change'));
+    fType.dispatchEvent(new Event('change'));
+    applyFilters();
+  });
+
+  applyFilters();
+})();
+
+// Confirm-диалоги для перевыпуска и отзыва
 function certConfirm(cls){
   return function(e){
     e.preventDefault();
