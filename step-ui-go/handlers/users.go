@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	appdb "step-ui/db"
-	"step-ui/models"
 	"step-ui/security"
 )
 
@@ -102,7 +101,11 @@ func (h *Handler) UsersPost(w http.ResponseWriter, r *http.Request) {
 		appdb.UpdateUserPassword(h.db, uid, security.HashPassword(newPW))
 		h.flash(w, r, "ok", "Пароль сброшен")
 	}
-	http.Redirect(w, r, "/users", http.StatusFound)
+	returnTo := r.FormValue("return_to")
+	if returnTo == "" {
+		returnTo = "/users"
+	}
+	http.Redirect(w, r, returnTo, http.StatusFound)
 }
 
 func (h *Handler) UserProfile(w http.ResponseWriter, r *http.Request) {
@@ -138,34 +141,73 @@ func (h *Handler) UserProfile(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) ProfileGet(w http.ResponseWriter, r *http.Request) {
-	h.render(w, "profile", h.base(w, r, "profile"))
+	si := h.sessionInfo(r)
+	u, _ := appdb.GetUserByID(h.db, si.UserID)
+	data := h.base(w, r, "profile")
+	data["U"] = u
+	h.render(w, "profile", data)
 }
 
 func (h *Handler) ProfilePost(w http.ResponseWriter, r *http.Request) {
 	si := h.sessionInfo(r)
-	current := r.FormValue("current_password")
-	newPW := trimStr(r.FormValue("new_password"))
-	confirm := trimStr(r.FormValue("confirm_password"))
+	action := r.FormValue("action")
 
-	u, _ := appdb.GetUserByID(h.db, si.UserID)
-	data := h.base(w, r, "profile")
+	switch action {
+	case "update_info":
+		username := trimStr(r.FormValue("username"))
+		displayName := trimStr(r.FormValue("display_name"))
+		email := trimStr(r.FormValue("email"))
+		if username == "" {
+			h.flash(w, r, "err", "Логин не может быть пустым")
+			http.Redirect(w, r, "/profile", http.StatusFound)
+			return
+		}
+		// Проверим что логин не занят другим пользователем
+		exists, _ := appdb.UsernameExistsExceptID(h.db, username, si.UserID)
+		if exists {
+			h.flash(w, r, "err", "Пользователь с таким логином уже существует")
+			http.Redirect(w, r, "/profile", http.StatusFound)
+			return
+		}
+		if err := appdb.UpdateUserInfo(h.db, si.UserID, username, displayName, email); err != nil {
+			h.flash(w, r, "err", "Ошибка при обновлении: "+err.Error())
+			http.Redirect(w, r, "/profile", http.StatusFound)
+			return
+		}
+		// Обновляем username в сессии
+		s := h.sess(r)
+		s.Values["username"] = username
+		s.Save(r, w)
+		h.flash(w, r, "ok", "Профиль обновлён")
+		http.Redirect(w, r, "/profile", http.StatusFound)
+		return
 
-	if u == nil || u.PasswordHash != security.HashPassword(current) {
-		data["Msgs"] = []models.FlashMsg{{Type: "err", Text: "Неверный текущий пароль"}}
-		h.render(w, "profile", data)
+	case "change_password", "":
+		current := r.FormValue("current_password")
+		newPW := trimStr(r.FormValue("new_password"))
+		confirm := trimStr(r.FormValue("confirm_password"))
+
+		u, _ := appdb.GetUserByID(h.db, si.UserID)
+		if u == nil || u.PasswordHash != security.HashPassword(current) {
+			h.flash(w, r, "err", "Неверный текущий пароль")
+			http.Redirect(w, r, "/profile", http.StatusFound)
+			return
+		}
+		if newPW != confirm {
+			h.flash(w, r, "err", "Пароли не совпадают")
+			http.Redirect(w, r, "/profile", http.StatusFound)
+			return
+		}
+		if ok, msg := security.ValidatePassword(newPW); !ok {
+			h.flash(w, r, "err", msg)
+			http.Redirect(w, r, "/profile", http.StatusFound)
+			return
+		}
+		appdb.UpdateUserPassword(h.db, si.UserID, security.HashPassword(newPW))
+		h.flash(w, r, "ok", "Пароль успешно изменён")
+		http.Redirect(w, r, "/profile", http.StatusFound)
 		return
 	}
-	if newPW != confirm {
-		data["Msgs"] = []models.FlashMsg{{Type: "err", Text: "Пароли не совпадают"}}
-		h.render(w, "profile", data)
-		return
-	}
-	if ok, msg := security.ValidatePassword(newPW); !ok {
-		data["Msgs"] = []models.FlashMsg{{Type: "err", Text: msg}}
-		h.render(w, "profile", data)
-		return
-	}
-	appdb.UpdateUserPassword(h.db, si.UserID, security.HashPassword(newPW))
-	h.flash(w, r, "ok", "Пароль успешно изменён")
+
 	http.Redirect(w, r, "/profile", http.StatusFound)
 }

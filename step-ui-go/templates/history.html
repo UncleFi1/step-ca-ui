@@ -2,24 +2,35 @@
 <div class="page-header">
   <div><div class="breadcrumb">ca &middot; history</div><h1>История операций</h1></div>
 </div>
+
 <div class="card" style="margin-bottom:12px">
-  <div class="card-body" style="padding:12px 16px">
+  <div class="card-body" style="padding:14px 16px">
     <form method="GET" action="/history" id="historyForm" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-      <label style="margin-bottom:0;width:auto">Действие:</label>
-      <select name="action" id="actionFilter" style="width:200px" onchange="document.getElementById('historyForm').submit()">
-        <option value="">Все действия</option>
-        <option value="issue"  {{if eq .FilterAction "issue"}}selected{{end}}>Выпуск</option>
-        <option value="renew"  {{if eq .FilterAction "renew"}}selected{{end}}>Перевыпуск</option>
-        <option value="revoke" {{if eq .FilterAction "revoke"}}selected{{end}}>Отзыв</option>
-        <option value="import" {{if eq .FilterAction "import"}}selected{{end}}>Импорт</option>
-      </select>
-      {{if .FilterAction}}
+      <label style="margin-bottom:0;width:auto">Действия:</label>
+
+      <!-- Multi-select с чипами -->
+      <div class="multi-select" id="actionsMulti" data-name="action" style="min-width:280px;max-width:520px;flex:1">
+        <div class="ms-box" tabindex="0">
+          <div class="ms-chips" id="msChips"></div>
+          <span class="ms-placeholder" id="msPlaceholder">Все действия</span>
+          <span class="ms-arrow"></span>
+        </div>
+        <div class="ms-dropdown">
+          <div class="ms-opt" data-val="issue"><span class="chk">&#10003;</span>Выпуск</div>
+          <div class="ms-opt" data-val="renew"><span class="chk">&#10003;</span>Перевыпуск</div>
+          <div class="ms-opt" data-val="revoke"><span class="chk">&#10003;</span>Отзыв</div>
+          <div class="ms-opt" data-val="import"><span class="chk">&#10003;</span>Импорт</div>
+        </div>
+      </div>
+
+      {{if .FilterActions}}
       <a href="/history" class="btn btn-ghost btn-sm">Сбросить</a>
       {{end}}
       <span style="color:var(--muted);font-size:11px;margin-left:auto">Всего: {{.Total}}</span>
     </form>
   </div>
 </div>
+
 <div class="card">
   <div style="overflow-x:auto">
   <table>
@@ -41,11 +52,139 @@
   </table>
   </div>
 </div>
+
 {{if gt .TotalPages 1}}
 <div style="display:flex;gap:6px;justify-content:center;margin-top:12px">
+  {{$cur := .CurrentPage}}{{$acts := .FilterActions}}
   {{range seq 1 .TotalPages}}
-  <a href="/history?page={{.}}&action={{$.FilterAction}}" class="btn btn-sm {{if eq . $.CurrentPage}}{{else}}btn-ghost{{end}}">{{.}}</a>
+  <a href="/history?page={{.}}{{range $acts}}&action={{.}}{{end}}" class="btn btn-sm {{if eq . $cur}}{{else}}btn-ghost{{end}}">{{.}}</a>
   {{end}}
 </div>
 {{end}}
+
+<style>
+.multi-select{position:relative}
+.ms-box{
+  min-height:36px;width:100%;background:var(--bg);border:1px solid var(--border);
+  border-radius:6px;padding:5px 32px 5px 8px;cursor:pointer;
+  display:flex;flex-wrap:wrap;gap:4px;align-items:center;
+  transition:border-color .15s;position:relative;outline:none;
+}
+.ms-box:hover{border-color:var(--muted)}
+.ms-box.open{border-color:var(--accent)}
+.ms-box::after{
+  content:'';position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;
+  border-top:5px solid var(--muted);transition:transform .15s;pointer-events:none;
+}
+.ms-box.open::after{transform:translateY(-50%) rotate(180deg)}
+.ms-chips{display:flex;flex-wrap:wrap;gap:4px}
+.ms-chip{
+  display:inline-flex;align-items:center;gap:4px;padding:2px 6px 2px 8px;
+  border-radius:4px;background:var(--active-nav);color:var(--accent);
+  font-size:11px;font-weight:500;
+}
+.ms-chip-x{
+  cursor:pointer;opacity:.7;font-size:13px;line-height:1;padding:0 2px;
+}
+.ms-chip-x:hover{opacity:1}
+.ms-placeholder{font-size:12px;color:var(--muted);padding:3px 0}
+.ms-dropdown{
+  display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:400;
+  background:var(--card);border:1px solid var(--border);border-radius:8px;padding:4px;
+  box-shadow:0 8px 24px var(--shadow);max-height:240px;overflow-y:auto;
+}
+.ms-dropdown.open{display:block}
+.ms-opt{
+  padding:8px 10px;border-radius:5px;font-size:12px;color:var(--muted);
+  cursor:pointer;display:flex;align-items:center;gap:8px;transition:.12s;
+}
+.ms-opt:hover{background:var(--hover-nav);color:var(--text)}
+.ms-opt.selected{color:var(--accent);background:var(--active-nav)}
+.ms-opt .chk{
+  width:14px;height:14px;border:1.5px solid var(--border);border-radius:3px;
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-size:10px;transition:.12s;color:transparent;
+}
+.ms-opt.selected .chk{background:var(--accent);border-color:var(--accent);color:#fff}
+</style>
+
+<script>
+(function(){
+  var selected = [{{range .FilterActions}}"{{.}}",{{end}}];
+  var LABELS = {issue:"Выпуск", renew:"Перевыпуск", revoke:"Отзыв", import:"Импорт"};
+  var ms    = document.getElementById('actionsMulti');
+  var box   = ms.querySelector('.ms-box');
+  var drop  = ms.querySelector('.ms-dropdown');
+  var chips = document.getElementById('msChips');
+  var ph    = document.getElementById('msPlaceholder');
+  var form  = document.getElementById('historyForm');
+  var submitTimer = null;
+
+  function render(){
+    chips.innerHTML = '';
+    if(selected.length === 0){
+      ph.style.display = '';
+    } else {
+      ph.style.display = 'none';
+      selected.forEach(function(v){
+        var chip = document.createElement('span');
+        chip.className = 'ms-chip';
+        chip.innerHTML = (LABELS[v] || v) + ' <span class="ms-chip-x" data-v="'+v+'">&times;</span>';
+        chips.appendChild(chip);
+      });
+    }
+    // обновляем состояние опций
+    drop.querySelectorAll('.ms-opt').forEach(function(o){
+      o.classList.toggle('selected', selected.indexOf(o.getAttribute('data-val')) !== -1);
+    });
+  }
+
+  function rebuildInputs(){
+    // удаляем старые скрытые поля
+    Array.from(form.querySelectorAll('input[type=hidden][name=action]')).forEach(function(n){n.remove();});
+    // добавляем новые
+    selected.forEach(function(v){
+      var inp = document.createElement('input');
+      inp.type = 'hidden'; inp.name = 'action'; inp.value = v;
+      form.appendChild(inp);
+    });
+  }
+
+  function submitSoon(){
+    clearTimeout(submitTimer);
+    submitTimer = setTimeout(function(){ rebuildInputs(); form.submit(); }, 250);
+  }
+
+  box.addEventListener('click', function(e){
+    if(e.target.classList.contains('ms-chip-x')){
+      var v = e.target.getAttribute('data-v');
+      selected = selected.filter(function(x){return x!==v;});
+      render(); submitSoon();
+      return;
+    }
+    box.classList.toggle('open');
+    drop.classList.toggle('open');
+  });
+
+  drop.querySelectorAll('.ms-opt').forEach(function(opt){
+    opt.addEventListener('click', function(e){
+      e.stopPropagation();
+      var v = this.getAttribute('data-val');
+      var i = selected.indexOf(v);
+      if(i === -1) selected.push(v); else selected.splice(i, 1);
+      render(); submitSoon();
+    });
+  });
+
+  document.addEventListener('click', function(e){
+    if(!ms.contains(e.target)){
+      box.classList.remove('open');
+      drop.classList.remove('open');
+    }
+  });
+
+  render();
+})();
+</script>
 {{end}}

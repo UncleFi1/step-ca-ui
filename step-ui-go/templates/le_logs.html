@@ -1,17 +1,21 @@
 {{define "content"}}
 <div class="page-header">
   <div><div class="breadcrumb">let's encrypt &middot; logs</div><h1>Журнал Let's Encrypt</h1></div>
-  <a href="/le" class="btn btn-ghost">&larr; Назад</a>
 </div>
+
 <div class="card" style="margin-bottom:12px">
-  <div class="card-body" style="padding:10px 16px">
-    <form method="GET" action="/le/logs" style="display:flex;gap:10px;align-items:center">
-      <input type="text" name="domain" placeholder="Фильтр по домену..." value="{{.FilterDomain}}" style="max-width:280px">
-      <button type="submit" class="btn btn-sm">Фильтр</button>
-      {{if .FilterDomain}}<a href="/le/logs" class="btn btn-ghost btn-sm">Сбросить</a>{{end}}
+  <div class="card-body" style="padding:12px 16px">
+    <form method="GET" action="/le/logs" id="leLogsForm" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <label style="margin-bottom:0;width:auto">Домен:</label>
+      <input type="text" name="domain" id="leDomainFilter" placeholder="example.com"
+        value="{{.FilterDomain}}" style="max-width:320px;flex:1" autocomplete="off">
+      {{if .FilterDomain}}
+      <a href="/le/logs" class="btn btn-ghost btn-sm">Сбросить</a>
+      {{end}}
     </form>
   </div>
 </div>
+
 <div class="card">
   <div style="overflow-x:auto">
   <table>
@@ -31,4 +35,18 @@
   </table>
   </div>
 </div>
+
+<script>
+// Автофильтрация с debounce — сабмит через 400мс после последнего ввода
+(function(){
+  var inp  = document.getElementById('leDomainFilter');
+  var form = document.getElementById('leLogsForm');
+  if(!inp || !form) return;
+  var timer = null;
+  inp.addEventListener('input', function(){
+    clearTimeout(timer);
+    timer = setTimeout(function(){ form.submit(); }, 400);
+  });
+})();
+</script>
 {{end}}

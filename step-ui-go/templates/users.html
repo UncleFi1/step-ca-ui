@@ -2,15 +2,55 @@
 <div class="page-header">
   <div><div class="breadcrumb">users</div><h1>Все пользователи</h1></div>
 </div>
+
+<!-- Панель фильтров -->
+<div class="card" style="margin-bottom:12px">
+  <div class="card-body" style="display:grid;grid-template-columns:minmax(220px,1fr) 170px 170px auto;gap:10px;align-items:end">
+    <div>
+      <label>Поиск по логину</label>
+      <input type="text" id="uf-search" placeholder="admin" autocomplete="off">
+    </div>
+    <div>
+      <label>Роль</label>
+      <select id="uf-role">
+        <option value="">Все</option>
+        <option value="admin">admin</option>
+        <option value="manager">manager</option>
+        <option value="viewer">viewer</option>
+      </select>
+    </div>
+    <div>
+      <label>Статус</label>
+      <select id="uf-status">
+        <option value="">Все</option>
+        <option value="active">Активные</option>
+        <option value="blocked">Заблокированные</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;justify-content:flex-end">
+      <span id="uf-counter" style="color:var(--muted);font-size:11px;white-space:nowrap">Всего: 0</span>
+      <button type="button" id="uf-reset" class="btn btn-ghost btn-sm">Сбросить</button>
+    </div>
+  </div>
+</div>
+
 <div class="card" style="margin-bottom:16px">
   <div class="card-header"><h3>Список пользователей</h3></div>
   <div style="overflow-x:auto">
-  <table style="min-width:700px">
+  <table id="usersTable" style="min-width:700px">
     <thead><tr><th>Логин</th><th>Роль</th><th>Статус</th><th>Последний вход</th><th>Последний IP</th><th>Ошибок 24ч</th><th>Создан</th><th>Действия</th></tr></thead>
     <tbody>
     {{range .Users}}
-    <tr>
-      <td><strong>{{.Username}}</strong>{{if eq .ID $.Session.UserID}} <span style="color:var(--muted);font-size:10px">(Вы)</span>{{end}}</td>
+    <tr data-username="{{.Username}}" data-role="{{.Role}}" data-status="{{if .IsActive}}active{{else}}blocked{{end}}">
+      <td>
+        {{if ne .ID $.Session.UserID}}
+        <a href="/users/{{.ID}}" class="user-link" title="Открыть профиль">
+          <strong>{{.Username}}</strong>
+        </a>
+        {{else}}
+        <strong>{{.Username}}</strong> <span style="color:var(--muted);font-size:10px">(Вы)</span>
+        {{end}}
+      </td>
       <td>
         {{if eq .Role "admin"}}<span class="badge purple">admin</span>
         {{else if eq .Role "manager"}}<span class="badge blue">manager</span>
@@ -23,18 +63,25 @@
       <td style="color:var(--muted)">{{fmtTime .CreatedAt}}</td>
       <td>
         {{if ne .ID $.Session.UserID}}
-        <a href="/users/{{.ID}}" class="btn btn-ghost btn-sm">&#x1F464; Профиль</a>
-        <form method="POST" action="/users" style="display:inline" data-confirm="{{if .IsActive}}Заблокировать{{else}}Разблокировать{{end}} пользователя {{.Username}}?" data-confirm-btn="{{if .IsActive}}Заблокировать{{else}}Разблокировать{{end}}" data-confirm-class="warning" data-confirm-title="Изменение статуса">
+        <form method="POST" action="/users" style="display:inline"
+          data-confirm="{{if .IsActive}}Заблокировать{{else}}Разблокировать{{end}} пользователя {{.Username}}?"
+          data-confirm-btn="{{if .IsActive}}Заблокировать{{else}}Разблокировать{{end}}"
+          data-confirm-class="warning" data-confirm-title="Изменение статуса">
           <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
           <input type="hidden" name="action" value="toggle_active">
           <input type="hidden" name="uid" value="{{.ID}}">
-          <button type="submit" class="btn btn-sm {{if .IsActive}}btn-warn{{else}}btn-success{{end}}">&#x1F512;</button>
+          <button type="submit" class="btn btn-sm {{if .IsActive}}btn-warn{{else}}btn-success{{end}}"
+            title="{{if .IsActive}}Заблокировать{{else}}Разблокировать{{end}}">
+            {{if .IsActive}}Заблок.{{else}}Разблок.{{end}}
+          </button>
         </form>
-        <form method="POST" action="/users" style="display:inline" data-confirm="Удалить пользователя {{.Username}}? Действие необратимо." data-confirm-btn="Удалить" data-confirm-title="Удаление пользователя">
+        <form method="POST" action="/users" style="display:inline"
+          data-confirm="Удалить пользователя {{.Username}}? Действие необратимо."
+          data-confirm-btn="Удалить" data-confirm-title="Удаление пользователя">
           <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
           <input type="hidden" name="action" value="delete">
           <input type="hidden" name="uid" value="{{.ID}}">
-          <button type="submit" class="btn btn-danger btn-sm">&#x2715;</button>
+          <button type="submit" class="btn btn-danger btn-sm" title="Удалить">Удалить</button>
         </form>
         {{end}}
       </td>
@@ -44,6 +91,7 @@
   </table>
   </div>
 </div>
+
 <div class="card" style="max-width:560px">
   <div class="card-header"><h3>Добавить пользователя</h3></div>
   <div class="card-body">
@@ -51,7 +99,7 @@
       <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
       <input type="hidden" name="action" value="create">
       <div class="form-row">
-        <div><label>Логин</label><input type="text" name="username" placeholder="user1" required></div>
+        <div><label>Логин</label><input type="text" name="username" placeholder="user1" required autocomplete="off"></div>
         <div><label>Пароль</label><input type="password" name="password" placeholder="Мин. 8 симв. + цифра + спецсимвол" required></div>
       </div>
       <div class="form-full">
@@ -62,8 +110,64 @@
           <option value="admin">admin &mdash; полный доступ</option>
         </select>
       </div>
-      <button type="submit" class="btn">+ Создать пользователя</button>
+      <button type="submit" class="btn" style="padding:8px 18px;font-weight:600">Создать пользователя</button>
     </form>
   </div>
 </div>
+
+<style>
+.user-link{
+  color:var(--text);text-decoration:none;transition:color .12s;
+  display:inline-block;padding:2px 0;
+}
+.user-link:hover{color:var(--accent)}
+.user-link:hover strong{text-decoration:underline}
+</style>
+
+<script>
+(function(){
+  var table  = document.getElementById('usersTable');
+  if(!table) return;
+  var rows   = Array.prototype.slice.call(table.querySelectorAll('tbody tr')).filter(function(r){ return r.hasAttribute('data-username'); });
+  var fSearch = document.getElementById('uf-search');
+  var fRole   = document.getElementById('uf-role');
+  var fStatus = document.getElementById('uf-status');
+  var fReset  = document.getElementById('uf-reset');
+  var counter = document.getElementById('uf-counter');
+  var total   = rows.length;
+
+  function applyFilters(){
+    var q       = (fSearch.value || '').toLowerCase().trim();
+    var role    = fRole.value;
+    var status  = fStatus.value;
+    var shown   = 0;
+    rows.forEach(function(r){
+      var uname   = (r.getAttribute('data-username') || '').toLowerCase();
+      var rRole   = r.getAttribute('data-role')   || '';
+      var rStatus = r.getAttribute('data-status') || '';
+      var okQuery  = !q || uname.indexOf(q) !== -1;
+      var okRole   = !role   || rRole === role;
+      var okStatus = !status || rStatus === status;
+      var visible = okQuery && okRole && okStatus;
+      r.style.display = visible ? '' : 'none';
+      if(visible) shown++;
+    });
+    counter.textContent = (shown === total) ? ('Всего: ' + total) : ('Найдено: ' + shown + ' из ' + total);
+  }
+
+  fSearch.addEventListener('input', applyFilters);
+  fRole.addEventListener('change', applyFilters);
+  fStatus.addEventListener('change', applyFilters);
+  fReset.addEventListener('click', function(){
+    fSearch.value = '';
+    fRole.value   = '';
+    fStatus.value = '';
+    fRole.dispatchEvent(new Event('change'));
+    fStatus.dispatchEvent(new Event('change'));
+    applyFilters();
+  });
+
+  applyFilters();
+})();
+</script>
 {{end}}

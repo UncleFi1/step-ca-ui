@@ -18,9 +18,9 @@ var StartedAt time.Time
 
 // Версионирование — переопределяется через ldflags при сборке
 var (
-	Version   = "1.1.0"
+	Version   = "1.2.0"
 	BuildDate = "2026-04-18"
-	GitCommit = "d9ce23e"
+	GitCommit = "3f02595"
 )
 
 type Handler struct {
@@ -107,6 +107,14 @@ func (h *Handler) templateFuncs() template.FuncMap {
 		"deref": func(s *string) string {
 			if s == nil { return "—" }
 			return *s
+		},
+		"contains": func(arr []string, v string) bool {
+			for _, s := range arr {
+				if s == v {
+					return true
+				}
+			}
+			return false
 		},
 		"seq": func(start, end int) []int {
 			var s []int

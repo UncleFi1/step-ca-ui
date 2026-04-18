@@ -2,16 +2,111 @@
 <div class="page-header">
   <div><div class="breadcrumb">account &middot; profile</div><h1>Мой профиль</h1></div>
 </div>
-<div class="card" style="max-width:480px">
-  <div class="card-header"><h3>Сменить пароль</h3></div>
-  <div class="card-body">
-    <form method="POST" action="/profile">
-      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-      <div class="form-full"><label>Текущий пароль</label><input type="password" name="current_password" required></div>
-      <div class="form-full"><label>Новый пароль</label><input type="password" name="new_password" placeholder="Мин. 8 симв. + цифра + спецсимвол" required></div>
-      <div class="form-full"><label>Подтвердить пароль</label><input type="password" name="confirm_password" required></div>
-      <button type="submit" class="btn">Сохранить пароль</button>
-    </form>
+
+<div style="display:grid;grid-template-columns:minmax(280px,1fr) minmax(320px,1.4fr);gap:14px">
+
+  <!-- ═ Информация о пользователе ═ -->
+  <div class="card" style="margin-bottom:0">
+    <div class="card-header"><h3>Обо мне</h3></div>
+    <div class="card-body">
+      <div class="info-row">
+        <div class="info-key">Логин</div>
+        <div class="info-val"><strong>{{.U.Username}}</strong></div>
+      </div>
+      <div class="info-row">
+        <div class="info-key">Имя</div>
+        <div class="info-val">{{if .U.DisplayName}}{{.U.DisplayName}}{{else}}<span style="color:var(--muted)">не указано</span>{{end}}</div>
+      </div>
+      <div class="info-row">
+        <div class="info-key">Email</div>
+        <div class="info-val">{{if .U.Email}}<code>{{.U.Email}}</code>{{else}}<span style="color:var(--muted)">не указан</span>{{end}}</div>
+      </div>
+      <div class="info-row">
+        <div class="info-key">Роль</div>
+        <div class="info-val">
+          {{if eq .U.Role "admin"}}<span class="badge purple">admin</span>
+          {{else if eq .U.Role "manager"}}<span class="badge blue">manager</span>
+          {{else}}<span class="badge gray">viewer</span>{{end}}
+        </div>
+      </div>
+      <div class="info-row">
+        <div class="info-key">Статус</div>
+        <div class="info-val">
+          {{if .U.IsActive}}<span class="badge ok">активен</span>
+          {{else}}<span class="badge danger">заблокирован</span>{{end}}
+        </div>
+      </div>
+      <div class="info-row">
+        <div class="info-key">Аккаунт создан</div>
+        <div class="info-val">{{fmtTime .U.CreatedAt}}</div>
+      </div>
+      <div class="info-row">
+        <div class="info-key">Последний вход</div>
+        <div class="info-val" style="color:var(--muted)">{{fmtTime .U.LastLogin}}</div>
+      </div>
+      <div class="info-row">
+        <div class="info-key">Последний IP</div>
+        <div class="info-val" style="color:var(--muted)">{{if .U.LastIP}}{{deref .U.LastIP}}{{else}}&mdash;{{end}}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═ Редактирование + пароль ═ -->
+  <div style="display:flex;flex-direction:column;gap:14px">
+
+    <!-- ── Редактировать профиль ── -->
+    <div class="card" style="margin-bottom:0">
+      <div class="card-header"><h3>Редактировать профиль</h3></div>
+      <div class="card-body">
+        <form method="POST" action="/profile">
+          <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+          <input type="hidden" name="action" value="update_info">
+          <div class="form-full">
+            <label>Логин</label>
+            <input type="text" name="username" value="{{.U.Username}}" required autocomplete="off">
+            <div style="font-size:10px;color:var(--muted);margin-top:4px">Используется для входа в систему</div>
+          </div>
+          <div class="form-full">
+            <label>Имя</label>
+            <input type="text" name="display_name" value="{{.U.DisplayName}}" placeholder="Иван Петров" autocomplete="off">
+            <div style="font-size:10px;color:var(--muted);margin-top:4px">Отображается в интерфейсе</div>
+          </div>
+          <div class="form-full">
+            <label>Email</label>
+            <input type="email" name="email" value="{{.U.Email}}" placeholder="user@example.com" autocomplete="off">
+            <div style="font-size:10px;color:var(--muted);margin-top:4px">Для уведомлений и восстановления доступа</div>
+          </div>
+          <button type="submit" class="btn" style="padding:8px 18px;font-weight:600">Сохранить изменения</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ── Сменить пароль ── -->
+    <div class="card" style="margin-bottom:0">
+      <div class="card-header"><h3>Сменить пароль</h3></div>
+      <div class="card-body">
+        <form method="POST" action="/profile">
+          <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+          <input type="hidden" name="action" value="change_password">
+          <div class="form-full">
+            <label>Текущий пароль</label>
+            <input type="password" name="current_password" required autocomplete="current-password">
+          </div>
+          <div class="form-row">
+            <div>
+              <label>Новый пароль</label>
+              <input type="password" name="new_password" placeholder="Мин. 8 симв. + цифра + спецсимвол" required autocomplete="new-password">
+            </div>
+            <div>
+              <label>Подтвердить</label>
+              <input type="password" name="confirm_password" required autocomplete="new-password">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-warn" style="padding:8px 18px;font-weight:600">Сохранить пароль</button>
+        </form>
+      </div>
+    </div>
+
   </div>
 </div>
 {{end}}

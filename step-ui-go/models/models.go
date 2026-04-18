@@ -11,6 +11,8 @@ type User struct {
 	CreatedAt    *time.Time
 	LastLogin    *time.Time
 	LastIP       *string
+	DisplayName  string
+	Email        string
 }
 
 type AuthLog struct {

@@ -33,7 +33,7 @@ func (h *Handler) LEDashboard(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) LEIssueGet(w http.ResponseWriter, r *http.Request) {
 	settings, _ := appdb.GetLESettings(h.db)
-	data := h.base(w, r, "le")
+	data := h.base(w, r, "le-issue")
 	data["LESettings"] = settings
 	h.render(w, "le_issue", data)
 }
@@ -185,7 +185,7 @@ func (h *Handler) LEDownloadKey(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) LESettingsGet(w http.ResponseWriter, r *http.Request) {
 	settings, _ := appdb.GetLESettings(h.db)
-	data := h.base(w, r, "le")
+	data := h.base(w, r, "le-settings")
 	data["LESettings"] = settings
 	h.render(w, "le_settings", data)
 }
@@ -216,7 +216,7 @@ func (h *Handler) LESettingsPost(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) LELogs(w http.ResponseWriter, r *http.Request) {
 	domain := r.URL.Query().Get("domain")
 	logs, _ := appdb.GetLELogs(h.db, domain, 100)
-	data := h.base(w, r, "le")
+	data := h.base(w, r, "le-logs")
 	data["LELogs"] = logs
 	data["FilterDomain"] = domain
 	h.render(w, "le_logs", data)

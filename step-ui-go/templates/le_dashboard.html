@@ -1,10 +1,6 @@
 {{define "content"}}
 <div class="page-header">
-  <div><div class="breadcrumb">let's encrypt</div><h1>&#x1F512; Let's Encrypt</h1></div>
-  <div style="display:flex;gap:8px">
-    <a href="/le/settings" class="btn btn-ghost">&#x2699; Настройки</a>
-    <a href="/le/issue" class="btn">+ Выпустить сертификат</a>
-  </div>
+  <div><div class="breadcrumb">let's encrypt</div><h1>Let's Encrypt</h1></div>
 </div>
 
 <div class="stats-grid">
@@ -28,16 +24,16 @@
       <td style="color:var(--muted)">{{fmtTime .IssuedAt}}</td>
       <td>{{fmtTime .ExpiresAt}}</td>
       <td>
-        {{if eq .Status "active"}}<span class="badge ok">&#x2713; активен</span>
-        {{else if eq .Status "pending"}}<span class="badge blue">&#x23F3; выпускается</span>
-        {{else if eq .Status "error"}}<span class="badge danger" title="{{.LastError}}">&#x2715; ошибка</span>
+        {{if eq .Status "active"}}<span class="badge ok">активен</span>
+        {{else if eq .Status "pending"}}<span class="badge blue">выпускается</span>
+        {{else if eq .Status "error"}}<span class="badge danger" title="{{.LastError}}">ошибка</span>
         {{else}}<span class="badge gray">{{.Status}}</span>{{end}}
       </td>
       <td>
         <form method="POST" action="/le/{{.ID}}/autorenew" style="display:inline">
           <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
           <button type="submit" class="btn btn-sm {{if .AutoRenew}}btn-success{{else}}btn-ghost{{end}}" title="{{if .AutoRenew}}Авто-обновление включено{{else}}Авто-обновление выключено{{end}}">
-            {{if .AutoRenew}}&#x21BB; Авто{{else}}&#x23F8; Выкл{{end}}
+            {{if .AutoRenew}}Авто&nbsp;вкл{{else}}Выкл{{end}}
           </button>
         </form>
       </td>
@@ -50,13 +46,13 @@
           data-confirm="Перевыпустить сертификат для {{.Domain}}?"
           data-confirm-btn="Перевыпустить" data-confirm-class="warning" data-confirm-title="Обновление LE сертификата">
           <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
-          <button type="submit" class="btn btn-warn btn-sm">&#x21BA;</button>
+          <button type="submit" class="btn btn-warn btn-sm" title="Перевыпустить">&#x21BA;</button>
         </form>
         <form method="POST" action="/le/{{.ID}}/delete" style="display:inline"
           data-confirm="Удалить сертификат для {{.Domain}}? Файлы останутся на диске."
           data-confirm-btn="Удалить" data-confirm-title="Удаление LE сертификата">
           <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
-          <button type="submit" class="btn btn-danger btn-sm">&#x2715;</button>
+          <button type="submit" class="btn btn-danger btn-sm" title="Удалить">&times;</button>
         </form>
       </td>
     </tr>
@@ -74,7 +70,7 @@
 <div class="card">
   <div class="card-header">
     <h3>Последние события</h3>
-    <a href="/le/logs" style="font-size:11px;color:var(--accent)">Все логи &rarr;</a>
+    <a href="/le/logs" style="font-size:11px;color:var(--accent);text-decoration:none">Все логи &rarr;</a>
   </div>
   <div style="overflow-x:auto">
   <table>
