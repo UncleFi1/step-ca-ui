@@ -1,6 +1,6 @@
 {{define "content"}}
 <div class="page-header">
-  <div><div class="breadcrumb">users &middot; security</div><h1>Журнал безопасности</h1></div>
+  <div><h1>Журнал безопасности</h1></div>
 </div>
 
 <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
@@ -11,7 +11,7 @@
 
 <div class="card" style="margin-bottom:12px">
   <div class="card-body" style="padding:12px 16px">
-    <form method="GET" action="/security" id="secForm" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+    <form method="GET" action="/admin/security" id="secForm" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
       <div style="flex:1;min-width:220px;max-width:360px">
         <input type="text" name="q" id="secSearch" placeholder="Поиск по логину или IP" value="{{.SearchQ}}" autocomplete="off">
       </div>
@@ -23,7 +23,7 @@
         </select>
       </div>
       {{if or .SearchQ .Filter}}
-      <a href="/security" class="btn btn-ghost btn-sm">Сбросить</a>
+      <a href="/admin/security" class="btn btn-ghost btn-sm">Сбросить</a>
       {{end}}
       <span style="color:var(--muted);font-size:11px;margin-left:auto">Всего: {{.Total}}</span>
     </form>
@@ -34,13 +34,12 @@
   <div class="tbl-wrap">
   <table class="tbl">
     <colgroup>
-          <col style="width:160px">
-          <col style="width:140px">
-          <col style="width:180px">
-          <col style="width:110px">
-          <col>
-        </colgroup>
-    
+      <col style="width:160px">
+      <col style="width:140px">
+      <col style="width:180px">
+      <col style="width:110px">
+      <col>
+    </colgroup>
     <thead><tr><th>Время</th><th>Пользователь</th><th>IP адрес</th><th>Событие</th><th>Детали</th></tr></thead>
     <tbody>
     {{range .Entries}}
@@ -65,7 +64,7 @@
 {{if gt .TotalPages 1}}
 <div style="display:flex;gap:6px;justify-content:center;margin-top:12px">
   {{range seq 1 .TotalPages}}
-  <a href="/security?page={{.}}&q={{$.SearchQ}}&filter={{$.Filter}}" class="btn btn-sm {{if eq . $.CurrentPage}}{{else}}btn-ghost{{end}}">{{.}}</a>
+  <a href="/admin/security?page={{.}}&q={{$.SearchQ}}&filter={{$.Filter}}" class="btn btn-sm {{if eq . $.CurrentPage}}{{else}}btn-ghost{{end}}">{{.}}</a>
   {{end}}
 </div>
 {{end}}

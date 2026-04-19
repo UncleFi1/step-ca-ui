@@ -1,0 +1,31 @@
+{{define "content"}}
+<div class="page-header">
+  <h1 style="margin:0 0 4px;font-size:22px;font-weight:700">О системе</h1>
+  <p class="muted" style="margin:0">Информация о версии, сборке и окружении</p>
+</div>
+
+<div class="card" style="margin-top:18px">
+  <div class="card-body">
+    <table class="tbl" style="width:100%">
+      <tbody>
+        <tr><td style="width:40%"><strong>Продукт</strong></td><td>Step-CA UI</td></tr>
+        <tr><td><strong>Версия</strong></td><td><code>{{.AppVersion}}</code></td></tr>
+        <tr><td><strong>Билд</strong></td><td><code>{{.AppBuildDate}}</code> · <code>{{.AppGitCommit}}</code></td></tr>
+        <tr><td><strong>Репозиторий</strong></td><td><a href="https://github.com/UncleFi1/step-ca-ui" target="_blank" rel="noopener">UncleFi1/step-ca-ui</a></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card" style="margin-top:18px">
+  <div class="card-header"><strong>Что дальше</strong></div>
+  <div class="card-body">
+    <ul style="margin:0;padding-left:20px;line-height:1.8">
+      <li>Временные пользователи с автоудалением</li>
+      <li>Активность CA — полный отчёт по выпускам</li>
+      <li>Консоль сервера с 2FA</li>
+      <li>Сброс пароля через email на странице логина</li>
+    </ul>
+  </div>
+</div>
+{{end}}

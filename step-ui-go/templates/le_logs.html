@@ -17,8 +17,15 @@
 </div>
 
 <div class="card">
-  <div style="overflow-x:auto">
-  <table>
+  <div class="tbl-wrap">
+  <table class="tbl">
+    <colgroup>
+          <col style="width:160px">
+          <col style="width:180px">
+          <col style="width:120px">
+          <col>
+        </colgroup>
+    
     <thead><tr><th>Время</th><th>Домен</th><th>Событие</th><th>Сообщение</th></tr></thead>
     <tbody>
     {{range .LELogs}}

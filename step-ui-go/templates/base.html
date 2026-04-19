@@ -1,219 +1,14 @@
 {{define "layout"}}
 <!DOCTYPE html>
-<html lang="ru" data-theme="dark">
+<html lang="ru" data-theme="{{if .Session.Theme}}{{if eq .Session.Theme "auto"}}dark{{else}}{{.Session.Theme}}{{end}}{{else}}dark{{end}}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Step-CA</title>
-<style>
-/* Темы */
-[data-theme="dark"]{
-  --bg:#0d0d0d;--card:#141414;--border:#222;--text:#e8e8e8;--muted:#666;
-  --accent:#4493f8;--danger:#e74c3c;--green:#27ae60;--warn:#e67e22;
-  --purple:#8e44ad;--blue:#2980b9;--mono:'JetBrains Mono',monospace;
-  --hover-row:rgba(255,255,255,.02);--hover-nav:rgba(255,255,255,.05);
-  --active-nav:rgba(68,147,248,.1);--shadow:rgba(0,0,0,.5);
-}
-[data-theme="light"]{
-  --bg:#f4f6f9;--card:#ffffff;--border:#e2e6ea;--text:#1a1a2e;--muted:#8492a6;
-  --accent:#2563eb;--danger:#dc2626;--green:#16a34a;--warn:#d97706;
-  --purple:#7c3aed;--blue:#2563eb;--mono:'JetBrains Mono',monospace;
-  --hover-row:rgba(0,0,0,.02);--hover-nav:rgba(0,0,0,.05);
-  --active-nav:rgba(37,99,235,.09);--shadow:rgba(0,0,0,.15);
-}
-[data-theme="blue"]{
-  --bg:#0a1628;--card:#0f1f3d;--border:#1a3160;--text:#cdd9f0;--muted:#5a7aa8;
-  --accent:#3b82f6;--danger:#f87171;--green:#34d399;--warn:#fbbf24;
-  --purple:#a78bfa;--blue:#60a5fa;--mono:'JetBrains Mono',monospace;
-  --hover-row:rgba(59,130,246,.04);--hover-nav:rgba(59,130,246,.08);
-  --active-nav:rgba(59,130,246,.15);--shadow:rgba(0,0,0,.6);
-}
 
-/* Reset */
-*{box-sizing:border-box;margin:0;padding:0}
-body{display:flex;height:100vh;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;overflow:hidden;transition:background .2s,color .2s}
-
-/* Sidebar */
-.sidebar{width:228px;min-width:228px;background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100vh;overflow-y:auto;overflow-x:hidden;transition:width .22s ease,min-width .22s ease,background .2s,border-color .2s}
-.sidebar.collapsed{width:0;min-width:0;border-right:none}
-
-/* Logo */
-.logo{padding:18px 16px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;white-space:nowrap}
-.logo-icon{width:28px;height:28px;background:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.logo-icon svg{width:15px;height:15px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.logo-text h2{font-size:15px;font-weight:700;letter-spacing:.3px;line-height:1.2}
-.logo-text span{font-size:10px;color:var(--muted);font-family:var(--mono);letter-spacing:1px;text-transform:uppercase}
-
-/* Nav */
-.nav{flex:1;padding:6px 0;white-space:nowrap}
-.nav-section{padding:14px 16px 5px;font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;font-weight:700}
-
-/* Nav группы */
-.nav-group-toggle{display:flex;align-items:center;gap:8px;padding:7px 16px;color:var(--muted);text-decoration:none;font-size:12px;font-weight:600;cursor:pointer;transition:.15s;border-left:2px solid transparent;user-select:none}
-.nav-group-toggle:hover{background:var(--hover-nav);color:var(--text)}
-.nav-group-toggle.open{color:var(--text)}
-.nav-icon{width:14px;height:14px;flex-shrink:0;opacity:.7}
-.nav-arrow{margin-left:auto;font-size:9px;transition:transform .2s;opacity:.5}
-.nav-group-toggle.open .nav-arrow{transform:rotate(90deg)}
-.nav-group-items{display:none;padding-bottom:2px}
-.nav-group-items.open{display:block}
-.nav-group-items a{display:flex;align-items:center;gap:8px;padding:6px 16px 6px 34px;color:var(--muted);text-decoration:none;font-size:12px;font-weight:500;transition:.15s;border-left:2px solid transparent}
-.nav-group-items a:hover{background:var(--hover-nav);color:var(--text)}
-.nav-group-items a.active{color:var(--accent);background:var(--active-nav);border-left-color:var(--accent)}
-
-/* Nav прямые ссылки */
-.nav a.nav-link{display:flex;align-items:center;gap:8px;padding:7px 16px;color:var(--muted);text-decoration:none;font-size:12px;font-weight:600;transition:.15s;border-left:2px solid transparent}
-.nav a.nav-link:hover{background:var(--hover-nav);color:var(--text)}
-.nav a.nav-link.active{color:var(--accent);background:var(--active-nav);border-left-color:var(--accent)}
-.nav a.nav-link.danger-link{color:var(--danger)}
-
-/* Sidebar footer */
-.sidebar-footer{padding:12px 16px;border-top:1px solid var(--border);font-size:11px;white-space:nowrap}
-.user-info{color:var(--text);margin-bottom:4px;font-weight:600}
-.dot{display:inline-block;width:6px;height:6px;background:var(--green);border-radius:50%;margin-right:4px}
-
-/* Burger */
-.burger{width:32px;height:32px;flex-shrink:0;border-radius:7px;border:1px solid var(--border);background:transparent;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;transition:.15s;padding:0}
-.burger:hover{border-color:var(--accent);background:var(--hover-nav)}
-.burger span{display:block;width:14px;height:1.5px;background:var(--muted);border-radius:1px;transition:.2s}
-.burger:hover span{background:var(--text)}
-.burger-float{position:fixed;top:18px;left:16px;z-index:600;width:32px;height:32px;border-radius:7px;border:1px solid var(--border);background:var(--card);cursor:pointer;display:none;flex-direction:column;align-items:center;justify-content:center;gap:4px;transition:.15s;padding:0;box-shadow:0 2px 8px var(--shadow)}
-.burger-float.visible{display:flex}
-body.sb-collapsed .main{padding-left:62px}
-.burger-float:hover{border-color:var(--accent);background:var(--hover-nav)}
-.burger-float span{display:block;width:14px;height:1.5px;background:var(--muted);border-radius:1px;transition:.2s}
-.burger-float:hover span{background:var(--text)}
-.burger:hover{border-color:var(--accent);background:var(--hover-nav)}
-.burger span{display:block;width:14px;height:1.5px;background:var(--muted);border-radius:1px;transition:.2s}
-.burger:hover span{background:var(--text)}
-
-/* Main */
-.main{flex:1;overflow-y:auto;padding:24px 28px}
-.page-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
-.breadcrumb{font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:4px}
-h1{font-size:22px;font-weight:700}
-
-/* Cards */
-.card{background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:14px;transition:background .2s,border-color .2s}
-.card-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
-.card-header h3{font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--muted)}
-.card-body{padding:16px}
-.card > .card-table-wrap{overflow:hidden;border-bottom-left-radius:8px;border-bottom-right-radius:8px}
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:20px}
-.stat-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px 16px;transition:background .2s}
-.stat-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
-.stat-value{font-size:26px;font-weight:700}
-.stat-value.ok{color:var(--green)}
-.stat-value.warn{color:var(--warn)}
-.stat-value.danger{color:var(--danger)}
-
-/* Table */
-table{width:100%;border-collapse:collapse}
-th{padding:8px 12px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border)}
-td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
-tr:last-child td{border-bottom:0}
-tr:hover td{background:var(--hover-row)}
-
-/* Badges */
-.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
-.badge.ok,.badge.green{background:rgba(39,174,96,.15);color:var(--green)}
-.badge.warn{background:rgba(230,126,34,.15);color:var(--warn)}
-.badge.danger,.badge.red{background:rgba(231,76,60,.15);color:var(--danger)}
-.badge.blue{background:rgba(41,128,185,.15);color:var(--blue)}
-.badge.purple{background:rgba(142,68,173,.15);color:var(--purple)}
-.badge.gray{background:rgba(102,102,102,.15);color:var(--muted)}
-
-/* Buttons */
-.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;text-decoration:none;border:none;transition:.15s;background:var(--accent);color:#fff}
-.btn:hover{opacity:.85}
-.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted)}
-.btn-ghost:hover{border-color:var(--text);color:var(--text)}
-.btn-danger{background:var(--danger);color:#fff}
-.btn-success{background:var(--green);color:#fff}
-.btn-warn{background:var(--warn);color:#fff}
-.btn-sm{padding:4px 10px;font-size:11px}
-
-/* Forms */
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-.form-full{margin-bottom:12px}
-label{display:block;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
-input,textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text);font-size:12px;font-family:inherit;transition:background .2s,border-color .2s}
-input:focus,textarea:focus{outline:none;border-color:var(--accent)}
-
-/* Custom Select */
-.select-wrap{position:relative;display:inline-block;width:100%}
-.select-wrap select{position:absolute;opacity:0;pointer-events:none;width:0;height:0}
-.sel-box{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 32px 8px 10px;color:var(--text);font-size:12px;font-family:inherit;cursor:pointer;user-select:none;transition:border-color .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:6px;position:relative}
-.sel-box:hover{border-color:var(--muted)}
-.sel-box.open{border-color:var(--accent)}
-.sel-arrow{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid var(--muted);pointer-events:none;transition:transform .15s}
-.sel-box.open .sel-arrow{transform:translateY(-50%) rotate(180deg)}
-.sel-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:400;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:4px;box-shadow:0 8px 24px var(--shadow);display:none;max-height:220px;overflow-y:auto}
-.sel-dropdown.open{display:block}
-.sel-opt{padding:8px 10px;border-radius:5px;font-size:12px;color:var(--muted);cursor:pointer;transition:.12s;display:flex;align-items:center;gap:8px}
-.sel-opt:hover{background:var(--hover-nav);color:var(--text)}
-.sel-opt.selected{color:var(--accent);background:var(--active-nav)}
-.sel-check{font-size:10px;width:12px;flex-shrink:0}
-.chk{width:13px;height:13px;border:1.5px solid var(--border);border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;transition:.12s}
-.sel-opt.selected .chk{background:var(--accent);border-color:var(--accent);color:#fff}
-
-/* Нативный select fallback */
-select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 28px 8px 10px;color:var(--text);font-size:12px;font-family:inherit;cursor:pointer;transition:border-color .15s;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
-select:focus{outline:none;border-color:var(--accent)}
-select option{background:var(--card)}
-
-/* Alerts */
-.alert{padding:10px 14px;border-radius:6px;margin-bottom:12px;font-size:12px}
-.alert-ok{background:rgba(39,174,96,.12);border:1px solid rgba(39,174,96,.25);color:var(--green)}
-.alert-err{background:rgba(231,76,60,.12);border:1px solid rgba(231,76,60,.25);color:var(--danger)}
-
-/* Info rows */
-.info-row{display:flex;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px}
-.info-row:last-child{border-bottom:0}
-.info-key{width:160px;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding-top:1px;flex-shrink:0}
-.info-val{flex:1}
-
-/* Tabs */
-.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:16px}
-.tab{padding:8px 16px;font-size:12px;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;text-decoration:none;transition:.15s}
-.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
-.tab:hover{color:var(--text)}
-
-/* Misc */
-.prov-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:10px}
-.prov-name{font-size:14px;font-weight:600;margin-bottom:4px}
-.prov-type{font-size:11px;color:var(--muted);font-family:var(--mono)}
-code{font-family:var(--mono);font-size:11px;background:var(--border);padding:2px 5px;border-radius:3px}
-
-/* Modal */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;align-items:center;justify-content:center}
-.modal-overlay.active{display:flex}
-.modal-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:28px 32px;max-width:380px;width:90%;box-shadow:0 8px 40px var(--shadow)}
-.modal-title{font-size:15px;font-weight:600;margin-bottom:10px}
-.modal-msg{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.5}
-.modal-actions{display:flex;gap:10px;justify-content:flex-end}
-.modal-btn-cancel{background:transparent;border:1px solid var(--border);color:var(--muted);padding:8px 18px;border-radius:6px;cursor:pointer;font-size:13px}
-.modal-btn-cancel:hover{border-color:var(--text);color:var(--text)}
-.modal-btn-confirm{padding:8px 18px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;border:none}
-.modal-btn-confirm.danger{background:var(--danger);color:#fff}
-.modal-btn-confirm.warning{background:var(--warn);color:#fff}
-
-/* Theme dropdown */
-.theme-dropdown{position:relative;display:inline-block}
-.theme-toggle{display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--muted);cursor:pointer;font-size:11px;transition:.15s;user-select:none}
-.theme-toggle:hover{border-color:var(--accent);color:var(--text)}
-.theme-toggle .theme-icon{font-size:13px}
-.theme-menu{display:none;position:absolute;right:0;top:calc(100% + 6px);background:var(--card);border:1px solid var(--border);border-radius:8px;padding:6px;min-width:160px;z-index:200;box-shadow:0 8px 24px var(--shadow)}
-.theme-menu.open{display:block}
-.theme-item{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:6px;cursor:pointer;font-size:12px;color:var(--muted);transition:.15s}
-.theme-item:hover{background:var(--hover-nav);color:var(--text)}
-.theme-item.active{color:var(--accent);background:var(--active-nav)}
-.theme-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;border:1px solid rgba(255,255,255,.1)}
-.theme-dot.dark{background:#1a1a1a}
-.theme-dot.light{background:#f0f0f0;border-color:rgba(0,0,0,.15)}
-.theme-dot.blue{background:#0f1f3d}
-.theme-dot.auto{background:linear-gradient(135deg,#1a1a1a 50%,#f0f0f0 50%);border-color:rgba(128,128,128,.3)}
-</style>
+  <link rel="stylesheet" href="/static/css/themes.css">
+  <link rel="stylesheet" href="/static/css/base.css">
+  <link rel="stylesheet" href="/static/css/components.css">
 </head>
 <body>
 
@@ -233,7 +28,11 @@ code{font-family:var(--mono);font-size:11px;background:var(--border);padding:2px
 
   <nav class="nav">
     <div class="nav-section">Главная</div>
-    <a href="/" class="nav-link {{isActive "dash" .ActivePage}}">
+    <a href="/" class="nav-link {{isActive "home" .ActivePage}}">
+      <svg class="nav-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6l5-4 5 4v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z"/><path d="M6 13V9h2v4"/></svg>
+      Главная
+    </a>
+    <a href="/dashboard" class="nav-link {{isActive "dash" .ActivePage}}">
       <svg class="nav-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="1" width="5" height="5" rx="1"/><rect x="8" y="1" width="5" height="5" rx="1"/><rect x="1" y="8" width="5" height="5" rx="1"/><rect x="8" y="8" width="5" height="5" rx="1"/></svg>
       Дашборд
     </a>
@@ -306,26 +105,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--border);padding:2px
       </div>
     </div>
 
-    {{if eq .Session.Role "admin"}}
-    <div class="nav-section">Пользователи</div>
-    <div class="nav-group" id="grp-users">
-      <div class="nav-group-toggle" onclick="toggleGroup('grp-users')">
-        <svg class="nav-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="5" cy="4" r="2.5"/><path d="M1 12c0-2.5 1.8-4 4-4s4 1.5 4 4"/><circle cx="11" cy="5" r="1.5"/><path d="M11 8c1.5 0 2.5 1 2.5 2.5"/></svg>
-        Пользователи
-        <span class="nav-arrow">&#9658;</span>
-      </div>
-      <div class="nav-group-items">
-        <a href="/users" class="{{isActive "users" .ActivePage}}">
-          <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="6" cy="4" r="2.5"/><path d="M2 11c0-2 1.5-3.5 4-3.5s4 1.5 4 3.5"/></svg>
-          Все пользователи
-        </a>
-        <a href="/security" class="{{isActive "security" .ActivePage}}">
-          <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 1l4 2v3c0 2.5-1.5 4.5-4 5.5C3.5 10.5 2 8.5 2 6V3z"/></svg>
-          Журнал безопасности
-        </a>
-      </div>
-    </div>
-    {{end}}
+    
 
     <div class="nav-section">Аккаунт</div>
     <a href="/profile" class="nav-link {{isActive "profile" .ActivePage}}">
@@ -336,7 +116,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--border);padding:2px
       <svg class="nav-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5 2H3a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h2M9 10l3-3-3-3M12 7H6"/></svg>
       Выйти
     </a>
-  </nav>
+</nav>
 
   <div class="sidebar-footer">
     <div class="user-info">{{.Session.Username}} &middot; <span style="color:var(--muted);font-weight:400">{{.Session.Role}}</span></div>
@@ -362,177 +142,8 @@ code{font-family:var(--mono);font-size:11px;background:var(--border);padding:2px
   </div>
 </div>
 
-<script>
-var _sidebarOpen = true;
-(function(){
-  var saved = localStorage.getItem('step-ui-sidebar');
-  if(saved === '0'){
-    _sidebarOpen = false;
-    document.getElementById('sidebar').classList.add('collapsed');
-    document.body.classList.add('sb-collapsed');
-    var bf = document.getElementById('burgerFloat');
-    if(bf) bf.classList.add('visible');
-  }
-})();
-function toggleSidebar(){
-  _sidebarOpen = !_sidebarOpen;
-  document.getElementById('sidebar').classList.toggle('collapsed', !_sidebarOpen);
-  document.body.classList.toggle('sb-collapsed', !_sidebarOpen);
-  var bf = document.getElementById('burgerFloat');
-  if(bf) bf.classList.toggle('visible', !_sidebarOpen);
-  localStorage.setItem('step-ui-sidebar', _sidebarOpen ? '1' : '0');
-}
-
-function toggleGroup(id){
-  var grp = document.getElementById(id);
-  if(!grp) return;
-  var toggle = grp.querySelector('.nav-group-toggle');
-  var items  = grp.querySelector('.nav-group-items');
-  toggle.classList.toggle('open');
-  items.classList.toggle('open');
-}
-
-function initCustomSelect(wrap){
-  var sel = wrap.querySelector('select');
-  if(!sel) return;
-  var multi = sel.multiple;
-  var box   = wrap.querySelector('.sel-box');
-  var drop  = wrap.querySelector('.sel-dropdown');
-  if(!box || !drop) return;
-  function renderLabel(){
-    var chosen = Array.from(sel.selectedOptions).map(function(o){return o.text;});
-    var lbl = box.querySelector('.sel-label');
-    if(lbl) lbl.textContent = chosen.length ? chosen.join(', ') : (sel.options[0]||{text:''}).text;
-  }
-  function buildOpts(){
-    drop.innerHTML = '';
-    Array.from(sel.options).forEach(function(o){
-      var div = document.createElement('div');
-      div.className = 'sel-opt' + (o.selected ? ' selected' : '');
-      div.dataset.val = o.value;
-      if(multi){
-        div.innerHTML = '<span class="chk">'+(o.selected?'&#10003;':'')+'</span>'+o.text;
-      } else {
-        div.innerHTML = '<span class="sel-check">'+(o.selected?'&#10003;':'')+'</span>'+o.text;
-      }
-      div.addEventListener('mousedown', function(e){
-        e.preventDefault();
-        if(multi){
-          o.selected = !o.selected;
-          div.classList.toggle('selected', o.selected);
-          var chk = div.querySelector('.chk');
-          if(chk) chk.innerHTML = o.selected ? '&#10003;' : '';
-        } else {
-          Array.from(drop.querySelectorAll('.sel-opt')).forEach(function(d){
-            d.classList.remove('selected');
-            var sc = d.querySelector('.sel-check'); if(sc) sc.innerHTML='';
-          });
-          div.classList.add('selected');
-          var sc = div.querySelector('.sel-check'); if(sc) sc.innerHTML='&#10003;';
-          sel.value = o.value;
-          closeDropdown();
-        }
-        renderLabel();
-        sel.dispatchEvent(new Event('change',{bubbles:true}));
-      });
-      drop.appendChild(div);
-    });
-  }
-  function openDropdown(){ buildOpts(); box.classList.add('open'); drop.classList.add('open'); }
-  function closeDropdown(){ box.classList.remove('open'); drop.classList.remove('open'); }
-  box.addEventListener('click', function(){ drop.classList.contains('open') ? closeDropdown() : openDropdown(); });
-  document.addEventListener('click', function(e){ if(!wrap.contains(e.target)) closeDropdown(); });
-  renderLabel();
-}
-// Автооборачивание всех <select> на странице в кастомный select-wrap
-function autoWrapSelects(){
-  document.querySelectorAll('select').forEach(function(sel){
-    if(sel.closest('.select-wrap')) return; // уже обёрнут
-    if(sel.hasAttribute('data-native')) return; // помечен как "не трогать"
-    var wrap = document.createElement('div');
-    wrap.className = 'select-wrap';
-    // Наследуем ширину от select
-    var w = sel.style.width || sel.getAttribute('width');
-    if(w) wrap.style.width = w;
-    else if(sel.offsetWidth) wrap.style.width = sel.offsetWidth + 'px';
-    sel.parentNode.insertBefore(wrap, sel);
-    wrap.appendChild(sel);
-    var box = document.createElement('div');
-    box.className = 'sel-box';
-    box.innerHTML = '<span class="sel-label"></span><span class="sel-arrow"></span>';
-    wrap.appendChild(box);
-    var drop = document.createElement('div');
-    drop.className = 'sel-dropdown';
-    wrap.appendChild(drop);
-    initCustomSelect(wrap);
-  });
-}
-autoWrapSelects();
-
-var THEME_META = {dark:{label:'Тёмная',icon:'&#x25CF;'},light:{label:'Светлая',icon:'&#x25CB;'},blue:{label:'Синяя',icon:'&#x25C6;'},auto:{label:'Авто',icon:'&#x25D0;'}};
-function applyTheme(t){
-  var actual=t;
-  if(t==='auto') actual=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
-  document.documentElement.setAttribute('data-theme',actual);
-  localStorage.setItem('step-ui-theme',t);
-  var meta=THEME_META[t]||THEME_META.dark;
-  var iconEl=document.getElementById('themeIcon'); var labelEl=document.getElementById('themeLabel');
-  if(iconEl) iconEl.innerHTML=meta.icon; if(labelEl) labelEl.textContent=meta.label;
-  document.querySelectorAll('.theme-item').forEach(function(i){i.classList.toggle('active',i.getAttribute('data-t')===t);});
-  closeThemeMenu();
-}
-function toggleThemeMenu(){document.getElementById('themeMenu').classList.toggle('open');}
-function closeThemeMenu(){var m=document.getElementById('themeMenu');if(m)m.classList.remove('open');}
-document.addEventListener('click',function(e){var dd=document.getElementById('themeDropdown');if(dd&&!dd.contains(e.target))closeThemeMenu();});
-(function(){applyTheme(localStorage.getItem('step-ui-theme')||'dark');})();
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){if(localStorage.getItem('step-ui-theme')==='auto')applyTheme('auto');});
-
-var _mf=null;
-function showConfirm(form,msg,btn,cls,title){
-  _mf=form;
-  document.getElementById('modalMsg').textContent=msg;
-  document.getElementById('modalTitle').textContent=title||'Подтвердите действие';
-  var b=document.getElementById('modalConfirmBtn');
-  b.textContent=btn||'Подтвердить';
-  b.className='modal-btn-confirm '+(cls||'danger');
-  document.getElementById('confirmModal').classList.add('active');
-}
-function closeModal(){document.getElementById('confirmModal').classList.remove('active');_mf=null;}
-function modalConfirm(){if(_mf){var s=_mf.submit.bind(_mf);_mf.removeAttribute('data-confirm');s();}closeModal();}
-document.getElementById('confirmModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
-document.addEventListener('submit',function(e){
-  var f=e.target,msg=f.getAttribute('data-confirm');
-  if(msg){e.preventDefault();showConfirm(f,msg,f.getAttribute('data-confirm-btn'),f.getAttribute('data-confirm-class'),f.getAttribute('data-confirm-title'));}
-});
-
-// Авто-открытие группы для активной страницы
-(function(){
-  var activeLink = document.querySelector('.nav-group-items a.active');
-  if(activeLink){
-    var items = activeLink.closest('.nav-group-items');
-    var grp   = activeLink.closest('.nav-group');
-    if(items && grp){
-      items.classList.add('open');
-      var toggle = grp.querySelector('.nav-group-toggle');
-      if(toggle) toggle.classList.add('open');
-    }
-  }
-})();
-</script>
-
-<div class="theme-dropdown" id="themeDropdown" style="position:fixed;top:12px;right:16px;z-index:500">
-  <div class="theme-toggle" id="themeToggle" onclick="toggleThemeMenu()">
-    <span class="theme-icon" id="themeIcon">&#x25D0;</span>
-    <span id="themeLabel">Тема</span>
-    <span style="font-size:9px;opacity:.6">&#x25BE;</span>
-  </div>
-  <div class="theme-menu" id="themeMenu">
-    <div class="theme-item" data-t="dark"  onclick="applyTheme('dark')"><div class="theme-dot dark"></div>Тёмная</div>
-    <div class="theme-item" data-t="light" onclick="applyTheme('light')"><div class="theme-dot light"></div>Светлая</div>
-    <div class="theme-item" data-t="blue"  onclick="applyTheme('blue')"><div class="theme-dot blue"></div>Синяя</div>
-    <div class="theme-item" data-t="auto"  onclick="applyTheme('auto')"><div class="theme-dot auto"></div>Авто (системная)</div>
-  </div>
 </div>
+  <script src="/static/js/select.js"></script>
 </body>
 </html>
 {{end}}

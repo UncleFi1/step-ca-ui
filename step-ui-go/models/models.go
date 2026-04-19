@@ -13,6 +13,7 @@ type User struct {
 	LastIP       *string
 	DisplayName  string
 	Email        string
+	Theme        string
 }
 
 type AuthLog struct {
@@ -58,4 +59,5 @@ type SessionInfo struct {
 	UserID   int
 	Username string
 	Role     string
+	Theme    string
 }

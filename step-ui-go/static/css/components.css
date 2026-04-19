@@ -1,0 +1,158 @@
+/*
+ * components.css — переиспользуемые компоненты
+ *
+ * Сюда едут: .card, .btn, .tbl, формы, .theme-select (селектор темы),
+ * .breadcrumb, .info-row, .badge, бейджи
+ */
+
+/* ──── extracted from base.html ──── */
+
+.breadcrumb{font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:4px}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:14px;transition:background .2s,border-color .2s}
+
+.card-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+
+.card-header h3{font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--muted)}
+
+.card-body{padding:16px}
+
+.card > .card-table-wrap{overflow:hidden;border-bottom-left-radius:8px;border-bottom-right-radius:8px}
+
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px 16px;transition:background .2s}
+
+.stat-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+
+.stat-value{font-size:26px;font-weight:700}
+
+.stat-value.ok{color:var(--green)}
+
+.stat-value.warn{color:var(--warn)}
+
+.stat-value.danger{color:var(--danger)}
+
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+
+.badge.ok,.badge.green{background:rgba(39,174,96,.15);color:var(--green)}
+
+.badge.warn{background:rgba(230,126,34,.15);color:var(--warn)}
+
+.badge.danger,.badge.red{background:rgba(231,76,60,.15);color:var(--danger)}
+
+.badge.blue{background:rgba(41,128,185,.15);color:var(--blue)}
+
+.badge.purple{background:rgba(142,68,173,.15);color:var(--purple)}
+
+.badge.gray{background:rgba(102,102,102,.15);color:var(--muted)}
+
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;text-decoration:none;border:none;transition:.15s;background:var(--accent);color:#fff}
+
+.btn:hover{opacity:.85}
+
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted)}
+
+.btn-ghost:hover{border-color:var(--text);color:var(--text)}
+
+.btn-danger{background:var(--danger);color:#fff}
+
+.btn-success{background:var(--green);color:#fff}
+
+.btn-warn{background:var(--warn);color:#fff}
+
+.btn-sm{padding:4px 10px;font-size:11px}
+
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+
+.form-full{margin-bottom:12px}
+
+label{display:block;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+
+input,textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text);font-size:12px;font-family:inherit;transition:background .2s,border-color .2s}
+
+input:focus,textarea:focus{outline:none;border-color:var(--accent)}
+
+select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 28px 8px 10px;color:var(--text);font-size:12px;font-family:inherit;cursor:pointer;transition:border-color .15s;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+
+select:focus{outline:none;border-color:var(--accent)}
+
+select option{background:var(--card)}
+
+.alert{padding:10px 14px;border-radius:6px;margin-bottom:12px;font-size:12px}
+
+.alert-ok{background:rgba(39,174,96,.12);border:1px solid rgba(39,174,96,.25);color:var(--green)}
+
+.alert-err{background:rgba(231,76,60,.12);border:1px solid rgba(231,76,60,.25);color:var(--danger)}
+
+.info-row{display:flex;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px}
+
+.info-row:last-child{border-bottom:0}
+
+.info-key{width:160px;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding-top:1px;flex-shrink:0}
+
+.info-val{flex:1}
+
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;align-items:center;justify-content:center}
+
+.modal-overlay.active{display:flex}
+
+.modal-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:28px 32px;max-width:380px;width:90%;box-shadow:0 8px 40px var(--shadow)}
+
+.modal-title{font-size:15px;font-weight:600;margin-bottom:10px}
+
+.modal-msg{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.5}
+
+.modal-actions{display:flex;gap:10px;justify-content:flex-end}
+
+.modal-btn-cancel{background:transparent;border:1px solid var(--border);color:var(--muted);padding:8px 18px;border-radius:6px;cursor:pointer;font-size:13px}
+
+.modal-btn-cancel:hover{border-color:var(--text);color:var(--text)}
+
+.modal-btn-confirm{padding:8px 18px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;border:none}
+
+.modal-btn-confirm.danger{background:var(--danger);color:#fff}
+
+.modal-btn-confirm.warning{background:var(--warn);color:#fff}
+
+/* ──── custom select (moved from base.css) ──── */
+
+.select-wrap {position:relative;display:inline-block;width:100%}
+
+.select-wrap select {position:absolute;opacity:0;pointer-events:none;width:0;height:0}
+
+.sel-box {width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 32px 8px 10px;color:var(--text);font-size:12px;font-family:inherit;cursor:pointer;user-select:none;transition:border-color .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:6px;position:relative}
+
+.sel-box:hover {border-color:var(--muted)}
+
+.sel-box.open {border-color:var(--accent)}
+
+.sel-arrow {position:absolute;right:10px;top:50%;transform:translateY(-50%);width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid var(--muted);pointer-events:none;transition:transform .15s}
+
+.sel-box.open .sel-arrow {transform:translateY(-50%) rotate(180deg)}
+
+.sel-dropdown {position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:400;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:4px;box-shadow:0 8px 24px var(--shadow);display:none;max-height:220px;overflow-y:auto}
+
+.sel-dropdown.open {display:block}
+
+.sel-check {font-size:10px;width:12px;flex-shrink:0}
+
+/* ──── table stabilization ──── */
+.tbl-wrap {
+  overflow-x: auto;
+  width: 100%;
+}
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+}
+.tbl th,
+.tbl td {
+  padding: 10px 12px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.tbl td:last-child,
+.tbl th:last-child {
+  white-space: normal;
+}
+

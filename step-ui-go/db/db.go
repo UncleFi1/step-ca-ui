@@ -26,6 +26,11 @@ func Connect(dsn string) (*sql.DB, error) {
 }
 
 func InitSchema(d *sql.DB) error {
+	// migration: users.theme
+	if _, err := d.Exec(`ALTER TABLE users ADD COLUMN IF NOT EXISTS theme VARCHAR(10) DEFAULT 'dark'`); err != nil {
+		return err
+	}
+
 	// -- migration: user profile fields
 	if _, err := d.Exec(`ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name VARCHAR(100) DEFAULT ''`); err != nil {
 		return err
@@ -111,17 +116,21 @@ func GetUserByUsername(d *sql.DB, username string) (*models.User, error) {
 
 func GetUserByID(d *sql.DB, id int) (*models.User, error) {
 	u := &models.User{}
-	var displayName, email sql.NullString
+	var displayName, email, theme sql.NullString
 	err := d.QueryRow(`SELECT id, username, password_hash, role, is_active, created_at, last_login, last_ip,
-		COALESCE(display_name,''), COALESCE(email,'') FROM users WHERE id=$1`, id).Scan(
+		COALESCE(display_name,''), COALESCE(email,''), COALESCE(theme,'dark') FROM users WHERE id=$1`, id).Scan(
 		&u.ID, &u.Username, &u.PasswordHash, &u.Role, &u.IsActive,
-		&u.CreatedAt, &u.LastLogin, &u.LastIP, &displayName, &email,
+		&u.CreatedAt, &u.LastLogin, &u.LastIP, &displayName, &email, &theme,
 	)
 	if err != nil {
 		return nil, err
 	}
 	u.DisplayName = displayName.String
 	u.Email = email.String
+	u.Theme = theme.String
+	if u.Theme == "" {
+		u.Theme = "dark"
+	}
 	return u, nil
 }
 
@@ -164,6 +173,11 @@ func UpdateUserPassword(d *sql.DB, id int, hash string) error {
 func UpdateUserInfo(d *sql.DB, id int, username, displayName, email string) error {
 	_, err := d.Exec(`UPDATE users SET username=$1, display_name=$2, email=$3 WHERE id=$4`,
 		username, displayName, email, id)
+	return err
+}
+
+func UpdateUserTheme(d *sql.DB, id int, theme string) error {
+	_, err := d.Exec(`UPDATE users SET theme=$1 WHERE id=$2`, theme, id)
 	return err
 }
 

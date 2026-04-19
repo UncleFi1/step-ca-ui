@@ -10,6 +10,7 @@ import (
 
 	"github.com/gorilla/sessions"
 	"step-ui/config"
+	appdb "step-ui/db"
 	"step-ui/models"
 	"step-ui/security"
 )
@@ -18,9 +19,9 @@ var StartedAt time.Time
 
 // Версионирование — переопределяется через ldflags при сборке
 var (
-	Version   = "1.2.0"
-	BuildDate = "2026-04-18"
-	GitCommit = "3f02595"
+	Version   = "1.3.0"
+	BuildDate = "2026-04-19"
+	GitCommit = "0a7484c"
 )
 
 type Handler struct {
@@ -39,23 +40,43 @@ func New(db *sql.DB, cfg *config.Config, store *sessions.CookieStore) *Handler {
 func (h *Handler) loadTemplates() {
 	funcs := h.templateFuncs()
 	pages := []string{
-		"dashboard", "certificates", "issue", "import",
-		"provisioners", "history", "users", "user_profile",
-		"profile", "security_log",
-		"le_dashboard", "le_issue", "le_settings", "le_logs",
-	}
+        "home",
+        "dashboard",
+        "certificates",
+        "issue",
+        "import",
+        "provisioners",
+        "history",
+        "admin",
+        "profile",
+        "le_dashboard",
+        "le_issue",
+        "le_settings",
+        "le_logs",
+        "admin_users",
+        "admin_user_profile",
+        "admin_users_temp",
+        "admin_activity",
+        "admin_security",
+        "admin_console",
+        "admin_about",
+    }
 	for _, page := range pages {
-		t, err := template.New("base.html").Funcs(funcs).ParseFiles(
-			"templates/base.html",
-			fmt.Sprintf("templates/%s.html", page),
-		)
-		if err != nil {
-			log.Printf("template error (%s): %v", page, err)
-			continue
-		}
-		h.tmpls[page] = t
-	}
-	if t, err := template.New("login.html").Funcs(funcs).ParseFiles("templates/login.html"); err == nil {
+        baseFile := "templates/base.html"
+        if len(page) >= 6 && page[:6] == "admin_" || page == "admin" {
+            baseFile = "templates/admin_base.html"
+        }
+        t, err := template.New("base.html").Funcs(funcs).ParseFiles(
+            baseFile,
+            fmt.Sprintf("templates/%s.html", page),
+        )
+        if err != nil {
+            log.Printf("template error (%s): %v", page, err)
+            continue
+        }
+        h.tmpls[page] = t
+    }
+    if t, err := template.New("login.html").Funcs(funcs).ParseFiles("templates/login.html"); err == nil {
 		h.tmpls["login"] = t
 	} else {
 		log.Printf("login template error: %v", err)
@@ -136,7 +157,13 @@ func (h *Handler) sessionInfo(r *http.Request) *models.SessionInfo {
 	id, _ := s.Values["user_id"].(int)
 	username, _ := s.Values["username"].(string)
 	role, _ := s.Values["role"].(string)
-	return &models.SessionInfo{UserID: id, Username: username, Role: role}
+	theme := "dark"
+	if id > 0 {
+		if u, err := appdb.GetUserByID(h.db, id); err == nil && u != nil && u.Theme != "" {
+			theme = u.Theme
+		}
+	}
+	return &models.SessionInfo{UserID: id, Username: username, Role: role, Theme: theme}
 }
 
 func (h *Handler) flash(w http.ResponseWriter, r *http.Request, t, text string) {
@@ -186,17 +213,19 @@ func (h *Handler) base(w http.ResponseWriter, r *http.Request, activePage string
 }
 
 func (h *Handler) render(w http.ResponseWriter, page string, data map[string]interface{}) {
-	tmpl, ok := h.tmpls[page]
-	if !ok {
-		http.Error(w, "template not found: "+page, http.StatusInternalServerError)
-		return
-	}
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	name := "layout"
-	if page == "login" {
-		name = "login.html"
-	}
-	if err := tmpl.ExecuteTemplate(w, name, data); err != nil {
-		log.Printf("render %s: %v", page, err)
-	}
+    tmpl, ok := h.tmpls[page]
+    if !ok {
+        http.Error(w, "template not found: "+page, http.StatusInternalServerError)
+        return
+    }
+    w.Header().Set("Content-Type", "text/html; charset=utf-8")
+    name := "layout"
+    if page == "login" {
+        name = "login.html"
+    } else if page == "admin" || (len(page) >= 6 && page[:6] == "admin_") {
+        name = "admin_layout"
+    }
+    if err := tmpl.ExecuteTemplate(w, name, data); err != nil {
+        log.Printf("render %s: %v", page, err)
+    }
 }

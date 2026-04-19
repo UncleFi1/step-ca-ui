@@ -1,0 +1,37 @@
+/*
+ * themes.css — CSS-переменные всех тем
+ *
+ * :root          — базовая (тёмная) тема
+ * [data-theme="light"] — светлая
+ * [data-theme="blue"]  — синяя
+ * [data-theme="auto"]  — ничего не делает (JS проставляет dark/light по системе)
+ *
+ * Также содержит --admin-* переменные для админ-пространства.
+ */
+
+/* ──── extracted from base.html ──── */
+
+[data-theme="dark"]{
+  --bg:#0d0d0d;--card:#141414;--border:#222;--text:#e8e8e8;--muted:#666;
+  --accent:#4493f8;--danger:#e74c3c;--green:#27ae60;--warn:#e67e22;
+  --purple:#8e44ad;--blue:#2980b9;--mono:'JetBrains Mono',monospace;
+  --hover-row:rgba(255,255,255,.02);--hover-nav:rgba(255,255,255,.05);
+  --active-nav:rgba(68,147,248,.1);--shadow:rgba(0,0,0,.5);
+}
+
+[data-theme="light"]{
+  --bg:#f4f6f9;--card:#ffffff;--border:#e2e6ea;--text:#1a1a2e;--muted:#8492a6;
+  --accent:#2563eb;--danger:#dc2626;--green:#16a34a;--warn:#d97706;
+  --purple:#7c3aed;--blue:#2563eb;--mono:'JetBrains Mono',monospace;
+  --hover-row:rgba(0,0,0,.02);--hover-nav:rgba(0,0,0,.05);
+  --active-nav:rgba(37,99,235,.09);--shadow:rgba(0,0,0,.15);
+}
+
+[data-theme="blue"]{
+  --bg:#0a1628;--card:#0f1f3d;--border:#1a3160;--text:#cdd9f0;--muted:#5a7aa8;
+  --accent:#3b82f6;--danger:#f87171;--green:#34d399;--warn:#fbbf24;
+  --purple:#a78bfa;--blue:#60a5fa;--mono:'JetBrains Mono',monospace;
+  --hover-row:rgba(59,130,246,.04);--hover-nav:rgba(59,130,246,.08);
+  --active-nav:rgba(59,130,246,.15);--shadow:rgba(0,0,0,.6);
+}
+

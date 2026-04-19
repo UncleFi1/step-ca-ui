@@ -19,7 +19,87 @@ import (
 	"step-ui/handlers"
 	"step-ui/le"
 	mw "step-ui/middleware"
+	"strings"
+	"path/filepath"
+	"mime"
+	"io"
 )
+
+
+
+// staticHandlerWithMIME раздаёт статические файлы с ПРАВИЛЬНЫМ Content-Type.
+// Не использует http.FileServer/ServeContent, чтобы те не перезаписали MIME
+// значениями из системного /etc/mime.types (где .css может быть text/plain).
+func staticHandlerWithMIME(rootDir string) http.Handler {
+	mimeByExt := map[string]string{
+		".css":   "text/css; charset=utf-8",
+		".js":    "application/javascript; charset=utf-8",
+		".mjs":   "application/javascript; charset=utf-8",
+		".json":  "application/json; charset=utf-8",
+		".svg":   "image/svg+xml",
+		".png":   "image/png",
+		".jpg":   "image/jpeg",
+		".jpeg":  "image/jpeg",
+		".gif":   "image/gif",
+		".webp":  "image/webp",
+		".ico":   "image/x-icon",
+		".woff":  "font/woff",
+		".woff2": "font/woff2",
+		".ttf":   "font/ttf",
+		".otf":   "font/otf",
+		".map":   "application/json; charset=utf-8",
+		".html":  "text/html; charset=utf-8",
+		".txt":   "text/plain; charset=utf-8",
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// безопасная склейка пути
+		clean := filepath.Clean("/" + r.URL.Path)
+		full := filepath.Join(rootDir, clean)
+		// защита от path traversal
+		absRoot, _ := filepath.Abs(rootDir)
+		absFile, _ := filepath.Abs(full)
+		if !strings.HasPrefix(absFile, absRoot) {
+			http.NotFound(w, r)
+			return
+		}
+		f, err := os.Open(full)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+		defer f.Close()
+		st, err := f.Stat()
+		if err != nil || st.IsDir() {
+			http.NotFound(w, r)
+			return
+		}
+		ext := strings.ToLower(filepath.Ext(full))
+		if mt, ok := mimeByExt[ext]; ok {
+			w.Header().Set("Content-Type", mt)
+		} else {
+			w.Header().Set("Content-Type", "application/octet-stream")
+		}
+		w.Header().Set("Cache-Control", "public, max-age=3600")
+		io.Copy(w, f)
+	})
+}
+
+func init() {
+	// Принудительно регистрируем корректные MIME-типы для статики.
+	// http.ServeContent использует mime.TypeByExtension() и перезаписывает
+	// любой ранее установленный Content-Type, поэтому только этот способ работает.
+	mime.AddExtensionType(".css", "text/css; charset=utf-8")
+	mime.AddExtensionType(".js", "application/javascript; charset=utf-8")
+	mime.AddExtensionType(".mjs", "application/javascript; charset=utf-8")
+	mime.AddExtensionType(".json", "application/json; charset=utf-8")
+	mime.AddExtensionType(".svg", "image/svg+xml")
+	mime.AddExtensionType(".webp", "image/webp")
+	mime.AddExtensionType(".woff", "font/woff")
+	mime.AddExtensionType(".woff2", "font/woff2")
+	mime.AddExtensionType(".ttf", "font/ttf")
+	mime.AddExtensionType(".otf", "font/otf")
+	mime.AddExtensionType(".map", "application/json; charset=utf-8")
+}
 
 func main() {
 	handlers.StartedAt = time.Now()
@@ -75,7 +155,8 @@ func main() {
 	r.Group(func(r chi.Router) {
 		r.Use(mw.RequireLogin(store))
 
-		r.Get("/",            h.Dashboard)
+		r.Get("/",            h.Home)
+			r.Get("/dashboard",   h.Dashboard)
 		r.Get("/api/status",  h.APIStatus)
 
 		// Сертификаты (viewer+)
@@ -109,12 +190,18 @@ func main() {
 
 		// Управление пользователями (admin)
 		r.Group(func(r chi.Router) {
-			r.Use(mw.RequireRole("admin", store))
-			r.Get("/users",        h.Users)
-			r.Post("/users",       h.UsersPost)
-			r.Get("/users/{id}",   h.UserProfile)
-			r.Get("/security",     h.SecurityLog)
-		})
+            r.Use(mw.RequireRole("admin", store))
+            // Админ-пространство
+            r.Get("/admin",                h.AdminGet)
+            r.Get("/admin/users",          h.Users)
+            r.Post("/admin/users",         h.UsersPost)
+            r.Get("/admin/users/{id}",     h.UserProfile)
+            r.Get("/admin/users-temp",     h.AdminUsersTempGet)
+            r.Get("/admin/activity",       h.AdminActivityGet)
+            r.Get("/admin/security",       h.SecurityLog)
+            r.Get("/admin/console",        h.AdminConsoleGet)
+            r.Get("/admin/about",          h.AdminAboutGet)
+        })
 
 		// Let's Encrypt (manager+)
 		r.Group(func(r chi.Router) {
@@ -138,8 +225,7 @@ func main() {
 	})
 
 	// ─── Static files ─────────────────────────────────────────────────────────
-	r.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-
+	r.Handle("/static/*", http.StripPrefix("/static/", staticHandlerWithMIME("static")))
 	// ─── Start server ─────────────────────────────────────────────────────────
 	for _, dir := range []string{cfg.CertsDir, cfg.UploadDir, "/opt/step-ui/ssl", "/opt/step-ui/data"} {
 		os.MkdirAll(dir, 0755)

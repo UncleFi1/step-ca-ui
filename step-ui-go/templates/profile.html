@@ -1,3 +1,64 @@
+<style>
+  /* Внешний вид — выпадающий список темы */
+  .theme-select { position: relative; width: 100%; }
+  .theme-select-trigger {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%; padding: 10px 36px 10px 10px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; cursor: pointer; color: var(--text);
+    font-size: 14px; text-align: left; position: relative;
+    transition: border-color .15s;
+  }
+  .theme-select-trigger:hover { border-color: var(--accent); }
+  .theme-select-trigger::after {
+    content: ""; position: absolute; right: 12px; top: 50%;
+    width: 8px; height: 8px; border-right: 2px solid var(--muted);
+    border-bottom: 2px solid var(--muted);
+    transform: translateY(-70%) rotate(45deg);
+    transition: transform .2s;
+  }
+  .theme-select.open .theme-select-trigger::after {
+    transform: translateY(-30%) rotate(-135deg);
+  }
+  .theme-preview {
+    width: 44px; height: 28px; border-radius: 6px;
+    border: 1px solid var(--border); flex-shrink: 0;
+    background: linear-gradient(135deg, var(--p1, #1e293b) 50%, var(--p2, #0f172a) 50%);
+  }
+  .theme-preview.dark  { --p1:#1f2937; --p2:#0b1220; }
+  .theme-preview.light { --p1:#ffffff; --p2:#e5e7eb; }
+  .theme-preview.blue  { --p1:#1e3a8a; --p2:#0b1220; }
+  .theme-preview.auto  { --p1:#ffffff; --p2:#0b1220; }
+
+  /* КЛЮЧЕВОЕ: меню поверх контента, не двигает страницу */
+  .theme-select-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0; right: 0;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 12px 32px rgba(0,0,0,.35);
+    padding: 6px;
+    z-index: 1000;
+    display: none;
+    max-height: 320px;
+    overflow-y: auto;
+  }
+  .theme-select.open .theme-select-menu { display: block; }
+  .theme-option {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: 6px; cursor: pointer;
+    transition: background .12s;
+  }
+  .theme-option:hover { background: var(--hover, rgba(255,255,255,.05)); }
+  .theme-option.active {
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+  }
+  .theme-option-info { display: flex; flex-direction: column; line-height: 1.3; }
+  .theme-option-name { font-weight: 600; font-size: 14px; color: var(--text); }
+  .theme-option-desc { font-size: 12px; color: var(--muted); }
+</style>
 {{define "content"}}
 <div class="page-header">
   <div><div class="breadcrumb">account &middot; profile</div><h1>Мой профиль</h1></div>
@@ -6,7 +67,8 @@
 <div style="display:grid;grid-template-columns:minmax(280px,1fr) minmax(320px,1.4fr);gap:14px">
 
   <!-- ═ Информация о пользователе ═ -->
-  <div class="card" style="margin-bottom:0">
+  <div data-profile-left-col="1" style="display:flex;flex-direction:column;gap:14px">
+<div class="card" style="margin-bottom:0">
     <div class="card-header"><h3>Обо мне</h3></div>
     <div class="card-body">
       <div class="info-row">
@@ -26,14 +88,16 @@
         <div class="info-val">
           {{if eq .U.Role "admin"}}<span class="badge purple">admin</span>
           {{else if eq .U.Role "manager"}}<span class="badge blue">manager</span>
-          {{else}}<span class="badge gray">viewer</span>{{end}}
+          {{else}}<span class="badge gray">viewer</span>
+{{end}}
         </div>
       </div>
       <div class="info-row">
         <div class="info-key">Статус</div>
         <div class="info-val">
           {{if .U.IsActive}}<span class="badge ok">активен</span>
-          {{else}}<span class="badge danger">заблокирован</span>{{end}}
+          {{else}}<span class="badge danger">заблокирован</span>
+{{end}}
         </div>
       </div>
       <div class="info-row">
@@ -50,6 +114,27 @@
       </div>
     </div>
   </div>
+{{if eq .U.Role "admin"}}
+<div class="card" style="margin-bottom:0;border-color:color-mix(in srgb, #f59e0b 40%, var(--border))">
+  <div class="card-header"><h3 style="margin:0">Администрирование</h3></div>
+  <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="flex-shrink:0;width:44px;height:44px;border-radius:10px;background:color-mix(in srgb, #f59e0b 18%, transparent);color:#f59e0b;display:flex;align-items:center;justify-content:center">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 7v5c0 5 3.5 9.5 9 11 5.5-1.5 9-6 9-11V7l-9-5z"/></svg>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;line-height:1.2">Админ-панель</div>
+        <div class="muted" style="font-size:12px;margin-top:2px">Доступно только администраторам</div>
+      </div>
+    </div>
+    <a href="/admin" class="btn btn-primary" style="background:#f59e0b;border-color:#f59e0b;color:#111;text-align:center;font-weight:700">Войти →</a>
+  </div>
+</div>
+{{end}}
+</div>
+
+
+
 
   <!-- ═ Редактирование + пароль ═ -->
   <div style="display:flex;flex-direction:column;gap:14px">
@@ -106,7 +191,113 @@
         </form>
       </div>
     </div>
+    <!-- ── Внешний вид ── -->
+    <div class="card" style="margin-bottom:0;overflow:visible">
+      <div class="card-header"><h3>Внешний вид</h3></div>
+      <div class="card-body">
+        <form method="POST" action="/profile" id="themeForm">
+          <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+          <input type="hidden" name="action" value="theme">
+          <label>Тема оформления</label>
+          {{$cur := .U.Theme}}
+          <div class="theme-select" id="themeSelect">
+            <div class="ts-box" id="tsBox">
+              <div class="ts-preview ts-{{$cur}}"><span></span><span></span></div>
+              <div class="ts-label" id="tsLabel">
+                {{if eq $cur "dark"}}Тёмная
+                {{else if eq $cur "light"}}Светлая
+                {{else if eq $cur "blue"}}Синяя
+                {{else if eq $cur "auto"}}Авто (системная)
+                {{else}}Тёмная{{end}}
+              </div>
+              <span class="ts-arrow"></span>
+            </div>
+            <div class="ts-dropdown" id="tsDropdown">
+              <div class="ts-opt {{if eq $cur "dark"}}selected{{end}}"  data-val="dark">
+                <div class="ts-preview ts-dark"><span></span><span></span></div>
+                <div><div class="ts-opt-name">Тёмная</div><div class="ts-opt-sub">Классическая, по умолчанию</div></div>
+              </div>
+              <div class="ts-opt {{if eq $cur "light"}}selected{{end}}" data-val="light">
+                <div class="ts-preview ts-light"><span></span><span></span></div>
+                <div><div class="ts-opt-name">Светлая</div><div class="ts-opt-sub">Для дневной работы</div></div>
+              </div>
+              <div class="ts-opt {{if eq $cur "blue"}}selected{{end}}"  data-val="blue">
+                <div class="ts-preview ts-blue"><span></span><span></span></div>
+                <div><div class="ts-opt-name">Синяя</div><div class="ts-opt-sub">Морская ночь</div></div>
+              </div>
+              <div class="ts-opt {{if eq $cur "auto"}}selected{{end}}"  data-val="auto">
+                <div class="ts-preview ts-auto"><span></span><span></span></div>
+                <div><div class="ts-opt-name">Авто</div><div class="ts-opt-sub">Следит за системной темой</div></div>
+              </div>
+            </div>
+          </div>
+          <input type="hidden" name="theme" id="themeInput" value="{{$cur}}">
+          <button type="submit" class="btn" style="margin-top:14px;padding:8px 18px;font-weight:600">Сохранить тему</button>
+        </form>
+      </div>
+    </div>
 
-  </div>
+<style>
+.theme-select{position:relative;max-width:360px}
+.ts-box{display:flex;align-items:center;gap:10px;padding:7px 32px 7px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;cursor:pointer;user-select:none;position:relative;transition:border-color .15s}
+.ts-box:hover{border-color:var(--muted)}
+.ts-box.open{border-color:var(--accent)}
+.ts-arrow{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid var(--muted);pointer-events:none;transition:transform .15s}
+.ts-box.open .ts-arrow{transform:translateY(-50%) rotate(180deg)}
+.ts-label{font-size:12px;font-weight:600;flex:1}
+.ts-dropdown{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:400;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:5px;box-shadow:0 8px 24px var(--shadow)}
+.ts-dropdown.open{display:block}
+.ts-opt{display:flex;align-items:center;gap:11px;padding:8px 10px;border-radius:6px;cursor:pointer;transition:background .12s;color:var(--text)}
+.ts-opt:hover{background:var(--hover-nav)}
+.ts-opt.selected{background:var(--active-nav);color:var(--accent)}
+.ts-opt-name{font-size:12px;font-weight:600}
+.ts-opt-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.ts-preview{width:48px;height:32px;border-radius:5px;border:1px solid rgba(128,128,128,.3);display:flex;overflow:hidden;flex-shrink:0}
+.ts-preview span:first-child{width:18px;height:100%}
+.ts-preview span:last-child{flex:1;height:100%}
+.ts-dark  span:first-child{background:#141414}.ts-dark  span:last-child{background:#0d0d0d}
+.ts-light span:first-child{background:#ffffff}.ts-light span:last-child{background:#f4f6f9}
+.ts-blue  span:first-child{background:#0f1f3d}.ts-blue  span:last-child{background:#0a1628}
+.ts-auto  span:first-child{background:linear-gradient(180deg,#141414 50%,#ffffff 50%)}
+.ts-auto  span:last-child {background:linear-gradient(180deg,#0d0d0d 50%,#f4f6f9 50%)}
+</style>
+<script>
+(function(){
+  var sel = document.getElementById('themeSelect');
+  if(!sel) return;
+  var box = document.getElementById('tsBox');
+  var drop = document.getElementById('tsDropdown');
+  var input = document.getElementById('themeInput');
+  var label = document.getElementById('tsLabel');
+  var preview = box.querySelector('.ts-preview');
+  var LABELS = {dark:'Тёмная', light:'Светлая', blue:'Синяя', auto:'Авто (системная)'};
+  box.addEventListener('click', function(){
+    box.classList.toggle('open');
+    drop.classList.toggle('open');
+  });
+  document.addEventListener('click', function(e){
+    if(!sel.contains(e.target)){
+      box.classList.remove('open');
+      drop.classList.remove('open');
+    }
+  });
+  drop.querySelectorAll('.ts-opt').forEach(function(opt){
+    opt.addEventListener('click', function(){
+      var val = this.getAttribute('data-val');
+      input.value = val;
+      label.textContent = LABELS[val] || val;
+      preview.className = 'ts-preview ts-' + val;
+      preview.innerHTML = '<span></span><span></span>';
+      drop.querySelectorAll('.ts-opt').forEach(function(o){o.classList.remove('selected');});
+      this.classList.add('selected');
+      box.classList.remove('open');
+      drop.classList.remove('open');
+    });
+  });
+})();
+</script>
 </div>
+</div>
+
+
 {{end}}

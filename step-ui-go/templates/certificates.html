@@ -33,8 +33,19 @@
 </div>
 
 <div class="card">
-  <div style="overflow-x:auto">
-  <table id="certsTable">
+  <div class="tbl-wrap">
+  <table class="tbl" id="certsTable">
+    <colgroup>
+          <col style="width:160px">
+          <col style="width:180px">
+          <col style="width:130px">
+          <col style="width:130px">
+          <col style="width:100px">
+          <col style="width:90px">
+          <col style="width:160px">
+          <col>
+        </colgroup>
+    
     <thead><tr><th>Имя</th><th>Домен</th><th>Выдан</th><th>Истекает</th><th>Статус</th><th>Тип</th><th>Серийный</th><th>Действия</th></tr></thead>
     <tbody>
     {{range .Certs}}

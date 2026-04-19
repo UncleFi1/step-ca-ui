@@ -1,0 +1,198 @@
+{{define "content"}}
+<!-- ═ Приветствие + статус ═ -->
+<div class="home-hero">
+  <div class="home-hero-text">
+    <div class="home-greeting">Добро пожаловать, <strong>{{if .Session.Username}}{{.Session.Username}}{{else}}гость{{end}}</strong></div>
+    <h1 style="font-size:28px;margin-top:6px">Step-CA Manager</h1>
+    <div style="color:var(--muted);font-size:13px;margin-top:4px">Управление PKI и SSL сертификатами</div>
+  </div>
+  <div class="home-status {{if .CAOnline}}ok{{else}}danger{{end}}">
+    <div class="status-dot"></div>
+    <div>
+      <div class="status-label">Центр сертификации</div>
+      <div class="status-value">{{if .CAOnline}}Онлайн{{else}}Недоступен{{end}}</div>
+      <div class="status-sub">Аптайм: {{.Uptime}}</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═ Быстрая сводка ═ -->
+<div class="home-summary">
+  <div class="home-stat">
+    <div class="stat-num">{{.ActiveCerts}}</div>
+    <div class="stat-cap">Активных сертификатов</div>
+  </div>
+  <div class="home-stat">
+    <div class="stat-num {{if gt .ExpiringCerts 0}}warn{{end}}">{{.ExpiringCerts}}</div>
+    <div class="stat-cap">Истекают в 30 дней</div>
+  </div>
+  <div class="home-stat">
+    <div class="stat-num">{{.LECerts}}</div>
+    <div class="stat-cap">Let's Encrypt</div>
+  </div>
+</div>
+
+<!-- ═ Быстрые действия ═ -->
+<div class="home-section-title">Быстрые действия</div>
+<div class="home-actions">
+  {{if hasRole .Session.Role "manager"}}
+  <a href="/issue" class="action-card c-blue">
+    <div class="action-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="4" y="4" width="16" height="16" rx="2"/>
+        <line x1="12" y1="9" x2="12" y2="15"/>
+        <line x1="9" y1="12" x2="15" y2="12"/>
+      </svg>
+    </div>
+    <div class="action-title">Выпустить сертификат</div>
+    <div class="action-sub">Локальный CA, EC или RSA</div>
+  </a>
+  {{end}}
+
+  <a href="/le" class="action-card c-green">
+    <div class="action-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2l2.5 6.5H21l-5.5 4 2 7-7-4.5-7 4.5 2-7L0 8.5h6.5z" transform="translate(1.5 1)"/>
+      </svg>
+    </div>
+    <div class="action-title">Let's Encrypt</div>
+    <div class="action-sub">Публичные сертификаты на 90 дней</div>
+  </a>
+
+  {{if eq .Session.Role "admin"}}
+  <a href="/download/ca" class="action-card c-purple">
+    <div class="action-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3v12M7 10l5 5 5-5"/>
+        <line x1="5" y1="21" x2="19" y2="21"/>
+      </svg>
+    </div>
+    <div class="action-title">Скачать CA cert</div>
+    <div class="action-sub">Корневой сертификат центра</div>
+  </a>
+  {{end}}
+
+  <a href="/dashboard" class="action-card c-orange">
+    <div class="action-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="9" rx="1"/>
+        <rect x="14" y="3" width="7" height="5" rx="1"/>
+        <rect x="14" y="12" width="7" height="9" rx="1"/>
+        <rect x="3" y="16" width="7" height="5" rx="1"/>
+      </svg>
+    </div>
+    <div class="action-title">Открыть дашборд</div>
+    <div class="action-sub">Полная статистика и активность</div>
+  </a>
+</div>
+
+<!-- ═ О проекте ═ -->
+<div class="home-section-title">О проекте</div>
+<div class="card" style="padding:0">
+  <div style="padding:20px 24px;display:grid;grid-template-columns:1fr 1fr;gap:24px">
+    <div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:8px">Step-CA Manager</div>
+      <p style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:10px">
+        Веб-интерфейс для удобного управления центром сертификации на базе <strong style="color:var(--text)">Smallstep CA</strong>.
+        Выпуск, отзыв, ротация и хранение SSL/TLS сертификатов в едином окне.
+      </p>
+      <p style="font-size:12px;color:var(--muted);line-height:1.7">
+        Поддержка <strong style="color:var(--text)">Let's Encrypt</strong> с автоматическим обновлением.
+        Встроенный аудит безопасности и ролевая модель доступа.
+      </p>
+    </div>
+    <div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:8px">Стек технологий</div>
+      <div class="tech-chips">
+        <span class="tech-chip">Go</span>
+        <span class="tech-chip">PostgreSQL</span>
+        <span class="tech-chip">Docker</span>
+        <span class="tech-chip">Smallstep</span>
+        <span class="tech-chip">lego (LE)</span>
+      </div>
+      <div style="margin-top:14px;font-size:11px;color:var(--muted)">
+        Версия <code>v{{.Version}}</code> &middot;
+        <a href="https://github.com/UncleFi1/step-ca-ui" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">GitHub &rarr;</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* ── Hero ────────────────────────────────────────────────────────────── */
+.home-hero{
+  display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center;
+  padding:22px 24px;background:var(--card);border:1px solid var(--border);
+  border-radius:10px;margin-bottom:14px;
+}
+.home-greeting{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:600}
+
+.home-status{
+  display:flex;align-items:center;gap:12px;padding:12px 18px;
+  border-radius:8px;border:1px solid var(--border);background:var(--bg);min-width:230px;
+}
+.home-status.ok{border-color:rgba(39,174,96,.35)}
+.home-status.danger{border-color:rgba(231,76,60,.35)}
+.status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;position:relative}
+.home-status.ok .status-dot{background:var(--green);box-shadow:0 0 0 4px rgba(39,174,96,.12)}
+.home-status.danger .status-dot{background:var(--danger);box-shadow:0 0 0 4px rgba(231,76,60,.12)}
+.status-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.status-value{font-size:14px;font-weight:700;margin-top:1px}
+.home-status.ok .status-value{color:var(--green)}
+.home-status.danger .status-value{color:var(--danger)}
+.status-sub{font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:2px}
+
+/* ── Summary ─────────────────────────────────────────────────────────── */
+.home-summary{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:20px;
+}
+.home-stat{
+  background:var(--card);border:1px solid var(--border);border-radius:8px;
+  padding:14px 18px;
+}
+.stat-num{font-size:24px;font-weight:700;line-height:1}
+.stat-num.warn{color:var(--warn)}
+.stat-cap{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:5px;font-weight:600}
+
+/* ── Section titles ──────────────────────────────────────────────────── */
+.home-section-title{
+  font-size:11px;color:var(--muted);text-transform:uppercase;
+  letter-spacing:1px;font-weight:700;margin:18px 0 10px;
+}
+
+/* ── Action cards ────────────────────────────────────────────────────── */
+.home-actions{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:8px;
+}
+.action-card{
+  display:block;padding:18px 18px 16px;border-radius:10px;
+  background:var(--card);border:1px solid var(--border);
+  text-decoration:none;color:var(--text);
+  transition:border-color .15s,transform .15s,background .15s;
+  position:relative;overflow:hidden;
+}
+.action-card::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--accent);opacity:0;transition:opacity .15s;
+}
+.action-card:hover{border-color:var(--accent);transform:translateY(-1px)}
+.action-card:hover::before{opacity:1}
+.action-icon{
+  width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+  margin-bottom:10px;background:var(--active-nav);color:var(--accent);
+}
+.action-card.c-blue   .action-icon{background:rgba(41,128,185,.12);color:var(--blue)}
+.action-card.c-green  .action-icon{background:rgba(39,174,96,.12);color:var(--green)}
+.action-card.c-purple .action-icon{background:rgba(142,68,173,.12);color:var(--purple)}
+.action-card.c-orange .action-icon{background:rgba(230,126,34,.12);color:var(--warn)}
+.action-title{font-size:14px;font-weight:700;margin-bottom:3px}
+.action-sub{font-size:11px;color:var(--muted);line-height:1.5}
+
+/* ── Tech chips ──────────────────────────────────────────────────────── */
+.tech-chips{display:flex;gap:6px;flex-wrap:wrap}
+.tech-chip{
+  padding:4px 10px;border-radius:4px;background:var(--bg);border:1px solid var(--border);
+  font-size:11px;color:var(--muted);font-family:var(--mono);font-weight:500;
+}
+</style>
+{{end}}

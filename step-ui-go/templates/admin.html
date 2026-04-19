@@ -1,0 +1,65 @@
+{{define "content"}}
+<div class="page-header">
+  <h1 style="margin:0 0 4px;font-size:22px;font-weight:700">Панель управления</h1>
+  <p class="muted" style="margin:0">Сводка по пользователям, сертификатам и безопасности</p>
+</div>
+
+<div class="card" style="margin-top:18px;margin-bottom:18px">
+  <div class="card-header">
+    <strong>Пользователи</strong>
+    <a href="/admin/users" class="btn btn-ghost" style="margin-left:auto">Управление →</a>
+  </div>
+  <div class="card-body">
+    <div class="admin-stats">
+      <div class="admin-stat"><div class="admin-stat-value">{{.Stats.TotalUsers}}</div><div class="admin-stat-label">Всего</div></div>
+      <div class="admin-stat ok"><div class="admin-stat-value">{{.Stats.ActiveUsers}}</div><div class="admin-stat-label">Активных</div></div>
+      <div class="admin-stat warn"><div class="admin-stat-value">{{.Stats.BlockedUsers}}</div><div class="admin-stat-label">Заблокированных</div></div>
+      <div class="admin-stat"><div class="admin-stat-value">{{.Stats.AdminsCount}}</div><div class="admin-stat-label">Администраторы</div></div>
+      <div class="admin-stat"><div class="admin-stat-value">{{.Stats.ManagersCount}}</div><div class="admin-stat-label">Менеджеры</div></div>
+      <div class="admin-stat"><div class="admin-stat-value">{{.Stats.ViewersCount}}</div><div class="admin-stat-label">Наблюдатели</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:18px">
+  <div class="card-header"><strong>Сертификаты</strong></div>
+  <div class="card-body">
+    <div class="admin-stats">
+      <div class="admin-stat ok"><div class="admin-stat-value">{{.Stats.ActiveCerts}}</div><div class="admin-stat-label">Активных локальных</div></div>
+      <div class="admin-stat"><div class="admin-stat-value">{{.Stats.LeCerts}}</div><div class="admin-stat-label">Let's Encrypt</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <strong>Безопасность</strong>
+    <a href="/admin/security" class="btn btn-ghost" style="margin-left:auto">Журнал →</a>
+  </div>
+  <div class="card-body">
+    <div class="admin-stats">
+      <div class="admin-stat ok"><div class="admin-stat-value">{{.Stats.LoginsToday}}</div><div class="admin-stat-label">Входов за 24ч</div></div>
+      <div class="admin-stat {{if gt .Stats.FailedLogins 0}}warn{{end}}"><div class="admin-stat-value">{{.Stats.FailedLogins}}</div><div class="admin-stat-label">Неудачных за 24ч</div></div>
+    </div>
+    <h3 style="margin-top:22px;margin-bottom:10px;font-size:15px;font-weight:600">Последние успешные входы</h3>
+    {{if .RecentLogins}}
+    <div class="table-wrap"><div class="tbl-wrap">
+  <table class="tbl">
+    <colgroup>
+          <col style="width:200px">
+          <col style="width:200px">
+          <col>
+        </colgroup>
+    
+      <thead><tr><th>Пользователь</th><th>IP</th><th>Время</th></tr></thead>
+      <tbody>
+        {{range .RecentLogins}}
+        <tr><td>{{.Username}}</td><td><code>{{.IP}}</code></td><td>{{.CreatedAt.Format "2006-01-02 15:04:05"}}</td></tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div></div>
+    {{else}}<p class="muted">Нет записей о недавних входах.</p>{{end}}
+  </div>
+</div>
+{{end}}

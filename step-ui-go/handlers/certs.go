@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"os/exec"
 	"database/sql"
 	"time"
 	"encoding/json"
@@ -14,6 +15,42 @@ import (
 	appdb "step-ui/db"
 	"step-ui/models"
 )
+
+func (h *Handler) Home(w http.ResponseWriter, r *http.Request) {
+	// Статус CA: проверяем через step ca health
+	caOnline := true
+	_, err := exec.Command("step", "ca", "health",
+		"--ca-url", h.cfg.CAURL,
+		"--root", h.cfg.RootCert).Output()
+	if err != nil {
+		caOnline = false
+	}
+
+	// Быстрая статистика по активным сертификатам
+	certs, _ := appdb.GetCerts(h.db, "active")
+	var activeCount, expiringCount int
+	for _, c := range certs {
+		d := daysLeftVal(c.ExpiresAt)
+		if d > 0 && d <= 30 {
+			expiringCount++
+		}
+		if d > 0 {
+			activeCount++
+		}
+	}
+
+	var leCount int
+	h.db.QueryRow("SELECT COUNT(*) FROM le_certificates WHERE status='active'").Scan(&leCount)
+
+	data := h.base(w, r, "home")
+	data["CAOnline"]      = caOnline
+	data["Uptime"]        = fmtUptime(time.Since(StartedAt))
+	data["ActiveCerts"]   = activeCount
+	data["ExpiringCerts"] = expiringCount
+	data["LECerts"]       = leCount
+	data["Version"]       = Version
+	h.render(w, "home", data)
+}
 
 func (h *Handler) Dashboard(w http.ResponseWriter, r *http.Request) {
 	certs, _ := appdb.GetCerts(h.db, "active")

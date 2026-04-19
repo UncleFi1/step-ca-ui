@@ -32,8 +32,17 @@
 </div>
 
 <div class="card">
-  <div style="overflow-x:auto">
-  <table>
+  <div class="tbl-wrap">
+  <table class="tbl">
+    <colgroup>
+          <col style="width:160px">
+          <col style="width:120px">
+          <col style="width:160px">
+          <col style="width:180px">
+          <col>
+          <col style="width:140px">
+        </colgroup>
+    
     <thead><tr><th>Время</th><th>Действие</th><th>Сертификат</th><th>Домен</th><th>Детали</th><th>Пользователь</th></tr></thead>
     <tbody>
     {{range .Entries}}

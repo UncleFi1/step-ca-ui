@@ -1,0 +1,20 @@
+/*
+ * admin.css — всё админ-пространство
+ *
+ * Сюда едут: body.admin-mode, .admin-shell, .admin-side, .admin-nav,
+ * .admin-header-banner, .admin-main, .admin-stats, .admin-stat
+ */
+
+/* admin-mode layout guard */
+body.admin-mode {
+  display: block;
+  height: auto;
+  min-height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+body.admin-mode .admin-shell {
+  display: flex;
+  min-height: 100vh;
+}
+

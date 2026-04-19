@@ -1,0 +1,223 @@
+{{define "admin_layout"}}<!DOCTYPE html>
+<html lang="ru" data-theme="{{if .Session.Theme}}{{if eq .Session.Theme "auto"}}dark{{else}}{{.Session.Theme}}{{end}}{{else}}dark{{end}}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Админ-панель · Step-CA</title>
+  <link rel="stylesheet" href="/static/css/themes.css">
+  <link rel="stylesheet" href="/static/css/base.css">
+  <link rel="stylesheet" href="/static/css/components.css">
+  <link rel="stylesheet" href="/static/css/admin.css">
+  <style>
+    :root{
+      --admin-bg: #0a0e1a;
+      --admin-card: #111827;
+      --admin-border: #1f2937;
+      --admin-text: #e5e7eb;
+      --admin-muted: #9ca3af;
+      --admin-accent: #f59e0b;
+      --admin-danger: #dc2626;
+      --admin-hover: rgba(245, 158, 11, .08);
+    }
+    html[data-theme="light"] {
+      --admin-bg: #f3f4f6;
+      --admin-card: #ffffff;
+      --admin-border: #e5e7eb;
+      --admin-text: #111827;
+      --admin-muted: #6b7280;
+      --admin-accent: #b45309;
+      --admin-hover: rgba(180, 83, 9, .08);
+    }
+    body.admin-mode { background: var(--admin-bg); color: var(--admin-text); margin: 0; }
+    .admin-shell { display: flex; min-height: 100vh; }
+
+    .admin-side {
+      width: 260px; flex-shrink: 0;
+      background: var(--admin-card);
+      border-right: 1px solid var(--admin-border);
+      display: flex; flex-direction: column;
+      position: sticky; top: 0; height: 100vh;
+    }
+    .admin-side-header {
+      padding: 18px 16px; border-bottom: 1px solid var(--admin-border);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .admin-shield {
+      width: 36px; height: 36px; border-radius: 8px;
+      background: color-mix(in srgb, var(--admin-accent) 18%, transparent);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--admin-accent);
+    }
+    .admin-title { display: flex; flex-direction: column; line-height: 1.15; }
+    .admin-title b { font-weight: 700; font-size: 15px; }
+    .admin-title span { font-size: 11px; color: var(--admin-muted); letter-spacing: .08em; text-transform: uppercase; }
+
+    .admin-nav { flex: 1; padding: 10px 8px; overflow-y: auto; }
+    .admin-nav-section {
+      font-size: 11px; color: var(--admin-muted);
+      text-transform: uppercase; letter-spacing: .08em;
+      padding: 14px 10px 6px;
+    }
+    .admin-nav a {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 10px; border-radius: 7px;
+      color: var(--admin-text); text-decoration: none;
+      font-weight: 600; font-size: 14px;
+      transition: background .12s;
+    }
+    .admin-nav a:hover { background: var(--admin-hover); }
+    .admin-nav a.active {
+      background: color-mix(in srgb, var(--admin-accent) 18%, transparent);
+      color: var(--admin-accent);
+    }
+    .admin-nav a svg { opacity: .8; flex-shrink: 0; }
+    .admin-nav a .stub-badge {
+      margin-left: auto; font-size: 10px; font-weight: 700;
+      padding: 2px 6px; border-radius: 4px;
+      background: var(--admin-border); color: var(--admin-muted);
+    }
+
+    .admin-side-footer {
+      padding: 12px; border-top: 1px solid var(--admin-border);
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .admin-side-footer a {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 10px; border-radius: 7px;
+      color: var(--admin-text); text-decoration: none;
+      font-weight: 600; font-size: 13px;
+      border: 1px solid var(--admin-border);
+      transition: border-color .12s;
+    }
+    .admin-side-footer a:hover { border-color: var(--admin-accent); }
+
+    .admin-main { flex: 1; padding: 24px 28px; overflow-x: hidden; }
+    .admin-header-banner {
+      display: flex; align-items: center; gap: 12px;
+      padding: 8px 12px; margin-bottom: 20px;
+      background: color-mix(in srgb, var(--admin-accent) 10%, transparent);
+      border: 1px solid color-mix(in srgb, var(--admin-accent) 35%, transparent);
+      border-radius: 8px;
+      color: var(--admin-accent); font-weight: 600; font-size: 13px;
+    }
+    .admin-main .card {
+      background: var(--admin-card);
+      border: 1px solid var(--admin-border);
+      color: var(--admin-text);
+    }
+    .admin-main .card-header { border-bottom: 1px solid var(--admin-border); }
+    .admin-main .muted { color: var(--admin-muted); }
+
+    /* грид под обзор */
+    .admin-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+    }
+    .admin-stat {
+      background: var(--admin-bg);
+      border: 1px solid var(--admin-border);
+      border-radius: 10px; padding: 14px 16px;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .admin-stat-value { font-size: 26px; font-weight: 700; line-height: 1; }
+    .admin-stat-label { font-size: 12px; color: var(--admin-muted); text-transform: uppercase; letter-spacing: .04em; }
+    .admin-stat.ok   { border-color: color-mix(in srgb, #16a34a 40%, var(--admin-border)); }
+    .admin-stat.warn { border-color: color-mix(in srgb, #dc2626 50%, var(--admin-border)); }
+    .admin-stat.ok   .admin-stat-value { color: #16a34a; }
+    .admin-stat.warn .admin-stat-value { color: #dc2626; }
+  </style>
+</head>
+<body class="admin-mode">
+<div class="admin-shell">
+
+  <aside class="admin-side">
+    <div class="admin-side-header">
+      <div class="admin-shield">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 7v5c0 5 3.5 9.5 9 11 5.5-1.5 9-6 9-11V7l-9-5z"/></svg>
+      </div>
+      <div class="admin-title">
+        <b>Админ-панель</b>
+        <span>Step-CA · Control</span>
+      </div>
+    </div>
+
+    <nav class="admin-nav">
+      <div class="admin-nav-section">Обзор</div>
+      <a href="/admin" class="{{if eq .ActivePage "admin"}}active{{end}}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Панель управления
+      </a>
+      <a href="/admin/activity" class="{{if eq .ActivePage "admin_activity"}}active{{end}}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Активность CA
+        <span class="stub-badge">СКОРО</span>
+      </a>
+
+      <div class="admin-nav-section">Пользователи</div>
+      <a href="/admin/users" class="{{if eq .ActivePage "admin_users"}}active{{end}}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Все пользователи
+      </a>
+      <a href="/admin/users-temp" class="{{if eq .ActivePage "admin_users_temp"}}active{{end}}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Временные пользователи
+        <span class="stub-badge">СКОРО</span>
+      </a>
+
+      <div class="admin-nav-section">Безопасность</div>
+      <a href="/admin/security" class="{{if eq .ActivePage "admin_security"}}active{{end}}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Журнал безопасности
+      </a>
+
+      <div class="admin-nav-section">Сервер</div>
+      <a href="/admin/console" class="{{if eq .ActivePage "admin_console"}}active{{end}}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+        Консоль сервера
+        <span class="stub-badge">2FA</span>
+      </a>
+      <a href="/admin/about" class="{{if eq .ActivePage "admin_about"}}active{{end}}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        О системе
+      </a>
+    </nav>
+
+    <div class="admin-side-footer">
+      <a href="/">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Вернуться в приложение
+      </a>
+      <a href="/logout" style="color: var(--admin-danger); border-color: color-mix(in srgb, var(--admin-danger) 35%, var(--admin-border));">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Выйти
+      </a>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-header-banner">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 7v5c0 5 3.5 9.5 9 11 5.5-1.5 9-6 9-11V7l-9-5z"/></svg>
+      Вы находитесь в защищённой зоне администратора. Действия фиксируются в журнале.
+    </div>
+
+    {{template "content" .}}
+  </main>
+</div>
+
+<script>
+  (function(){
+    const t = {{if .Session.Theme}}"{{.Session.Theme}}"{{else}}"dark"{{end}};
+    if (t === "auto") {
+      const mq = window.matchMedia('(prefers-color-scheme: dark)');
+      const apply = () => document.documentElement.setAttribute('data-theme', mq.matches ? 'dark' : 'light');
+      apply();
+      mq.addEventListener('change', apply);
+    }
+    try { localStorage.removeItem('step-ui-theme'); } catch (e) {}
+  })();
+</script>
+  <script src="/static/js/select.js"></script>
+</body>
+</html>
+{{end}}

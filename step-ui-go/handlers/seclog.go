@@ -20,7 +20,7 @@ func (h *Handler) SecurityLog(w http.ResponseWriter, r *http.Request) {
 		totalPages = 1
 	}
 	okCount, failCount := appdb.GetAuthStats(h.db)
-	data := h.base(w, r, "security")
+	data := h.base(w, r, "admin_security")
 	data["Entries"] = entries
 	data["SearchQ"] = search
 	data["Filter"] = filter
@@ -29,5 +29,5 @@ func (h *Handler) SecurityLog(w http.ResponseWriter, r *http.Request) {
 	data["TotalFail"] = failCount
 	data["CurrentPage"] = page
 	data["TotalPages"] = totalPages
-	h.render(w, "security_log", data)
+	h.render(w, "admin_security", data)
 }

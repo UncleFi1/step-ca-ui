@@ -18,10 +18,10 @@ func (h *Handler) Users(w http.ResponseWriter, r *http.Request) {
 	for _, u := range users {
 		failCounts[u.ID] = appdb.GetFailCount(h.db, u.Username, since)
 	}
-	data := h.base(w, r, "users")
+	data := h.base(w, r, "admin_users")
 	data["Users"] = users
 	data["FailCounts"] = failCounts
-	h.render(w, "users", data)
+	h.render(w, "admin_users", data)
 }
 
 func (h *Handler) UsersPost(w http.ResponseWriter, r *http.Request) {
@@ -131,13 +131,13 @@ func (h *Handler) UserProfile(w http.ResponseWriter, r *http.Request) {
 	if u.LastIP != nil && *u.LastIP != "" {
 		ipBlocked = security.RL.IsBlocked(*u.LastIP)
 	}
-	data := h.base(w, r, "users")
+	data := h.base(w, r, "admin_users")
 	data["U"] = u
 	data["Logs"] = logs
 	data["TotalOK"] = totalOK
 	data["TotalFail"] = totalFail
 	data["IPBlocked"] = ipBlocked
-	h.render(w, "user_profile", data)
+	h.render(w, "admin_user_profile", data)
 }
 
 func (h *Handler) ProfileGet(w http.ResponseWriter, r *http.Request) {
@@ -153,6 +153,20 @@ func (h *Handler) ProfilePost(w http.ResponseWriter, r *http.Request) {
 	action := r.FormValue("action")
 
 	switch action {
+	case "theme":
+		theme := trimStr(r.FormValue("theme"))
+		valid := map[string]bool{"dark": true, "light": true, "blue": true, "auto": true}
+		if !valid[theme] {
+			theme = "dark"
+		}
+		if err := appdb.UpdateUserTheme(h.db, si.UserID, theme); err != nil {
+			h.flash(w, r, "err", "Ошибка сохранения темы")
+		} else {
+			h.flash(w, r, "ok", "Тема обновлена")
+		}
+		http.Redirect(w, r, "/profile", http.StatusFound)
+		return
+
 	case "update_info":
 		username := trimStr(r.FormValue("username"))
 		displayName := trimStr(r.FormValue("display_name"))
