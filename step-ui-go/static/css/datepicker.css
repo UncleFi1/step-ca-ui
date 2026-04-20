@@ -1,0 +1,205 @@
+/* ─────────────────────────────────────────────
+ * Кастомный datepicker — в стиле тем сайта
+ * Использует переменные из themes.css
+ * ───────────────────────────────────────────── */
+
+.dp-wrap {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  max-width: 320px;
+}
+
+/* Поле-триггер */
+.dp-input {
+  width: 100%;
+  padding: 8px 36px 8px 12px;
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+  user-select: none;
+}
+.dp-input:hover { border-color: var(--accent); }
+.dp-input.dp-empty { color: var(--muted); }
+
+.dp-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  opacity: .55;
+  width: 16px; height: 16px;
+}
+
+/* Поповер */
+.dp-pop {
+  position: absolute;
+  z-index: 1000;
+  top: calc(100% + 6px);
+  left: 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 28px var(--shadow);
+  padding: 12px;
+  width: 280px;
+  display: none;
+}
+.dp-pop.open { display: block; }
+
+/* Шапка: ‹ месяц год › */
+.dp-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.dp-nav {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  width: 28px; height: 28px;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s, border-color .15s;
+}
+.dp-nav:hover { background: var(--hover-nav); border-color: var(--accent); }
+.dp-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text);
+  text-transform: capitalize;
+}
+
+/* Сетка дней */
+.dp-weekdays, .dp-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+.dp-weekday {
+  text-align: center;
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  padding: 4px 0;
+  font-weight: 600;
+}
+.dp-day {
+  text-align: center;
+  padding: 6px 0;
+  border-radius: 5px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid transparent;
+  transition: background .12s, border-color .12s, color .12s;
+  user-select: none;
+}
+.dp-day:hover { background: var(--hover-nav); }
+.dp-day.dp-other { color: var(--muted); opacity: .45; }
+.dp-day.dp-today { border-color: var(--accent); }
+.dp-day.dp-selected {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  border-color: var(--accent);
+}
+.dp-day.dp-disabled {
+  color: var(--muted);
+  opacity: .3;
+  cursor: not-allowed;
+}
+.dp-day.dp-disabled:hover { background: transparent; }
+
+/* Блок времени */
+.dp-time {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+}
+.dp-time-label {
+  font-size: 12px;
+  color: var(--muted);
+  margin-right: 4px;
+}
+.dp-time input[type="number"] {
+  width: 52px;
+  padding: 5px 8px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  font-size: 14px;
+  font-family: var(--mono);
+  text-align: center;
+  -moz-appearance: textfield;
+}
+.dp-time input[type="number"]::-webkit-outer-spin-button,
+.dp-time input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.dp-time input[type="number"]:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.dp-time-sep {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* Футер: Сейчас / Очистить / Ок */
+.dp-foot {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+}
+.dp-foot button {
+  flex: 0 0 auto;
+  padding: 5px 10px;
+  font-size: 12px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background .12s, border-color .12s;
+}
+.dp-foot button:hover { background: var(--hover-nav); border-color: var(--accent); }
+.dp-foot .dp-ok {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+.dp-foot .dp-ok:hover { filter: brightness(1.1); }
+.dp-foot .dp-clear { color: var(--muted); }
+
+/* Ошибка валидации */
+.dp-error {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--danger);
+  display: none;
+}
+.dp-wrap.dp-has-error .dp-input { border-color: var(--danger); }
+.dp-wrap.dp-has-error .dp-error { display: block; }

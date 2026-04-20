@@ -42,15 +42,15 @@ func (u *LEUser) GetPrivateKey() crypto.PrivateKey        { return u.key }
 
 // LEConfig конфигурация для выпуска
 type LEConfig struct {
-	Email      string
-	Domain     string
-	Provider   string // http01, cloudflare, route53, manual
-	CFToken    string
-	CFZoneID   string
-	R53KeyID   string
-	R53Secret  string
-	R53Region  string
-	Staging    bool
+	Email     string
+	Domain    string
+	Provider  string // http01, cloudflare, route53, manual
+	CFToken   string
+	CFZoneID  string
+	R53KeyID  string
+	R53Secret string
+	R53Region string
+	Staging   bool
 }
 
 // LEResult результат выпуска

@@ -1,0 +1,35 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Скомпилированные бинарники (билд внутри контейнера)
+step-ui
+*.exe
+*.test
+
+# Документация (не нужна в образе)
+README.md
+CHANGELOG.md
+LICENSE
+docs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Логи и временные
+*.log
+tmp/
+data/
+backups/
+
+# Секреты
+.env
+.env.local
+*.env.local
+
+# SSL (монтируется volume'ом)
+ssl/

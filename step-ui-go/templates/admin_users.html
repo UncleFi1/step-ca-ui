@@ -55,7 +55,7 @@
     <tr data-username="{{.Username}}" data-role="{{.Role}}" data-status="{{if .IsActive}}active{{else}}blocked{{end}}">
       <td>
         {{if ne .ID $.Session.UserID}}
-        <a href="/users/{{.ID}}" class="user-link" title="Открыть профиль">
+        <a href="/admin/users/{{.ID}}" class="user-link" title="Открыть профиль">
           <strong>{{.Username}}</strong>
         </a>
         {{else}}
@@ -74,7 +74,7 @@
       <td style="color:var(--muted)">{{fmtTime .CreatedAt}}</td>
       <td>
         {{if ne .ID $.Session.UserID}}
-        <form method="POST" action="/users" style="display:inline"
+        <form method="POST" action="/admin/users" style="display:inline"
           data-confirm="{{if .IsActive}}Заблокировать{{else}}Разблокировать{{end}} пользователя {{.Username}}?"
           data-confirm-btn="{{if .IsActive}}Заблокировать{{else}}Разблокировать{{end}}"
           data-confirm-class="warning" data-confirm-title="Изменение статуса">
@@ -86,7 +86,7 @@
             {{if .IsActive}}Заблок.{{else}}Разблок.{{end}}
           </button>
         </form>
-        <form method="POST" action="/users" style="display:inline"
+        <form method="POST" action="/admin/users" style="display:inline"
           data-confirm="Удалить пользователя {{.Username}}? Действие необратимо."
           data-confirm-btn="Удалить" data-confirm-title="Удаление пользователя">
           <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
@@ -106,7 +106,7 @@
 <div class="card" style="max-width:560px">
   <div class="card-header"><h3>Добавить пользователя</h3></div>
   <div class="card-body">
-    <form method="POST" action="/users">
+    <form method="POST" action="/admin/users">
       <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
       <input type="hidden" name="action" value="create">
       <div class="form-row">

@@ -1,15 +1,15 @@
 package handlers
 
 import (
-	"os/exec"
 	"database/sql"
-	"time"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	appdb "step-ui/db"
@@ -43,12 +43,12 @@ func (h *Handler) Home(w http.ResponseWriter, r *http.Request) {
 	h.db.QueryRow("SELECT COUNT(*) FROM le_certificates WHERE status='active'").Scan(&leCount)
 
 	data := h.base(w, r, "home")
-	data["CAOnline"]      = caOnline
-	data["Uptime"]        = fmtUptime(time.Since(StartedAt))
-	data["ActiveCerts"]   = activeCount
+	data["CAOnline"] = caOnline
+	data["Uptime"] = fmtUptime(time.Since(StartedAt))
+	data["ActiveCerts"] = activeCount
 	data["ExpiringCerts"] = expiringCount
-	data["LECerts"]       = leCount
-	data["Version"]       = Version
+	data["LECerts"] = leCount
+	data["Version"] = Version
 	h.render(w, "home", data)
 }
 
@@ -69,9 +69,9 @@ func (h *Handler) Dashboard(w http.ResponseWriter, r *http.Request) {
 
 	// ── Активность CA за периоды ──
 	act := map[string]map[string]int{
-		"24h":  dashCountActions(h.db, 24*time.Hour),
-		"7d":   dashCountActions(h.db, 7*24*time.Hour),
-		"30d":  dashCountActions(h.db, 30*24*time.Hour),
+		"24h": dashCountActions(h.db, 24*time.Hour),
+		"7d":  dashCountActions(h.db, 7*24*time.Hour),
+		"30d": dashCountActions(h.db, 30*24*time.Hour),
 	}
 
 	// ── Общая статистика ──
@@ -84,20 +84,20 @@ func (h *Handler) Dashboard(w http.ResponseWriter, r *http.Request) {
 	uptime := time.Since(StartedAt)
 
 	data := h.base(w, r, "dash")
-	data["Certs"]       = certs
-	data["Total"]       = total
-	data["OkC"]         = okC
-	data["WarnC"]       = warnC
-	data["ExpC"]        = expC
-	data["Activity"]    = act
-	data["AllCerts"]    = allCerts
-	data["LECerts"]     = leCerts
-	data["UsersCount"]  = usersCount
-	data["Uptime"]      = fmtUptime(uptime)
-	data["StartedAt"]   = StartedAt.Format("2006-01-02 15:04")
-	data["Version"]     = Version
-	data["BuildDate"]   = BuildDate
-	data["GitCommit"]   = GitCommit
+	data["Certs"] = certs
+	data["Total"] = total
+	data["OkC"] = okC
+	data["WarnC"] = warnC
+	data["ExpC"] = expC
+	data["Activity"] = act
+	data["AllCerts"] = allCerts
+	data["LECerts"] = leCerts
+	data["UsersCount"] = usersCount
+	data["Uptime"] = fmtUptime(uptime)
+	data["StartedAt"] = StartedAt.Format("2006-01-02 15:04")
+	data["Version"] = Version
+	data["BuildDate"] = BuildDate
+	data["GitCommit"] = GitCommit
 	h.render(w, "dashboard", data)
 }
 

@@ -1,31 +1,29 @@
 package main
 
 import (
-	"time"
-	"encoding/gob"
 	"crypto/sha256"
 	"crypto/tls"
+	"encoding/gob"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	chiMiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/gorilla/sessions"
 
+	"io"
+	"mime"
+	"path/filepath"
 	"step-ui/config"
-	"step-ui/db"
+	appdb "step-ui/db"
 	"step-ui/handlers"
 	"step-ui/le"
 	mw "step-ui/middleware"
 	"strings"
-	"path/filepath"
-	"mime"
-	"io"
 )
-
-
 
 // staticHandlerWithMIME раздаёт статические файлы с ПРАВИЛЬНЫМ Content-Type.
 // Не использует http.FileServer/ServeContent, чтобы те не перезаписали MIME
@@ -110,16 +108,16 @@ func main() {
 	cfg := config.Load()
 
 	// ─── Database ────────────────────────────────────────────────────────────
-	conn, err := db.Connect(cfg.DatabaseURL)
+	conn, err := appdb.Connect(cfg.DatabaseURL)
 	if err != nil {
 		log.Fatalf("Cannot connect to database: %v", err)
 	}
 	defer conn.Close()
 
-	if err := db.InitSchema(conn); err != nil {
+	if err := appdb.InitSchema(conn); err != nil {
 		log.Fatalf("Cannot init DB schema: %v", err)
 	}
-	if err := db.InitLESchema(conn); err != nil {
+	if err := appdb.InitLESchema(conn); err != nil {
 		log.Fatalf("Cannot init LE schema: %v", err)
 	}
 
@@ -147,7 +145,7 @@ func main() {
 	r.Use(mw.SecurityHeaders)
 
 	// Публичные маршруты
-	r.Get("/login",  h.LoginGet)
+	r.Get("/login", h.LoginGet)
 	r.Post("/login", h.LoginPost)
 	r.Get("/logout", h.Logout)
 
@@ -155,13 +153,13 @@ func main() {
 	r.Group(func(r chi.Router) {
 		r.Use(mw.RequireLogin(store))
 
-		r.Get("/",            h.Home)
-			r.Get("/dashboard",   h.Dashboard)
-		r.Get("/api/status",  h.APIStatus)
+		r.Get("/", h.Home)
+		r.Get("/dashboard", h.Dashboard)
+		r.Get("/api/status", h.APIStatus)
 
 		// Сертификаты (viewer+)
 		r.Get("/certificates", h.Certificates)
-		r.Get("/history",      h.History)
+		r.Get("/history", h.History)
 		r.Get("/provisioners", h.Provisioners)
 
 		// Скачать CA cert (admin)
@@ -173,13 +171,13 @@ func main() {
 		// Операции с сертификатами (manager+)
 		r.Group(func(r chi.Router) {
 			r.Use(mw.RequireRole("manager", store))
-			r.Get("/issue",              h.IssueGet)
-			r.Post("/issue",             h.IssuePost)
-			r.Get("/renew/{id}",         h.Renew)
-			r.Get("/import",             h.ImportGet)
-			r.Post("/import",            h.ImportPost)
+			r.Get("/issue", h.IssueGet)
+			r.Post("/issue", h.IssuePost)
+			r.Get("/renew/{id}", h.Renew)
+			r.Get("/import", h.ImportGet)
+			r.Post("/import", h.ImportPost)
 			r.Get("/download/cert/{id}", h.DownloadCert)
-			r.Get("/download/key/{id}",  h.DownloadKey)
+			r.Get("/download/key/{id}", h.DownloadKey)
 		})
 
 		// Отзыв (admin)
@@ -190,37 +188,38 @@ func main() {
 
 		// Управление пользователями (admin)
 		r.Group(func(r chi.Router) {
-            r.Use(mw.RequireRole("admin", store))
-            // Админ-пространство
-            r.Get("/admin",                h.AdminGet)
-            r.Get("/admin/users",          h.Users)
-            r.Post("/admin/users",         h.UsersPost)
-            r.Get("/admin/users/{id}",     h.UserProfile)
-            r.Get("/admin/users-temp",     h.AdminUsersTempGet)
-            r.Get("/admin/activity",       h.AdminActivityGet)
-            r.Get("/admin/security",       h.SecurityLog)
-            r.Get("/admin/console",        h.AdminConsoleGet)
-            r.Get("/admin/about",          h.AdminAboutGet)
-        })
+			r.Use(mw.RequireRole("admin", store))
+			// Админ-пространство
+			r.Get("/admin", h.AdminGet)
+			r.Get("/admin/users", h.Users)
+			r.Post("/admin/users", h.UsersPost)
+			r.Get("/admin/users/{id}", h.UserProfile)
+			r.Get("/admin/users-temp", h.AdminUsersTempGet)
+			r.Post("/admin/users-temp", h.AdminUsersTempPost)
+			r.Get("/admin/activity", h.AdminActivityGet)
+			r.Get("/admin/security", h.SecurityLog)
+			r.Get("/admin/console", h.AdminConsoleGet)
+			r.Get("/admin/about", h.AdminAboutGet)
+		})
 
 		// Let's Encrypt (manager+)
 		r.Group(func(r chi.Router) {
 			r.Use(mw.RequireRole("manager", store))
-			r.Get("/le",                      h.LEDashboard)
-			r.Get("/le/issue",                h.LEIssueGet)
-			r.Post("/le/issue",               h.LEIssuePost)
-			r.Post("/le/{id}/renew",          h.LERenew)
-			r.Post("/le/{id}/delete",         h.LEDelete)
-			r.Post("/le/{id}/autorenew",      h.LEToggleAutoRenew)
-			r.Get("/le/download/cert/{id}",   h.LEDownloadCert)
-			r.Get("/le/download/key/{id}",    h.LEDownloadKey)
-			r.Get("/le/settings",             h.LESettingsGet)
-			r.Post("/le/settings",            h.LESettingsPost)
-			r.Get("/le/logs",                 h.LELogs)
+			r.Get("/le", h.LEDashboard)
+			r.Get("/le/issue", h.LEIssueGet)
+			r.Post("/le/issue", h.LEIssuePost)
+			r.Post("/le/{id}/renew", h.LERenew)
+			r.Post("/le/{id}/delete", h.LEDelete)
+			r.Post("/le/{id}/autorenew", h.LEToggleAutoRenew)
+			r.Get("/le/download/cert/{id}", h.LEDownloadCert)
+			r.Get("/le/download/key/{id}", h.LEDownloadKey)
+			r.Get("/le/settings", h.LESettingsGet)
+			r.Post("/le/settings", h.LESettingsPost)
+			r.Get("/le/logs", h.LELogs)
 		})
 
 		// Профиль (любой авторизованный)
-		r.Get("/profile",  h.ProfileGet)
+		r.Get("/profile", h.ProfileGet)
 		r.Post("/profile", h.ProfilePost)
 	})
 
@@ -230,6 +229,17 @@ func main() {
 	for _, dir := range []string{cfg.CertsDir, cfg.UploadDir, "/opt/step-ui/ssl", "/opt/step-ui/data"} {
 		os.MkdirAll(dir, 0755)
 	}
+
+	// // temp_users_expire_ticker
+	go func() {
+		t := time.NewTicker(60 * time.Second)
+		defer t.Stop()
+		for range t.C {
+			if n, err := appdb.ExpireOverdueTempUsers(conn); err == nil && n > 0 {
+				log.Printf("temp-users: expired %d account(s)", n)
+			}
+		}
+	}()
 
 	addr := fmt.Sprintf("0.0.0.0:%d", cfg.Port)
 	if _, err := os.Stat(cfg.SSLCert); err == nil {

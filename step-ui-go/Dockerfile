@@ -16,7 +16,7 @@ FROM alpine:3.19
 
 WORKDIR /opt/step-ui
 
-RUN apk add --no-cache curl openssl ca-certificates netcat-openbsd && \
+RUN apk add --no-cache curl openssl ca-certificates netcat-openbsd tzdata && \
     wget -q "https://github.com/smallstep/cli/releases/download/v0.26.1/step_linux_0.26.1_amd64.tar.gz" \
          -O /tmp/step.tar.gz && \
     tar -xzf /tmp/step.tar.gz -C /tmp && \

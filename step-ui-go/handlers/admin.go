@@ -82,11 +82,6 @@ func (h *Handler) AdminGet(w http.ResponseWriter, r *http.Request) {
 	h.render(w, "admin", data)
 }
 
-// AdminUsersTempGet — заглушка.
-func (h *Handler) AdminUsersTempGet(w http.ResponseWriter, r *http.Request) {
-	h.render(w, "admin_users_temp", h.base(w, r, "admin_users_temp"))
-}
-
 // AdminActivityGet — заглушка.
 func (h *Handler) AdminActivityGet(w http.ResponseWriter, r *http.Request) {
 	h.render(w, "admin_activity", h.base(w, r, "admin_activity"))

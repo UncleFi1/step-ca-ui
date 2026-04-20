@@ -124,7 +124,7 @@ function showConfirm(form,msg,btn,cls,title){
 }
 function closeModal(){document.getElementById('confirmModal').classList.remove('active');_mf=null;}
 function modalConfirm(){if(_mf){var s=_mf.submit.bind(_mf);_mf.removeAttribute('data-confirm');s();}closeModal();}
-document.getElementById('confirmModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+(function(){var m=document.getElementById('confirmModal'); if(m){m.addEventListener('click',function(e){if(e.target===this)closeModal();});}})();
 document.addEventListener('submit',function(e){
   var f=e.target,msg=f.getAttribute('data-confirm');
   if(msg){e.preventDefault();showConfirm(f,msg,f.getAttribute('data-confirm-btn'),f.getAttribute('data-confirm-class'),f.getAttribute('data-confirm-title'));}

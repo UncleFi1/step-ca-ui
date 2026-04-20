@@ -1,28 +1,181 @@
 {{define "content"}}
+{{if .Flashes}}
+<div class="flash-stack" style="margin-bottom:14px;display:flex;flex-direction:column;gap:8px">
+  {{range .Flashes}}
+    <div class="flash flash-{{.Type}}" style="padding:10px 14px;border-radius:8px;border:1px solid {{if eq .Type "err"}}#cc3d3d{{else}}#2e7d32{{end}};background:{{if eq .Type "err"}}rgba(204,61,61,.12){{else}}rgba(46,125,50,.12){{end}};color:var(--text)">
+      {{if eq .Type "err"}}⛔ {{else}}✓ {{end}}{{.Text}}
+    </div>
+  {{end}}
+</div>
+{{end}}
 <div class="page-header">
   <h1 style="margin:0 0 4px;font-size:22px;font-weight:700">Временные пользователи</h1>
-  <p class="muted" style="margin:0">Создание краткосрочных аккаунтов для подрядчиков и гостей</p>
+  <p class="muted" style="margin:0">Краткосрочные аккаунты для подрядчиков и гостей</p>
+</div>
+
+{{if .NewUsername}}
+<div class="card" style="margin-top:18px;border-color:color-mix(in srgb, #16a34a 50%, var(--admin-border))">
+  <div class="card-header">
+    <strong style="color:#16a34a">Аккаунт создан — передайте эти данные пользователю</strong>
+  </div>
+  <div class="card-body">
+    <p class="muted" style="margin:0 0 12px">
+      Это единственный раз, когда отображается пароль. Сохраните или передайте его сейчас.
+    </p>
+    <table class="tbl" style="margin-bottom:12px">
+      <tbody>
+        <tr>
+          <td style="width:140px"><strong>Логин</strong></td>
+          <td><code style="font-size:14px">{{.NewUsername}}</code></td>
+        </tr>
+        <tr>
+          <td><strong>Пароль</strong></td>
+          <td>
+            <code id="newpwd" style="font-size:14px;user-select:all">{{.NewPassword}}</code>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <details>
+      <summary class="muted" style="cursor:pointer;font-size:12px">Готовая строка для передачи</summary>
+<div style="display:flex;justify-content:flex-end;margin:6px 0"><button type="button" class="btn btn-sm btn-ghost" onclick="copyShareLine(this)">📋 Скопировать строку</button></div>
+
+      <div style="margin-top:10px;padding:10px;background:var(--admin-bg);border:1px solid var(--admin-border);border-radius:6px;font-family:var(--mono,monospace);font-size:12px" id="credShareLine">
+        Логин: <b>{{.NewUsername}}</b> · Пароль: <b>{{.NewPassword}}</b> · URL: <code>{{.LoginURL}}</code>
+      </div>
+    </details>
+  </div>
+</div>
+
+{{end}}
+
+<div class="card" style="margin-top:18px">
+  <div class="card-header"><strong>Создать временного пользователя</strong></div>
+  <div class="card-body">
+    <form method="post" action="/admin/users-temp">
+      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+        <div>
+          <label>Роль</label>
+          <select name="role">
+            <option value="viewer" selected>viewer — только просмотр</option>
+            <option value="manager">manager — может выпускать сертификаты</option>
+            <option value="admin">admin — полный доступ</option>
+          </select>
+        </div>
+        <div>
+          <label>Срок действия — пресет</label>
+          <select name="preset">
+            <option value="30m">30 минут</option>
+            <option value="1h">1 час</option>
+            <option value="4h">4 часа</option>
+            <option value="24h" selected>1 день</option>
+            <option value="7d">7 дней</option>
+            <option value="30d">30 дней</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="margin-bottom:14px">
+        <label>Или точная дата и время (переопределяет пресет)</label>
+        <div class="dp-wrap" data-datepicker data-name="custom_datetime" data-min="now" data-placeholder="Выберите дату и время"></div>
+      </div>
+
+      <div style="margin-bottom:14px">
+        <label>Заметка (для чего/кому)</label>
+        <input type="text" name="note" placeholder="напр. Иванов И. — аудит 19 апреля" maxlength="200">
+      </div>
+
+      <button type="submit" class="btn btn-primary">Создать</button>
+    </form>
+  </div>
 </div>
 
 <div class="card" style="margin-top:18px">
-  <div class="card-body" style="text-align:center;padding:40px 20px">
-    <div style="width:60px;height:60px;border-radius:12px;background:color-mix(in srgb, var(--admin-accent) 15%, transparent);color:var(--admin-accent);display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+  <div class="card-header">
+    <strong>Список временных пользователей</strong>
+    <span class="muted" style="margin-left:auto;font-size:12px">Всего: {{len .Users}}</span>
+  </div>
+  <div class="card-body">
+    {{if .Users}}
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <colgroup>
+          <col style="width:160px">
+          <col style="width:90px">
+          <col style="width:110px">
+          <col style="width:170px">
+          <col style="width:170px">
+          <col>
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Логин</th>
+            <th>Роль</th>
+            <th>Статус</th>
+            <th>Создан</th>
+            <th>Истекает</th>
+            <th>Заметка</th>
+          </tr>
+        </thead>
+                <tbody>
+          {{range .Users}}
+          <tr>
+            <td><strong>{{.Username}}</strong></td>
+            <td>{{.Role}}</td>
+            <td>
+              {{if eq .Status "active"}}
+                <span class="badge ok">активен</span>
+              {{else if eq .Status "expired"}}
+                <span class="badge danger">истёк</span>
+              {{else}}
+                <span class="badge">заблок.</span>
+              {{end}}
+            </td>
+            <td>{{.CreatedAt}}</td>
+            <td>{{if .ExpiresAt}}{{.ExpiresAt}}{{else}}<span class="muted">—</span>{{end}}</td>
+            <td class="muted">{{if .Note}}{{.Note}}{{else}}—{{end}}</td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
     </div>
-    <h2 style="margin:0 0 8px;font-size:18px;font-weight:700">Раздел в разработке</h2>
-    <p class="muted" style="margin:0 0 18px;max-width:520px;margin-left:auto;margin-right:auto">
-      Скелет готов — наполним функционалом в следующих релизах.
-    </p>
-    <div style="max-width:460px;margin:0 auto;text-align:left;border:1px solid var(--admin-border);border-radius:10px;padding:14px 20px;background:var(--admin-bg)">
-      <strong style="display:block;margin-bottom:8px;font-size:13px;color:var(--admin-muted);text-transform:uppercase;letter-spacing:.05em">Что будет</strong>
-      <ul style="margin:0;padding-left:20px;line-height:1.7">
-        <li>Генерация случайного логина и пароля</li>
-        <li>Срок действия (1 час / 1 день / 1 неделя / произвольно)</li>
-        <li>Автоматическое удаление по истечении срока</li>
-        <li>Одноразовая ссылка для передачи доступа</li>
-        <li>Журнал выданных временных аккаунтов</li>
-      </ul>
-    </div>
+    {{else}}
+    <p class="muted" style="margin:0">Ещё не создано ни одного временного пользователя.</p>
+    {{end}}
   </div>
 </div>
+
+<script>
+function flashCheck(btnEl) {
+  if (!btnEl) return;
+  const old = btnEl.innerHTML;
+  btnEl.innerHTML = '<span style="color:#4caf50;font-weight:700">&#10003;</span>';
+  btnEl.disabled = true;
+  setTimeout(function(){ btnEl.innerHTML = old; btnEl.disabled = false; }, 1500);
+}
+function copyText(text, btnEl){
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function(){ flashCheck(btnEl); }).catch(function(e){ console.warn('copy failed:', e); });
+  } else {
+    // fallback через textarea (HTTP контексты без clipboard API)
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); flashCheck(btnEl); } catch(e){}
+    document.body.removeChild(ta);
+  }
+}
+function copyPassword(btnEl){
+  var el = document.getElementById('credPassword');
+  if(!el) return;
+  copyText(el.innerText.trim(), btnEl);
+}
+function copyShareLine(btnEl){
+  var el = document.getElementById('credShareLine');
+  if(!el) return;
+  copyText(el.innerText.trim(), btnEl);
+}
+</script>
 {{end}}

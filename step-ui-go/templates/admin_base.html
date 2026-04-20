@@ -4,10 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Админ-панель · Step-CA</title>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
   <link rel="stylesheet" href="/static/css/themes.css">
   <link rel="stylesheet" href="/static/css/base.css">
   <link rel="stylesheet" href="/static/css/components.css">
   <link rel="stylesheet" href="/static/css/admin.css">
+  <link rel="stylesheet" href="/static/css/datepicker.css">
   <style>
     :root{
       --admin-bg: #0a0e1a;
@@ -162,7 +164,6 @@
       <a href="/admin/users-temp" class="{{if eq .ActivePage "admin_users_temp"}}active{{end}}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         Временные пользователи
-        <span class="stub-badge">СКОРО</span>
       </a>
 
       <div class="admin-nav-section">Безопасность</div>
@@ -218,6 +219,19 @@
   })();
 </script>
   <script src="/static/js/select.js"></script>
+  <script src="/static/js/datepicker.js" defer></script>
+
+<!-- confirmModal (добавлено скриптом для data-confirm форм) -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-box">
+    <div class="modal-title" id="modalTitle">Подтвердите действие</div>
+    <div class="modal-msg" id="modalMsg"></div>
+    <div class="modal-actions">
+      <button class="modal-btn-cancel" onclick="closeModal()">Отмена</button>
+      <button class="modal-btn-confirm danger" id="modalConfirmBtn" onclick="modalConfirm()">Подтвердить</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
 {{end}}

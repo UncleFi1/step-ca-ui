@@ -103,7 +103,7 @@ func (h *Handler) UsersPost(w http.ResponseWriter, r *http.Request) {
 	}
 	returnTo := r.FormValue("return_to")
 	if returnTo == "" {
-		returnTo = "/users"
+		returnTo = "/admin/users"
 	}
 	http.Redirect(w, r, returnTo, http.StatusFound)
 }
@@ -112,7 +112,7 @@ func (h *Handler) UserProfile(w http.ResponseWriter, r *http.Request) {
 	uid, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	u, _ := appdb.GetUserByID(h.db, uid)
 	if u == nil {
-		http.Redirect(w, r, "/users", http.StatusFound)
+		http.Redirect(w, r, "/admin/users", http.StatusFound)
 		return
 	}
 	logs, _ := appdb.GetUserAuthLogs(h.db, u.Username, 50)

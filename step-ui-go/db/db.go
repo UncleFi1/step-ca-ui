@@ -1,9 +1,9 @@
 package db
 
 import (
-	"strings"
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -99,6 +99,11 @@ func InitSchema(d *sql.DB) error {
 			"admin", security.HashPassword("Admin123!"))
 		fmt.Println("[!] Default user created: admin / Admin123!")
 	}
+
+	// -- temp_users_migration_v1
+	_, _ = d.Exec(`ALTER TABLE users ADD COLUMN IF NOT EXISTS expires_at TIMESTAMPTZ`)
+	_, _ = d.Exec(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_temporary BOOLEAN DEFAULT false`)
+	_, _ = d.Exec(`ALTER TABLE users ADD COLUMN IF NOT EXISTS temp_note TEXT DEFAULT ''`)
 	return nil
 }
 
@@ -222,10 +227,12 @@ func GetAuthLogs(d *sql.DB, search, filter string, page, limit int) ([]*models.A
 	}
 	if filter == "fail" {
 		where += fmt.Sprintf(" AND success=$%d", i)
-		args = append(args, false); i++
+		args = append(args, false)
+		i++
 	} else if filter == "ok" {
 		where += fmt.Sprintf(" AND success=$%d", i)
-		args = append(args, true); i++
+		args = append(args, true)
+		i++
 	}
 	var total int
 	d.QueryRow(`SELECT COUNT(*) FROM auth_log `+where, args...).Scan(&total)
@@ -376,4 +383,68 @@ func GetCertBySerial(d *sql.DB, serial string) (*models.Certificate, error) {
 		return nil, nil
 	}
 	return c, err
+}
+
+// temp_users_functions_v1
+// TempUserRow — строка временного пользователя для списка
+type TempUserRow struct {
+	ID        int
+	Username  string
+	Role      string
+	IsActive  bool
+	ExpiresAt *time.Time
+	CreatedAt time.Time
+	Note      string
+}
+
+// CreateTempUser создаёт временного пользователя (is_temporary=true)
+func CreateTempUser(db *sql.DB, username, passwordHash, role string, expiresAt time.Time, note string) (int, error) {
+	var id int
+	err := db.QueryRow(`
+		INSERT INTO users (username, password_hash, role, is_active, is_temporary, expires_at, temp_note, created_at)
+		VALUES ($1, $2, $3, true, true, $4, $5, NOW())
+		RETURNING id
+	`, username, passwordHash, role, expiresAt, note).Scan(&id)
+	return id, err
+}
+
+// ListTempUsers возвращает список временных пользователей (все, и активные, и истёкшие)
+func ListTempUsers(db *sql.DB) ([]TempUserRow, error) {
+	rows, err := db.Query(`
+		SELECT id, username, role, is_active, expires_at, created_at, COALESCE(temp_note, '')
+		FROM users
+		WHERE is_temporary = true
+		ORDER BY created_at DESC
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []TempUserRow
+	for rows.Next() {
+		var r TempUserRow
+		if err := rows.Scan(&r.ID, &r.Username, &r.Role, &r.IsActive, &r.ExpiresAt, &r.CreatedAt, &r.Note); err != nil {
+			continue
+		}
+		out = append(out, r)
+	}
+	return out, nil
+}
+
+// ExpireOverdueTempUsers помечает is_active=false для истёкших аккаунтов.
+// Возвращает количество заблокированных.
+func ExpireOverdueTempUsers(db *sql.DB) (int, error) {
+	res, err := db.Exec(`
+		UPDATE users
+		SET is_active = false
+		WHERE is_temporary = true
+		  AND is_active = true
+		  AND expires_at IS NOT NULL
+		  AND expires_at < NOW()
+	`)
+	if err != nil {
+		return 0, err
+	}
+	n, _ := res.RowsAffected()
+	return int(n), nil
 }

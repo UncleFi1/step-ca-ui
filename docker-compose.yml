@@ -8,6 +8,7 @@ services:
     container_name: postgres
     restart: unless-stopped
     environment:
+      TZ: "Europe/Moscow"
       POSTGRES_DB:       stepui
       POSTGRES_USER:     stepui
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-stepui_secret}
@@ -66,6 +67,7 @@ services:
       - step-ui-ssl:/opt/step-ui/ssl
       - step-ca-data:/home/step:ro
     environment:
+      TZ: "Europe/Moscow"
       DATABASE_URL: "postgres://stepui:${POSTGRES_PASSWORD:-stepui_secret}@postgres:5432/stepui?sslmode=disable"
       CA_URL:        "https://step-ca:9443"
       ROOT_CERT:     "/home/step/certs/root_ca.crt"

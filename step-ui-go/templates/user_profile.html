@@ -1,9 +1,9 @@
 {{define "content"}}
 <div class="page-header">
   <div>
-    <div class="breadcrumb">users &middot; profile</div>
+    <div class="breadcrumb">пользователи &middot; профиль</div>
     <h1 style="display:flex;align-items:center;gap:10px">
-      <a href="/users" class="back-link" title="Назад к пользователям">&larr;</a>
+      <a href="/admin/users" class="back-link" title="Назад к пользователям">&larr;</a>
       <span>{{.U.Username}}</span>
       {{if .U.IsActive}}<span class="badge ok" style="font-size:11px">активен</span>
       {{else}}<span class="badge danger" style="font-size:11px">заблокирован</span>{{end}}
@@ -37,9 +37,9 @@
     <div class="card">
       <div class="card-header"><h3>Сменить роль</h3></div>
       <div class="card-body">
-        <form method="POST" action="/users">
+        <form method="POST" action="/admin/users">
           <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-          <input type="hidden" name="return_to" value="/users/{{.U.ID}}">
+          <input type="hidden" name="return_to" value="/admin/users/{{.U.ID}}">
           <input type="hidden" name="action" value="change_role">
           <input type="hidden" name="uid" value="{{.U.ID}}">
           <div class="form-full">
@@ -57,9 +57,9 @@
     <div class="card">
       <div class="card-header"><h3>Сбросить пароль</h3></div>
       <div class="card-body">
-        <form method="POST" action="/users">
+        <form method="POST" action="/admin/users">
           <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-          <input type="hidden" name="return_to" value="/users/{{.U.ID}}">
+          <input type="hidden" name="return_to" value="/admin/users/{{.U.ID}}">
           <input type="hidden" name="action" value="reset_password">
           <input type="hidden" name="uid" value="{{.U.ID}}">
           <div class="form-full"><label>Новый пароль</label><input type="password" name="new_password" placeholder="Мин. 8 симв. + цифра + спецсимвол" required></div>
@@ -72,32 +72,32 @@
       <div class="card-header"><h3>Управление доступом</h3></div>
       <div class="card-body" style="display:flex;gap:8px;flex-wrap:wrap">
         {{if .IPBlocked}}
-        <form method="POST" action="/users" style="display:inline">
+        <form method="POST" action="/admin/users" style="display:inline">
           <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-          <input type="hidden" name="return_to" value="/users/{{.U.ID}}">
+          <input type="hidden" name="return_to" value="/admin/users/{{.U.ID}}">
           <input type="hidden" name="action" value="unblock_ip">
           <input type="hidden" name="uid" value="{{.U.ID}}">
           {{if .U.LastIP}}<input type="hidden" name="target_ip" value="{{deref .U.LastIP}}">{{end}}
           <button type="submit" class="btn btn-success btn-sm">Разблокировать IP</button>
         </form>
         {{end}}
-        <form method="POST" action="/users"
+        <form method="POST" action="/admin/users"
           data-confirm="{{if .U.IsActive}}Заблокировать{{else}}Разблокировать{{end}} аккаунт {{.U.Username}}?"
           data-confirm-btn="{{if .U.IsActive}}Заблокировать{{else}}Разблокировать{{end}}"
           data-confirm-class="warning" data-confirm-title="{{if .U.IsActive}}Блокировка{{else}}Разблокировка{{end}} аккаунта">
           <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-          <input type="hidden" name="return_to" value="/users/{{.U.ID}}">
+          <input type="hidden" name="return_to" value="/admin/users/{{.U.ID}}">
           <input type="hidden" name="action" value="toggle_active">
           <input type="hidden" name="uid" value="{{.U.ID}}">
           <button type="submit" class="btn btn-sm {{if .U.IsActive}}btn-warn{{else}}btn-success{{end}}">
             {{if .U.IsActive}}Заблокировать{{else}}Разблокировать{{end}}
           </button>
         </form>
-        <form method="POST" action="/users"
+        <form method="POST" action="/admin/users"
           data-confirm="Удалить пользователя {{.U.Username}}? Действие необратимо."
           data-confirm-btn="Удалить" data-confirm-title="Удаление пользователя">
           <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-          <input type="hidden" name="return_to" value="/users">
+          <input type="hidden" name="return_to" value="/admin/users">
           <input type="hidden" name="action" value="delete">
           <input type="hidden" name="uid" value="{{.U.ID}}">
           <button type="submit" class="btn btn-danger btn-sm">Удалить пользователя</button>
