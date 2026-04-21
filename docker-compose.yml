@@ -76,6 +76,7 @@ services:
       SECRET_KEY:    "${SECRET_KEY}"
       HOST_IP:       "${HOST_IP}"
       PORT:          "8443"
+      STEPUI_ADMIN_PASSWORD: "${STEPUI_ADMIN_PASSWORD:-}"
     depends_on:
       postgres:
         condition: service_healthy
