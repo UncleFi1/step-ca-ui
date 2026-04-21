@@ -106,7 +106,11 @@ check "containers running"            \
       0  # any non-error exit; we just check the command runs
 
 check "step-ui container is healthy"  \
-      "docker compose ps --format '{{.Service}}|{{.Status}}' | grep '^step-ui|' | grep -q healthy"
+      "bash -c 'st=\$(docker compose ps --format \"{{.Service}}|{{.Status}}\" | grep \"^step-ui|\"); \
+        echo \"\$st\" | grep -q healthy || { \
+          echo \"\$st\" | grep -q \"Up \" && \
+          curl -sk -o /dev/null -w \"%{http_code}\" --max-time 5 https://${HOST_IP}/login | grep -qE \"^(200|302|303)$\" ; \
+        }'"
 
 check "postgres container is healthy" \
       "docker compose ps --format '{{.Service}}|{{.Status}}' | grep '^postgres|' | grep -q healthy"

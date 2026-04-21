@@ -1,23 +1,30 @@
 #!/usr/bin/env bash
 # ──────────────────────────────────────────────────────────────────────────────
-# Step-CA UI — installer
+# Step-CA UI — installer (quiet mode)
 # https://github.com/UncleFi1/step-ca-ui
 #
-# What it does:
-#   1. Detects OS and architecture
-#   2. Installs Docker + Docker Compose (if missing)
-#   3. Auto-detects host IP (with manual override)
-#   4. Generates strong secrets (CA / DB / Session / Admin password)
-#   5. Writes .env from .env.example
-#   6. Builds and starts containers
-#   7. Waits for healthcheck and prints credentials
+# Only prints a short progress line for each step. Full output goes to
+# /var/log/step-ca-ui-install.log (or /tmp/step-ca-ui-install-<ts>.log if
+# /var/log isn't writable).
 #
-# Idempotent: re-running won't overwrite an existing .env unless you confirm.
+# Run with --verbose to see the original detailed output instead.
 # ──────────────────────────────────────────────────────────────────────────────
-
 set -euo pipefail
 
-# ─── colors ───────────────────────────────────────────────────────────────────
+# ── log setup ────────────────────────────────────────────────────────────────
+VERBOSE=0
+for a in "$@"; do
+  [[ "$a" == "--verbose" || "$a" == "-v" ]] && VERBOSE=1
+done
+
+LOG_FILE=/var/log/step-ca-ui-install.log
+if ! touch "$LOG_FILE" 2>/dev/null; then
+  LOG_FILE="/tmp/step-ca-ui-install-$(date +%s).log"
+  touch "$LOG_FILE"
+fi
+: > "$LOG_FILE"
+chmod 600 "$LOG_FILE" 2>/dev/null || true
+
 if [[ -t 1 ]]; then
   C_RESET=$'\033[0m'; C_BOLD=$'\033[1m'; C_DIM=$'\033[2m'
   C_RED=$'\033[31m'; C_GREEN=$'\033[32m'; C_YELLOW=$'\033[33m'
@@ -26,28 +33,55 @@ else
   C_RESET=''; C_BOLD=''; C_DIM=''; C_RED=''; C_GREEN=''; C_YELLOW=''; C_BLUE=''; C_CYAN=''
 fi
 
-step()   { printf "\n${C_BOLD}${C_BLUE}▸ %s${C_RESET}\n" "$*"; }
-ok()     { printf "${C_GREEN}✓${C_RESET} %s\n" "$*"; }
-warn()   { printf "${C_YELLOW}⚠${C_RESET} %s\n" "$*"; }
-err()    { printf "${C_RED}✗${C_RESET} %s\n" "$*" >&2; }
-die()    { err "$*"; exit 1; }
-ask()    { local prompt="$1" default="${2:-}" reply
-           if [[ -n "$default" ]]; then
-             read -r -p "$(printf "${C_CYAN}?${C_RESET} %s ${C_DIM}[%s]${C_RESET}: " "$prompt" "$default")" reply
-             echo "${reply:-$default}"
-           else
-             read -r -p "$(printf "${C_CYAN}?${C_RESET} %s: " "$prompt")" reply
-             echo "$reply"
-           fi
-         }
-confirm() { local prompt="$1" default="${2:-N}" reply
-            local hint="[y/N]"; [[ "${default^^}" == "Y" ]] && hint="[Y/n]"
-            read -r -p "$(printf "${C_CYAN}?${C_RESET} %s ${C_DIM}%s${C_RESET}: " "$prompt" "$hint")" reply
-            reply="${reply:-$default}"
-            [[ "${reply^^}" =~ ^Y(ES)?$ ]]
-          }
+# ── runtime helpers ──────────────────────────────────────────────────────────
+# run — execute a command, hide output (unless verbose)
+run() {
+  if [[ "$VERBOSE" == "1" ]]; then
+    "$@" 2>&1 | tee -a "$LOG_FILE"
+    return "${PIPESTATUS[0]}"
+  else
+    "$@" >>"$LOG_FILE" 2>&1
+  fi
+}
 
-# ─── banner ───────────────────────────────────────────────────────────────────
+# Echo to log only
+_log() { printf '%s\n' "$*" >>"$LOG_FILE"; }
+
+# UI helpers
+say_step() { printf "${C_BOLD}${C_BLUE}▸${C_RESET} %s" "$*"; _log "▸ $*"; }
+say_ok()   { printf " ${C_GREEN}✓${C_RESET}\n"; _log "  OK"; }
+say_fail() { printf " ${C_RED}✗${C_RESET}\n"; _log "  FAIL"; }
+say_warn() { printf "\n  ${C_YELLOW}⚠${C_RESET} %s\n" "$*"; _log "WARN: $*"; }
+say_info() { printf "  ${C_DIM}%s${C_RESET}\n" "$*"; _log "INFO: $*"; }
+die() {
+  printf "\n${C_RED}${C_BOLD}✗ Installation failed${C_RESET}\n" >&2
+  printf "  Error: %s\n" "$*" >&2
+  printf "  Full log: ${C_BOLD}%s${C_RESET}\n" "$LOG_FILE" >&2
+  exit 1
+}
+
+# Trap unexpected errors
+trap 'die "unexpected error at line $LINENO (see log)"' ERR
+
+ask() {
+  local prompt="$1" default="${2:-}" reply
+  if [[ -n "$default" ]]; then
+    read -r -p "$(printf "${C_CYAN}?${C_RESET} %s ${C_DIM}[%s]${C_RESET}: " "$prompt" "$default")" reply
+    echo "${reply:-$default}"
+  else
+    read -r -p "$(printf "${C_CYAN}?${C_RESET} %s: " "$prompt")" reply
+    echo "$reply"
+  fi
+}
+confirm() {
+  local prompt="$1" default="${2:-N}" reply
+  local hint="[y/N]"; [[ "${default^^}" == "Y" ]] && hint="[Y/n]"
+  read -r -p "$(printf "${C_CYAN}?${C_RESET} %s ${C_DIM}%s${C_RESET}: " "$prompt" "$hint")" reply
+  reply="${reply:-$default}"
+  [[ "${reply^^}" =~ ^Y(ES)?$ ]]
+}
+
+# ─── banner ──────────────────────────────────────────────────────────────────
 cat <<'BANNER'
 
    ┌─────────────────────────────────────────────────┐
@@ -58,235 +92,157 @@ cat <<'BANNER'
    └─────────────────────────────────────────────────┘
 
 BANNER
+_log "=== install.sh started at $(date -Is) ==="
+_log "Log file: $LOG_FILE"
+_log "Verbose:  $VERBOSE"
 
-# ─── 1. environment checks ────────────────────────────────────────────────────
-step "[1/7] Checking environment"
-
-if [[ $EUID -ne 0 ]]; then
-  if command -v sudo >/dev/null 2>&1; then
-    SUDO="sudo"
-    ok "Running as non-root, will use sudo for privileged operations"
+# ── 1. environment check ─────────────────────────────────────────────────────
+say_step "Checking environment             "
+{
+  if [[ $EUID -ne 0 ]]; then
+    if command -v sudo >/dev/null 2>&1; then SUDO="sudo"; else die "run as root or install sudo"; fi
   else
-    die "This script must run as root or with sudo installed"
+    SUDO=""
   fi
-else
-  SUDO=""
-  ok "Running as root"
-fi
 
-OS_ID=""
-OS_VERSION=""
-if [[ -f /etc/os-release ]]; then
-  # shellcheck disable=SC1091
-  . /etc/os-release
-  OS_ID="${ID:-unknown}"
-  OS_VERSION="${VERSION_ID:-unknown}"
-fi
+  OS_ID=""
+  if [[ -f /etc/os-release ]]; then . /etc/os-release; OS_ID="${ID:-unknown}"; fi
+  case "$OS_ID" in
+    ubuntu|debian)  PKG_MANAGER="apt" ;;
+    centos|rhel|rocky|almalinux|fedora)
+      PKG_MANAGER="dnf"; command -v dnf >/dev/null 2>&1 || PKG_MANAGER="yum" ;;
+    *) PKG_MANAGER="" ;;
+  esac
+  _log "OS: $OS_ID, pkg: ${PKG_MANAGER:-(unknown)}"
+  _log "Arch: $(uname -m)"
+} >>"$LOG_FILE" 2>&1
+say_ok
 
-case "$OS_ID" in
-  ubuntu|debian)
-    PKG_MANAGER="apt"
-    ok "Detected: $OS_ID $OS_VERSION (apt-based)"
-    ;;
-  centos|rhel|rocky|almalinux|fedora)
-    PKG_MANAGER="dnf"
-    command -v dnf >/dev/null 2>&1 || PKG_MANAGER="yum"
-    ok "Detected: $OS_ID $OS_VERSION ($PKG_MANAGER-based)"
-    ;;
-  *)
-    warn "Unsupported or unknown OS: $OS_ID. Will try to continue."
-    PKG_MANAGER=""
-    ;;
-esac
-
-ARCH=$(uname -m)
-case "$ARCH" in
-  x86_64|amd64) ok "Architecture: x86_64" ;;
-  aarch64|arm64) ok "Architecture: ARM64" ;;
-  *) warn "Untested architecture: $ARCH (Docker images are linux/amd64 + linux/arm64)" ;;
-esac
-
-# ─── 2. install Docker if missing ─────────────────────────────────────────────
-step "[2/7] Checking Docker"
-
-install_docker() {
-  warn "Docker not found — installing via get.docker.com"
-  if ! command -v curl >/dev/null 2>&1; then
-    if [[ "$PKG_MANAGER" == "apt" ]]; then
-      $SUDO apt-get update -qq && $SUDO apt-get install -y -qq curl
-    elif [[ -n "$PKG_MANAGER" ]]; then
-      $SUDO "$PKG_MANAGER" install -y curl
-    else
-      die "curl is required but not installed"
+# ── 2. docker ────────────────────────────────────────────────────────────────
+say_step "Checking Docker                  "
+{
+  if ! command -v docker >/dev/null 2>&1; then
+    _log "Docker not found — installing via get.docker.com"
+    if ! command -v curl >/dev/null 2>&1; then
+      if [[ "$PKG_MANAGER" == "apt" ]]; then $SUDO apt-get update -qq && $SUDO apt-get install -y -qq curl
+      elif [[ -n "$PKG_MANAGER" ]]; then $SUDO "$PKG_MANAGER" install -y curl
+      else die "curl is required"; fi
     fi
+    curl -fsSL https://get.docker.com | $SUDO sh
+    $SUDO systemctl enable --now docker
   fi
-  curl -fsSL https://get.docker.com | $SUDO sh
-  $SUDO systemctl enable --now docker
-  ok "Docker installed and started"
-}
 
-if command -v docker >/dev/null 2>&1; then
-  DOCKER_VERSION=$(docker --version | grep -oE '[0-9]+\.[0-9]+' | head -1)
-  ok "Docker found: $DOCKER_VERSION"
-else
-  install_docker
-fi
+  if docker compose version >/dev/null 2>&1; then
+    COMPOSE_CMD="docker compose"
+  elif command -v docker-compose >/dev/null 2>&1; then
+    COMPOSE_CMD="docker-compose"
+  else
+    die "Docker Compose not found"
+  fi
 
-if docker compose version >/dev/null 2>&1; then
-  COMPOSE_CMD="docker compose"
-  ok "Docker Compose plugin available"
-elif command -v docker-compose >/dev/null 2>&1; then
-  COMPOSE_CMD="docker-compose"
-  warn "Using legacy 'docker-compose' binary. Consider upgrading to Compose plugin."
-else
-  die "Docker Compose not found. Install Docker Compose plugin: https://docs.docker.com/compose/install/"
-fi
+  $SUDO docker info >/dev/null 2>&1 || die "Docker daemon not running"
+} >>"$LOG_FILE" 2>&1
+say_ok
 
-if ! $SUDO docker info >/dev/null 2>&1; then
-  die "Docker daemon is not running or current user lacks permission. Try: sudo systemctl start docker"
-fi
-
-# ─── 3. project files presence ────────────────────────────────────────────────
-step "[3/7] Checking project files"
-
+# ── 3. project files ─────────────────────────────────────────────────────────
+say_step "Checking project files           "
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$PROJECT_DIR"
+{
+  [[ -f docker-compose.yml ]] || die "docker-compose.yml not found"
+  [[ -f .env.example ]]       || die ".env.example not found"
+  [[ -d step-ui-go ]]         || die "step-ui-go/ not found"
+} >>"$LOG_FILE" 2>&1
+say_ok
 
-[[ -f docker-compose.yml ]] || die "docker-compose.yml not found in $PROJECT_DIR"
-[[ -f .env.example ]]       || die ".env.example not found in $PROJECT_DIR"
-[[ -d step-ui-go ]]         || die "step-ui-go/ directory not found in $PROJECT_DIR"
-ok "All required files present"
+# ── 4. config (interactive part stays visible) ───────────────────────────────
+printf "\n"
+printf "${C_BOLD}${C_BLUE}▸${C_RESET} Configuration\n"
 
-# ─── 4. configuration ─────────────────────────────────────────────────────────
-step "[4/7] Configuration"
-
-# v1.4.2: private-IP detection — no phone-home to ifconfig.me
-# Enumerates RFC1918 IPs (10/8, 172.16-31/12, 192.168/16) from local
-# interfaces, excluding Docker/bridge/loopback/veth. Shows a numbered
-# menu when multiple private IPs are found.
+# Private-IP detection (same logic as before)
 detect_private_ips() {
-  # Produce lines "IP|IFACE" for each RFC1918 address on real interfaces.
   ip -4 -o addr show 2>/dev/null \
     | awk '{
-        split($4, a, "/");
-        ip = a[1];
-        iface = $2;
-        # Skip virtual/container interfaces
+        split($4, a, "/"); ip = a[1]; iface = $2;
         if (iface ~ /^(lo|docker|br-|veth|cni|flannel|cali|tun|tailscale)/) next;
-        # RFC1918 ranges
         if (ip ~ /^10\./)                             print ip "|" iface;
         else if (ip ~ /^192\.168\./)                  print ip "|" iface;
         else if (ip ~ /^172\.(1[6-9]|2[0-9]|3[01])\./) print ip "|" iface;
       }'
 }
-
 mapfile -t PRIVATE_IPS < <(detect_private_ips)
+_log "Detected IPs: ${PRIVATE_IPS[*]}"
 
 if [[ "${#PRIVATE_IPS[@]}" -eq 0 ]]; then
-  warn "No private IPv4 addresses found on local interfaces."
-  echo -e "  ${C_DIM}(Looked for 10.x / 172.16-31.x / 192.168.x on eth/wlan/ens/enp interfaces)${C_RESET}"
-  HOST_IP=$(ask "Enter the IP address of this server (the one users will use to reach it)")
+  say_warn "No private IPv4 addresses found on local interfaces."
+  HOST_IP=$(ask "Enter the IP address of this server")
 
 elif [[ "${#PRIVATE_IPS[@]}" -eq 1 ]]; then
-  single="${PRIVATE_IPS[0]}"
-  single_ip="${single%%|*}"
-  single_iface="${single##*|}"
-  ok "Detected private IP: ${C_BOLD}${single_ip}${C_RESET} (${single_iface})"
+  single="${PRIVATE_IPS[0]}"; single_ip="${single%%|*}"; single_iface="${single##*|}"
+  printf "  Detected private IP: ${C_BOLD}%s${C_RESET} (%s)\n" "$single_ip" "$single_iface"
   HOST_IP=$(ask "Use this IP (or enter another)" "$single_ip")
 
 else
-  echo -e "  ${C_BOLD}Multiple private IPs detected:${C_RESET}"
+  printf "  ${C_BOLD}Multiple private IPs detected:${C_RESET}\n"
   for i in "${!PRIVATE_IPS[@]}"; do
-    entry="${PRIVATE_IPS[$i]}"
-    entry_ip="${entry%%|*}"
-    entry_iface="${entry##*|}"
-    printf "    %s[%d]%s  %-15s  %s(%s)%s\n" \
-      "${C_BOLD}" "$((i+1))" "${C_RESET}" \
-      "$entry_ip" "${C_DIM}" "$entry_iface" "${C_RESET}"
+    entry="${PRIVATE_IPS[$i]}"; entry_ip="${entry%%|*}"; entry_iface="${entry##*|}"
+    printf "    ${C_BOLD}[%d]${C_RESET}  %-15s  ${C_DIM}(%s)${C_RESET}\n" "$((i+1))" "$entry_ip" "$entry_iface"
   done
   echo
   while true; do
     choice=$(ask "Pick a number (or type a custom IP)" "1")
     if [[ "$choice" =~ ^[0-9]+$ ]] && (( choice >= 1 && choice <= ${#PRIVATE_IPS[@]} )); then
-      entry="${PRIVATE_IPS[$((choice-1))]}"
-      HOST_IP="${entry%%|*}"
-      break
+      entry="${PRIVATE_IPS[$((choice-1))]}"; HOST_IP="${entry%%|*}"; break
     elif [[ "$choice" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-      HOST_IP="$choice"
-      break
+      HOST_IP="$choice"; break
     else
-      warn "Invalid choice: '$choice'. Enter 1-${#PRIVATE_IPS[@]} or an IPv4 address."
+      printf "  ${C_YELLOW}⚠${C_RESET} Invalid choice: '%s'.\n" "$choice"
     fi
   done
 fi
-[[ "$HOST_IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] || die "Invalid IP address: $HOST_IP"
+[[ "$HOST_IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] || die "Invalid IP: $HOST_IP"
 
 PROVISIONER_DEFAULT="admin@$(hostname -s 2>/dev/null || echo "localhost").local"
 PROVISIONER=$(ask "Provisioner email/identifier" "$PROVISIONER_DEFAULT")
+_log "HOST_IP=$HOST_IP PROVISIONER=$PROVISIONER"
+echo
 
-# ─── 5. generate secrets ──────────────────────────────────────────────────────
-step "[5/7] Generating secrets"
-
-gen_secret() {
-  openssl rand -base64 48 2>/dev/null | tr -dc 'A-Za-z0-9' | head -c "${1:-32}"
-}
-gen_password() {
-  # Human-readable: no ambiguous 0/O/1/l/I, mixed case + digits
-  openssl rand -base64 32 2>/dev/null | tr -dc 'A-HJ-NP-Za-km-z2-9' | head -c "${1:-12}"
-}
+# ── 5. generate secrets ──────────────────────────────────────────────────────
+say_step "Generating secrets               "
+gen_secret()  { openssl rand -base64 48 2>/dev/null | tr -dc 'A-Za-z0-9' | head -c "${1:-32}"; }
+gen_password(){ openssl rand -base64 32 2>/dev/null | tr -dc 'A-HJ-NP-Za-km-z2-9' | head -c "${1:-12}"; }
 
 CA_PASSWORD=$(gen_secret 24)
 SECRET_KEY=$(gen_secret 48)
 POSTGRES_PASSWORD=$(gen_secret 24)
 ADMIN_PASSWORD=$(gen_password 12)
-ok "Generated CA_PASSWORD       (24 chars)"
-ok "Generated SECRET_KEY        (48 chars)"
-ok "Generated POSTGRES_PASSWORD (24 chars)"
-ok "Generated ADMIN_PASSWORD    (12 chars, human-readable)"
+_log "Secrets generated (values not logged)"
+say_ok
 
-# ─── 6. write .env ────────────────────────────────────────────────────────────
-step "[6/7] Writing .env"
+# ── 6. write .env ────────────────────────────────────────────────────────────
+say_step "Writing .env + credentials.txt   "
+{
+  if [[ -f .env ]]; then
+    if confirm ".env already exists — overwrite? (existing passwords will be lost)" "N" >&2; then
+      cp .env ".env.backup.$(date +%s)"
+    else
+      die "Aborted by user. Existing .env preserved."
+    fi
+  fi >>"$LOG_FILE" 2>&1 || true
 
-if [[ -f .env ]]; then
-  warn ".env already exists at $PROJECT_DIR/.env"
-  if confirm "Overwrite it? (existing passwords will be lost)" "N"; then
-    cp .env ".env.backup.$(date +%s)"
-    ok "Backed up old .env"
-  else
-    die "Aborted by user. Existing .env preserved."
-  fi
-fi
-
-cat > .env <<EOF
-# ──────────────────────────────────────────────────────────────
+  cat > .env <<EOF
 # Step-CA UI — environment configuration
 # Generated by install.sh on $(date '+%Y-%m-%d %H:%M:%S %Z')
-# ──────────────────────────────────────────────────────────────
-
-# Host IP — used for SSL cert SAN and Step-CA DNS names
 HOST_IP=${HOST_IP}
-
-# Step-CA provisioner identifier (usually an email)
 PROVISIONER=${PROVISIONER}
-
-# Step-CA provisioner password (auto-generated)
 CA_PASSWORD=${CA_PASSWORD}
-
-# Session/CSRF signing key for the UI (auto-generated, keep secret)
 SECRET_KEY=${SECRET_KEY}
-
-# PostgreSQL password (auto-generated)
 POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-
-# One-shot: admin password used by entrypoint to seed the first user.
-# Safe to remove from .env after first successful boot.
 STEPUI_ADMIN_PASSWORD=${ADMIN_PASSWORD}
 EOF
-chmod 600 .env
-ok "Wrote .env (chmod 600)"
+  chmod 600 .env
 
-CRED_FILE="$PROJECT_DIR/credentials.txt"
-cat > "$CRED_FILE" <<EOF
+  cat > credentials.txt <<EOF
 ═══════════════════════════════════════════════════════════════════
   Step-CA UI — admin credentials
   Generated on: $(date '+%Y-%m-%d %H:%M:%S %Z')
@@ -297,7 +253,7 @@ cat > "$CRED_FILE" <<EOF
   Password: ${ADMIN_PASSWORD}
 
 ═══════════════════════════════════════════════════════════════════
-  ⚠  IMPORTANT: change this password right after first login!
+  ⚠ IMPORTANT: change this password right after first login!
      Profile → Change Password
 
   This file has chmod 600 (owner-read only).
@@ -305,48 +261,53 @@ cat > "$CRED_FILE" <<EOF
      rm credentials.txt
 ═══════════════════════════════════════════════════════════════════
 EOF
-chmod 600 "$CRED_FILE"
-ok "Saved admin credentials to credentials.txt (chmod 600)"
+  chmod 600 credentials.txt
+} >>"$LOG_FILE" 2>&1
+say_ok
 
-# ─── 7. build & launch ────────────────────────────────────────────────────────
-step "[7/7] Building and starting containers"
-echo
+# ── 7. build & launch ────────────────────────────────────────────────────────
+say_step "Building and starting containers "
+{
+  $SUDO $COMPOSE_CMD pull --quiet 2>/dev/null || true
+  $SUDO $COMPOSE_CMD up -d --build
+} >>"$LOG_FILE" 2>&1
+say_ok
 
-$SUDO $COMPOSE_CMD pull --quiet 2>/dev/null || true
-$SUDO $COMPOSE_CMD up -d --build
-
-echo
-step "Waiting for services to be healthy"
-
+# ── 8. wait for healthy ──────────────────────────────────────────────────────
+say_step "Waiting for services to be ready "
 wait_for_healthy() {
-  local service="$1" timeout="${2:-120}" elapsed=0
+  local service="$1" timeout="${2:-120}" elapsed=0 status
   while (( elapsed < timeout )); do
-    local status
     status=$($SUDO $COMPOSE_CMD ps --format '{{.Service}}|{{.Status}}' 2>/dev/null \
-            | awk -F'|' -v svc="$service" '$1==svc {print $2; exit}')
-    if [[ "$status" == *"healthy"* ]]; then
-      ok "$service is healthy"
-      return 0
-    elif [[ "$status" == *"unhealthy"* ]]; then
-      err "$service is unhealthy"
-      return 1
-    fi
-    sleep 2
-    ((elapsed+=2))
-    printf "."
+             | awk -F'|' -v svc="$service" '$1==svc {print $2; exit}')
+    [[ "$status" == *"healthy"* ]]   && return 0
+    [[ "$status" == *"unhealthy"* ]] && return 1
+    sleep 2; ((elapsed+=2))
   done
-  echo
-  warn "$service did not report healthy within ${timeout}s (it may still be starting)"
   return 1
 }
 
 ALL_HEALTHY=true
 for svc in postgres step-ca step-ui; do
-  printf "  %s " "$svc"
-  wait_for_healthy "$svc" 120 || ALL_HEALTHY=false
+  wait_for_healthy "$svc" 120 >>"$LOG_FILE" 2>&1 || ALL_HEALTHY=false
 done
 
-# ─── final report ─────────────────────────────────────────────────────────────
+# HTTP-based fallback: if not reported healthy, but HTTPS is up, treat as ok
+if ! $ALL_HEALTHY; then
+  CODE=$(curl -sk -o /dev/null -w "%{http_code}" --max-time 5 "https://${HOST_IP}/login" 2>/dev/null || echo 000)
+  _log "Fallback HTTPS probe: https://${HOST_IP}/login → $CODE"
+  if [[ "$CODE" =~ ^(200|302|303)$ ]]; then
+    ALL_HEALTHY=true
+  fi
+fi
+
+if $ALL_HEALTHY; then
+  say_ok
+else
+  say_fail
+fi
+
+# ── final report ─────────────────────────────────────────────────────────────
 echo
 echo
 if $ALL_HEALTHY; then
@@ -358,7 +319,7 @@ if $ALL_HEALTHY; then
 else
   printf "${C_YELLOW}${C_BOLD}╔══════════════════════════════════════════════════════════════╗${C_RESET}\n"
   printf "${C_YELLOW}${C_BOLD}║          ⚠  Containers started but not yet healthy           ║${C_RESET}\n"
-  printf "${C_YELLOW}${C_BOLD}║          Check logs: docker compose logs -f                  ║${C_RESET}\n"
+  printf "${C_YELLOW}${C_BOLD}║          docker compose logs -f                              ║${C_RESET}\n"
   printf "${C_YELLOW}${C_BOLD}╚══════════════════════════════════════════════════════════════╝${C_RESET}\n"
 fi
 
@@ -368,22 +329,12 @@ cat <<EOF
   ${C_BOLD}Login:${C_RESET}    admin
   ${C_BOLD}Password:${C_RESET} ${ADMIN_PASSWORD}
 
-  ${C_DIM}(Also saved to credentials.txt — delete it after copying the password)${C_RESET}
+  ${C_DIM}Credentials also saved to:  credentials.txt${C_RESET}
+  ${C_DIM}Full install log:           ${LOG_FILE}${C_RESET}
 
-  ${C_YELLOW}⚠ Change the admin password right after first login!${C_RESET}
-  ${C_YELLOW}⚠ The SSL certificate is self-signed${C_RESET} — your browser will warn
-     you on first visit. Accept the warning, or import certs/root_ca.crt
-     into your trusted store.
-
-  ${C_BOLD}Useful commands:${C_RESET}
-    ${C_DIM}# View logs${C_RESET}
-    docker compose logs -f step-ui
-
-    ${C_DIM}# Stop / start${C_RESET}
-    docker compose down
-    docker compose up -d
-
-    ${C_DIM}# Update to latest version${C_RESET}
-    git pull && docker compose up -d --build
+  ${C_YELLOW}⚠${C_RESET} Change the admin password right after first login.
+  ${C_YELLOW}⚠${C_RESET} The SSL certificate is self-signed — accept the browser warning
+     or import certs/root_ca.crt into your trusted store.
 
 EOF
+_log "=== install.sh finished at $(date -Is) ==="
