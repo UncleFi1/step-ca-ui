@@ -34,3 +34,6 @@ Thumbs.db
 
 # Логи
 *.log
+
+# Backup directories from update scripts
+.backup-*/
