@@ -26,12 +26,4 @@ if [ ! -f /opt/step-ui/ssl/server.crt ]; then
 fi
 
 echo "[*] Starting Step-CA UI on port ${PORT:-8443}"
-# Seed initial admin password from STEPUI_ADMIN_PASSWORD if provided.
-# The Go app reads this on first boot when no admin user exists.
-if [ -n "${STEPUI_ADMIN_PASSWORD:-}" ]; then
-  echo "[*] STEPUI_ADMIN_PASSWORD detected — will seed first admin with it"
-  export STEPUI_ADMIN_PASSWORD
-fi
-
-
 exec /opt/step-ui/step-ui

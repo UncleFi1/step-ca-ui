@@ -1,7 +1,6 @@
 package db
 
 import (
-	"os"
 	"database/sql"
 	"fmt"
 	"strings"
@@ -96,18 +95,9 @@ func InitSchema(d *sql.DB) error {
 	var count int
 	d.QueryRow(`SELECT COUNT(*) FROM users`).Scan(&count)
 	if count == 0 {
-		// Seed first admin. Honor STEPUI_ADMIN_PASSWORD if provided,
-		// otherwise fall back to the legacy default with a warning.
-		adminPwd := os.Getenv("STEPUI_ADMIN_PASSWORD")
-		if adminPwd == "" {
-			adminPwd = "Admin123!"
-			fmt.Println("[!] STEPUI_ADMIN_PASSWORD not set — seeding admin with default password \"Admin123!\" (CHANGE IT IMMEDIATELY)")
-		} else {
-			fmt.Println("[*] Seeding admin user with password from STEPUI_ADMIN_PASSWORD")
-		}
 		d.Exec(`INSERT INTO users (username,password_hash,role,is_active) VALUES ($1,$2,'admin',true)`,
-			"admin", security.HashPassword(adminPwd))
-		fmt.Println("[*] Default admin user is ready (login: admin)")
+			"admin", security.HashPassword("Admin123!"))
+		fmt.Println("[!] Default user created: admin / Admin123!")
 	}
 
 	// -- temp_users_migration_v1
