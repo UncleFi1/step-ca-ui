@@ -27,19 +27,6 @@ func Connect(dsn string) (*sql.DB, error) {
 }
 
 func InitSchema(d *sql.DB) error {
-	// migration: users.theme
-	if _, err := d.Exec(`ALTER TABLE users ADD COLUMN IF NOT EXISTS theme VARCHAR(10) DEFAULT 'dark'`); err != nil {
-		return err
-	}
-
-	// -- migration: user profile fields
-	if _, err := d.Exec(`ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name VARCHAR(100) DEFAULT ''`); err != nil {
-		return err
-	}
-	if _, err := d.Exec(`ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(200) DEFAULT ''`); err != nil {
-		return err
-	}
-
 	schema := `
 	CREATE TABLE IF NOT EXISTS users (
 		id           SERIAL PRIMARY KEY,
@@ -92,7 +79,21 @@ func InitSchema(d *sql.DB) error {
 	if _, err := d.Exec(schema); err != nil {
 		return err
 	}
-	// Создаём admin если нет пользователей
+	// Post-creation migrations (columns added to tables created above).
+	// migration: users.theme
+	if _, err := d.Exec(`ALTER TABLE users ADD COLUMN IF NOT EXISTS theme VARCHAR(10) DEFAULT 'dark'`); err != nil {
+		return err
+	}
+
+	// -- migration: user profile fields
+	if _, err := d.Exec(`ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name VARCHAR(100) DEFAULT ''`); err != nil {
+		return err
+	}
+	if _, err := d.Exec(`ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(200) DEFAULT ''`); err != nil {
+		return err
+	}
+
+		// Создаём admin если нет пользователей
 	var count int
 	d.QueryRow(`SELECT COUNT(*) FROM users`).Scan(&count)
 	if count == 0 {

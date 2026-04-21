@@ -160,25 +160,64 @@ ok "All required files present"
 # ─── 4. configuration ─────────────────────────────────────────────────────────
 step "[4/7] Configuration"
 
-detect_ip() {
-  local ip=""
-  ip=$(curl -fsS --max-time 3 https://ifconfig.me 2>/dev/null || true)
-  if [[ -z "$ip" ]] || ! [[ "$ip" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    ip=$(hostname -I 2>/dev/null | awk '{print $1}')
-  fi
-  if [[ -z "$ip" ]] || ! [[ "$ip" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    ip=$(ip -4 route get 1.1.1.1 2>/dev/null | awk '{print $7; exit}')
-  fi
-  echo "$ip"
+# v1.4.2: private-IP detection — no phone-home to ifconfig.me
+# Enumerates RFC1918 IPs (10/8, 172.16-31/12, 192.168/16) from local
+# interfaces, excluding Docker/bridge/loopback/veth. Shows a numbered
+# menu when multiple private IPs are found.
+detect_private_ips() {
+  # Produce lines "IP|IFACE" for each RFC1918 address on real interfaces.
+  ip -4 -o addr show 2>/dev/null \
+    | awk '{
+        split($4, a, "/");
+        ip = a[1];
+        iface = $2;
+        # Skip virtual/container interfaces
+        if (iface ~ /^(lo|docker|br-|veth|cni|flannel|cali|tun|tailscale)/) next;
+        # RFC1918 ranges
+        if (ip ~ /^10\./)                             print ip "|" iface;
+        else if (ip ~ /^192\.168\./)                  print ip "|" iface;
+        else if (ip ~ /^172\.(1[6-9]|2[0-9]|3[01])\./) print ip "|" iface;
+      }'
 }
 
-DETECTED_IP=$(detect_ip)
-if [[ -n "$DETECTED_IP" ]]; then
-  ok "Auto-detected IP: ${C_BOLD}$DETECTED_IP${C_RESET}"
-  HOST_IP=$(ask "Use this IP (or enter another)" "$DETECTED_IP")
+mapfile -t PRIVATE_IPS < <(detect_private_ips)
+
+if [[ "${#PRIVATE_IPS[@]}" -eq 0 ]]; then
+  warn "No private IPv4 addresses found on local interfaces."
+  echo -e "  ${C_DIM}(Looked for 10.x / 172.16-31.x / 192.168.x on eth/wlan/ens/enp interfaces)${C_RESET}"
+  HOST_IP=$(ask "Enter the IP address of this server (the one users will use to reach it)")
+
+elif [[ "${#PRIVATE_IPS[@]}" -eq 1 ]]; then
+  single="${PRIVATE_IPS[0]}"
+  single_ip="${single%%|*}"
+  single_iface="${single##*|}"
+  ok "Detected private IP: ${C_BOLD}${single_ip}${C_RESET} (${single_iface})"
+  HOST_IP=$(ask "Use this IP (or enter another)" "$single_ip")
+
 else
-  warn "Could not auto-detect IP"
-  HOST_IP=$(ask "Enter the IP address of this server")
+  echo -e "  ${C_BOLD}Multiple private IPs detected:${C_RESET}"
+  for i in "${!PRIVATE_IPS[@]}"; do
+    entry="${PRIVATE_IPS[$i]}"
+    entry_ip="${entry%%|*}"
+    entry_iface="${entry##*|}"
+    printf "    %s[%d]%s  %-15s  %s(%s)%s\n" \
+      "${C_BOLD}" "$((i+1))" "${C_RESET}" \
+      "$entry_ip" "${C_DIM}" "$entry_iface" "${C_RESET}"
+  done
+  echo
+  while true; do
+    choice=$(ask "Pick a number (or type a custom IP)" "1")
+    if [[ "$choice" =~ ^[0-9]+$ ]] && (( choice >= 1 && choice <= ${#PRIVATE_IPS[@]} )); then
+      entry="${PRIVATE_IPS[$((choice-1))]}"
+      HOST_IP="${entry%%|*}"
+      break
+    elif [[ "$choice" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+      HOST_IP="$choice"
+      break
+    else
+      warn "Invalid choice: '$choice'. Enter 1-${#PRIVATE_IPS[@]} or an IPv4 address."
+    fi
+  done
 fi
 [[ "$HOST_IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] || die "Invalid IP address: $HOST_IP"
 
