@@ -1,36 +1,68 @@
 {{define "content"}}
-<div class="page-header">
-  <h1 style="margin:0 0 4px;font-size:22px;font-weight:700">Консоль сервера</h1>
-  <p class="muted" style="margin:0">Прямой доступ к выполнению команд внутри контейнера</p>
+<div class="admin-page-header">
+  <h1 class="admin-page-title">Консоль сервера</h1>
+  <p class="admin-page-subtitle">Ограниченный запуск разрешённых diagnostic-команд внутри контейнера step-ui</p>
 </div>
 
-<div class="card" style="margin-top:18px;border-color:color-mix(in srgb, var(--admin-danger) 40%, var(--admin-border))">
-  <div class="card-body" style="padding:24px">
-    <div style="display:flex;align-items:flex-start;gap:14px">
-      <div style="flex-shrink:0;width:44px;height:44px;border-radius:10px;background:color-mix(in srgb, var(--admin-danger) 18%, transparent);color:var(--admin-danger);display:flex;align-items:center;justify-content:center">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      </div>
-      <div style="flex:1">
-        <h2 style="margin:0 0 6px;font-size:17px;font-weight:700">Требуется двухфакторная аутентификация</h2>
-        <p class="muted" style="margin:0 0 14px">
-          Консоль даёт полный shell внутри контейнера — потенциально разрушительная операция.
-          Для активации настройте 2FA в профиле администратора.
-        </p>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <a href="/profile" class="btn btn-primary">Настроить 2FA</a>
-          <a href="/admin" class="btn btn-ghost">← Назад к панели</a>
-        </div>
-      </div>
-    </div>
-    <hr style="margin:22px 0;border:0;border-top:1px solid var(--admin-border)">
-    <strong style="display:block;margin-bottom:10px;font-size:13px;color:var(--admin-muted);text-transform:uppercase;letter-spacing:.05em">Что будет после 2FA</strong>
-    <ul style="margin:0;padding-left:20px;line-height:1.7">
-      <li>Интерактивный shell внутри контейнера step-ui</li>
-      <li>История команд и автодополнение</li>
-      <li>Предустановленные команды: restart step-ca, reload, backup</li>
-      <li>Все действия логируются в журнал безопасности</li>
-      <li>Автоматическая блокировка опасных команд (rm -rf /, dd, mkfs)</li>
-    </ul>
+<div class="card admin-console-warning">
+  <div class="card-body">
+    <strong>Режим allowlist</strong>
+    <p class="muted">
+      Свободный shell отключён. Доступны только заранее разрешённые команды без пользовательских аргументов.
+      Каждый запуск фиксируется в журнале безопасности.
+    </p>
+    {{if .TOTPEnabled}}
+      <span class="badge ok">2FA включена</span>
+    {{else}}
+      <span class="badge warn">2FA не включена</span>
+      <a href="/profile/2fa" class="btn btn-ghost btn-sm">Настроить 2FA</a>
+    {{end}}
   </div>
 </div>
+
+<div class="card">
+  <div class="card-header"><strong>Запуск команды</strong></div>
+  <div class="card-body">
+    {{if .ConsoleError}}<div class="flash err">{{.ConsoleError}}</div>{{end}}
+    <form method="POST" action="/admin/console" class="admin-console-form">
+      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+      <label for="command_id">Команда</label>
+      <div class="admin-console-row">
+        <select id="command_id" name="command_id" required>
+          <option value="">Выберите команду</option>
+          {{range .Commands}}
+            <option value="{{.ID}}" {{if eq $.SelectedCommandID .ID}}selected{{end}}>{{.Label}} — {{.Name}}{{range .Args}} {{.}}{{end}}</option>
+          {{end}}
+        </select>
+        <button class="btn primary" type="submit">Выполнить</button>
+      </div>
+      <div class="admin-console-command-list">
+        {{range .Commands}}
+          <div class="admin-console-command">
+            <code>{{.Name}}{{range .Args}} {{.}}{{end}}</code>
+            <span>{{.Description}}</span>
+          </div>
+        {{end}}
+      </div>
+    </form>
+  </div>
+</div>
+
+{{if .Result}}
+<div class="card">
+  <div class="card-header admin-console-result-head">
+    <strong>Результат</strong>
+    {{if .Result.Success}}<span class="badge ok">exit 0</span>{{else}}<span class="badge danger">exit {{.Result.ExitCode}}</span>{{end}}
+  </div>
+  <div class="card-body">
+    <div class="admin-console-meta">
+      <span><b>Команда:</b> <code>{{.Result.CommandLine}}</code></span>
+      <span><b>Время:</b> {{.Result.Duration}}</span>
+      <span><b>Лимит:</b> {{.Timeout}}, {{.MaxOutputKB}} KB</span>
+      {{if .Result.Truncated}}<span class="badge warn">output truncated</span>{{end}}
+    </div>
+    <pre class="admin-console-output">{{.Result.Output}}</pre>
+  </div>
+</div>
+{{end}}
 {{end}}

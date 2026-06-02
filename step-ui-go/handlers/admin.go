@@ -86,11 +86,6 @@ func (h *Handler) AdminActivityGet(w http.ResponseWriter, r *http.Request) {
 	h.render(w, "admin_activity", h.base(w, r, "admin_activity"))
 }
 
-// AdminConsoleGet — заглушка (2FA).
-func (h *Handler) AdminConsoleGet(w http.ResponseWriter, r *http.Request) {
-	h.render(w, "admin_console", h.base(w, r, "admin_console"))
-}
-
 // AdminAboutGet — о системе.
 func (h *Handler) AdminAboutGet(w http.ResponseWriter, r *http.Request) {
 	data := h.base(w, r, "admin_about")

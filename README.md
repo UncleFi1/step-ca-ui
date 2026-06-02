@@ -7,8 +7,8 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Made with Go](https://img.shields.io/badge/Made%20with-Go%201.22-00ADD8.svg)](https://go.dev)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED.svg)](https://docs.docker.com/compose/)
-[![Current version](https://img.shields.io/badge/version-v1.6.3-success.svg)](https://github.com/UncleFi1/step-ca-ui/releases/tag/v1.6.3)
-[![Latest release](https://img.shields.io/badge/release-v1.6.3-success.svg)](https://github.com/UncleFi1/step-ca-ui/releases/latest)
+[![Current version](https://img.shields.io/badge/version-v1.7.0-success.svg)](https://github.com/UncleFi1/step-ca-ui/releases/tag/v1.7.0)
+[![Latest release](https://img.shields.io/badge/release-v1.7.0-success.svg)](https://github.com/UncleFi1/step-ca-ui/releases/latest)
 
 🇬🇧 **English** · [🇷🇺 Русский](README.ru.md)
 
@@ -20,9 +20,10 @@
 
 ## Current Release
 
-**Latest stable:** [v1.6.3](https://github.com/UncleFi1/step-ca-ui/releases/tag/v1.6.3)
+**Latest stable:** [v1.7.0](https://github.com/UncleFi1/step-ca-ui/releases/tag/v1.7.0)
 
 Highlights:
+- restricted admin web console with predefined diagnostic commands, timeout, output limit and audit log
 - password recovery UX cleanup: neutral result message, no account enumeration and cleared identifier field after submit
 - password recovery with SMTP, expiring reset tokens, rate limiting and audit events
 - admin audit hardening for user actions, key downloads, backups and settings changes
@@ -50,6 +51,7 @@ Highlights:
 - 🔔 **Webhook notifications** — test webhook, failed issue/renew alerts, login burst alerts and expiry watcher *(new in v1.5.3)*
 - 🔐 **TOTP 2FA** — authenticator app enrollment, QR code login challenge and recovery codes *(new in v1.6.0)*
 - 🔁 **Password recovery** — SMTP reset links with TTL, rate limit, audit trail and neutral public responses *(updated in v1.6.3)*
+- 🖥️ **Restricted admin console** — allowlisted diagnostics inside the UI container with audit logging *(new in v1.7.0)*
 
 ## Quick Start
 

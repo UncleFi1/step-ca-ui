@@ -555,12 +555,17 @@ Production-сервер обновлен до v1.4.7.
 
 Цель: ограниченная web-консоль для администрирования.
 
-Условия:
+Реализовано:
 
 - только admin;
-- желательно только при включенной 2FA;
-- allowlist команд;
-- полный audit log.
+- свободный shell отключён;
+- запуск только predefined allowlist-команд без пользовательских аргументов;
+- команды выполняются через `exec.CommandContext` без `/bin/sh`;
+- таймаут команды: 8 секунд;
+- лимит вывода: 16 KB;
+- audit log для успешных запусков и отказов вне allowlist;
+- предупреждение, если у admin не включена 2FA;
+- доступные diagnostics: date, hostname, id, disk usage, process list, app dirs, step version, step-ca health, OpenSSL version, PostgreSQL readiness.
 
 ### v2.0.0 — SSH server inventory
 

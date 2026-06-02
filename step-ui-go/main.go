@@ -214,6 +214,7 @@ func main() {
 			r.Get("/admin/activity", h.AdminActivityGet)
 			r.Get("/admin/security", h.SecurityLog)
 			r.Get("/admin/console", h.AdminConsoleGet)
+			r.Post("/admin/console", h.AdminConsolePost)
 			r.Get("/admin/about", h.AdminAboutGet)
 			r.Get("/admin/integrity", h.AdminIntegrityGet)
 			r.Get("/admin/backup", h.AdminBackupGet)

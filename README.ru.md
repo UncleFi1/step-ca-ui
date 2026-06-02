@@ -7,8 +7,8 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Made with Go](https://img.shields.io/badge/Made%20with-Go%201.22-00ADD8.svg)](https://go.dev)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED.svg)](https://docs.docker.com/compose/)
-[![Current version](https://img.shields.io/badge/version-v1.6.3-success.svg)](https://github.com/UncleFi1/step-ca-ui/releases/tag/v1.6.3)
-[![Latest release](https://img.shields.io/badge/release-v1.6.3-success.svg)](https://github.com/UncleFi1/step-ca-ui/releases/latest)
+[![Current version](https://img.shields.io/badge/version-v1.7.0-success.svg)](https://github.com/UncleFi1/step-ca-ui/releases/tag/v1.7.0)
+[![Latest release](https://img.shields.io/badge/release-v1.7.0-success.svg)](https://github.com/UncleFi1/step-ca-ui/releases/latest)
 
 [🇬🇧 English](README.md) · 🇷🇺 **Русский**
 
@@ -20,9 +20,10 @@
 
 ## Текущий релиз
 
-**Последняя стабильная версия:** [v1.6.3](https://github.com/UncleFi1/step-ca-ui/releases/tag/v1.6.3)
+**Последняя стабильная версия:** [v1.7.0](https://github.com/UncleFi1/step-ca-ui/releases/tag/v1.7.0)
 
 Главное:
+- ограниченная web-консоль администратора с predefined diagnostic-командами, таймаутом, лимитом вывода и audit log
 - доработка восстановления пароля: нейтральное сообщение, без раскрытия аккаунтов и с очисткой поля после отправки
 - восстановление пароля через SMTP-ссылку с TTL, rate limit и audit log
 - усиленный audit admin-действий: пользователи, скачивание ключей, backup и настройки
@@ -50,6 +51,7 @@
 - 🔔 **Webhook-уведомления** — тестовая отправка, ошибки выпуска/перевыпуска, серия неудачных входов и контроль истечения *(новинка v1.5.3)*
 - 🔐 **TOTP 2FA** — подключение authenticator app, QR-код, проверка при входе и recovery-коды *(новинка v1.6.0)*
 - 🔁 **Восстановление пароля** — SMTP-ссылки сброса с TTL, rate limit, audit trail и нейтральными публичными ответами *(обновлено в v1.6.3)*
+- 🖥️ **Ограниченная admin-консоль** — allowlist diagnostics внутри UI-контейнера с audit logging *(новинка v1.7.0)*
 
 ## Быстрый старт
 
