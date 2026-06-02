@@ -22,6 +22,7 @@ const (
 	passwordResetTTL         = 30 * time.Minute
 	passwordResetLimitCount  = 3
 	passwordResetLimitWindow = 15 * time.Minute
+	passwordResetGenericInfo = "Запрос на восстановление обработан."
 )
 
 var passwordResetRL = struct {
@@ -42,7 +43,7 @@ func (h *Handler) ForgotPasswordPost(w http.ResponseWriter, r *http.Request) {
 	}
 	ip := clientIP(r)
 	if !passwordResetAllowed(ip) {
-		data["Info"] = "Если аккаунт найден и email настроен, ссылка для сброса будет отправлена."
+		data["Info"] = passwordResetGenericInfo
 		_ = appdb.LogAuth(h.db, "password-reset", ip, false, "Password reset rate limited")
 		h.render(w, "forgot_password", data)
 		return
@@ -54,7 +55,7 @@ func (h *Handler) ForgotPasswordPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	generic := "Если аккаунт найден и email настроен, ссылка для сброса будет отправлена."
+	generic := passwordResetGenericInfo
 	user, err := appdb.GetUserByLoginOrEmail(h.db, identifier)
 	if err != nil || user == nil {
 		_ = appdb.LogAuth(h.db, identifier, ip, false, "Password reset requested for unknown account")
