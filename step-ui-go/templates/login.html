@@ -60,6 +60,9 @@ input:focus{outline:none;border-color:#4493f8}
         <input type="password" name="password" required {{if .Blocked}}disabled{{end}}>
       </div>
       <button class="btn" type="submit" {{if .Blocked}}disabled{{end}}>Войти &rarr;</button>
+      <div style="margin-top:14px;text-align:center">
+        <a href="/forgot-password" style="color:#8a8f98;font-size:12px;text-decoration:none">Забыли пароль?</a>
+      </div>
       {{end}}
     </form>
   </div>

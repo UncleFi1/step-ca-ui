@@ -73,6 +73,13 @@ type NotificationSettings struct {
 	ExpiryDays      int
 	NotifyFailures  bool
 	NotifyAuthBurst bool
+	SMTPEnabled     bool
+	SMTPHost        string
+	SMTPPort        int
+	SMTPSecurity    string
+	SMTPUsername    string
+	SMTPPassword    string
+	SMTPFrom        string
 	UpdatedAt       *time.Time
 }
 
@@ -85,5 +92,14 @@ type NotificationLog struct {
 	Message   string
 	Success   bool
 	Error     string
+	CreatedAt time.Time
+}
+
+type PasswordResetToken struct {
+	ID        int
+	UserID    int
+	TokenHash string
+	ExpiresAt time.Time
+	UsedAt    *time.Time
 	CreatedAt time.Time
 }

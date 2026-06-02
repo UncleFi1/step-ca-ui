@@ -45,6 +45,11 @@ func (h *Handler) AdminNotificationsPost(w http.ResponseWriter, r *http.Request)
 	if !h.requireCSRF(w, r, "/admin/notifications") {
 		return
 	}
+	_ = r.ParseForm()
+	current, _ := appdb.GetNotificationSettings(h.db)
+	if current == nil {
+		current = &models.NotificationSettings{ExpiryDays: 30, SMTPPort: 587, SMTPSecurity: "starttls"}
+	}
 	expiryDays, _ := strconv.Atoi(r.FormValue("expiry_days"))
 	if expiryDays < 1 {
 		expiryDays = 1
@@ -59,6 +64,31 @@ func (h *Handler) AdminNotificationsPost(w http.ResponseWriter, r *http.Request)
 		ExpiryDays:      expiryDays,
 		NotifyFailures:  r.FormValue("notify_failures") == "on",
 		NotifyAuthBurst: r.FormValue("notify_auth_burst") == "on",
+		SMTPEnabled:     r.FormValue("smtp_enabled") == "on",
+		SMTPHost:        strings.TrimSpace(r.FormValue("smtp_host")),
+		SMTPUsername:    strings.TrimSpace(r.FormValue("smtp_username")),
+		SMTPPassword:    strings.TrimSpace(r.FormValue("smtp_password")),
+		SMTPFrom:        strings.TrimSpace(r.FormValue("smtp_from")),
+	}
+	settings.SMTPPort, _ = strconv.Atoi(r.FormValue("smtp_port"))
+	if settings.SMTPPort <= 0 {
+		settings.SMTPPort = 587
+	}
+	settings.SMTPSecurity = strings.ToLower(strings.TrimSpace(r.FormValue("smtp_security")))
+	if settings.SMTPSecurity != "none" && settings.SMTPSecurity != "starttls" && settings.SMTPSecurity != "tls" {
+		settings.SMTPSecurity = "starttls"
+	}
+	if !r.Form.Has("smtp_host") {
+		settings.SMTPEnabled = current.SMTPEnabled
+		settings.SMTPHost = current.SMTPHost
+		settings.SMTPPort = current.SMTPPort
+		settings.SMTPSecurity = current.SMTPSecurity
+		settings.SMTPUsername = current.SMTPUsername
+		settings.SMTPPassword = current.SMTPPassword
+		settings.SMTPFrom = current.SMTPFrom
+	}
+	if settings.SMTPPassword == "" {
+		settings.SMTPPassword = current.SMTPPassword
 	}
 	if settings.WebhookEnabled {
 		if _, err := url.ParseRequestURI(settings.WebhookURL); err != nil {
@@ -67,11 +97,19 @@ func (h *Handler) AdminNotificationsPost(w http.ResponseWriter, r *http.Request)
 			return
 		}
 	}
+	if settings.SMTPEnabled {
+		if settings.SMTPHost == "" || settings.SMTPFrom == "" {
+			h.flash(w, r, "err", "Для SMTP укажите host и from")
+			http.Redirect(w, r, "/admin/notifications", http.StatusSeeOther)
+			return
+		}
+	}
 	if err := appdb.SaveNotificationSettings(h.db, settings); err != nil {
 		h.flash(w, r, "err", "Не удалось сохранить настройки: "+err.Error())
 	} else {
-		h.auditSecurity(r, fmt.Sprintf("notifications.save webhook_enabled=%t notify_expiry=%t notify_failures=%t notify_auth_burst=%t expiry_days=%d",
-			settings.WebhookEnabled, settings.NotifyExpiry, settings.NotifyFailures, settings.NotifyAuthBurst, settings.ExpiryDays))
+		h.auditSecurity(r, fmt.Sprintf("notifications.save webhook_enabled=%t smtp_enabled=%t smtp_host=%s smtp_security=%s notify_expiry=%t notify_failures=%t notify_auth_burst=%t expiry_days=%d",
+			settings.WebhookEnabled, settings.SMTPEnabled, settings.SMTPHost, settings.SMTPSecurity,
+			settings.NotifyExpiry, settings.NotifyFailures, settings.NotifyAuthBurst, settings.ExpiryDays))
 		h.flash(w, r, "ok", "Настройки уведомлений сохранены")
 	}
 	http.Redirect(w, r, "/admin/notifications", http.StatusSeeOther)

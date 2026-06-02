@@ -123,6 +123,9 @@ func main() {
 	if err := appdb.InitNotificationSchema(conn); err != nil {
 		log.Fatalf("Cannot init notification schema: %v", err)
 	}
+	if err := appdb.InitPasswordResetSchema(conn); err != nil {
+		log.Fatalf("Cannot init password reset schema: %v", err)
+	}
 
 	// ─── Sessions ────────────────────────────────────────────────────────────
 	hashKey := sha256.Sum256([]byte(cfg.SecretKey))
@@ -152,6 +155,10 @@ func main() {
 	// Публичные маршруты
 	r.Get("/login", h.LoginGet)
 	r.Post("/login", h.LoginPost)
+	r.Get("/forgot-password", h.ForgotPasswordGet)
+	r.Post("/forgot-password", h.ForgotPasswordPost)
+	r.Get("/reset-password", h.ResetPasswordGet)
+	r.Post("/reset-password", h.ResetPasswordPost)
 	r.Get("/logout", h.Logout)
 
 	// Авторизованные маршруты

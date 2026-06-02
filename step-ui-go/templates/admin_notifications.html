@@ -53,6 +53,67 @@
 </div>
 
 <div class="card">
+  <div class="card-header"><strong>SMTP</strong></div>
+  <div class="card-body">
+    <p class="muted" style="margin-top:0">Используется для восстановления пароля. Пароль SMTP не выводится обратно в форму.</p>
+    <form method="POST" action="/admin/notifications" class="form-grid">
+      <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+      <input type="hidden" name="webhook_enabled" value="{{if .Settings.WebhookEnabled}}on{{end}}">
+      <input type="hidden" name="webhook_url" value="{{.Settings.WebhookURL}}">
+      <input type="hidden" name="notify_expiry" value="{{if .Settings.NotifyExpiry}}on{{end}}">
+      <input type="hidden" name="expiry_days" value="{{.Settings.ExpiryDays}}">
+      <input type="hidden" name="notify_failures" value="{{if .Settings.NotifyFailures}}on{{end}}">
+      <input type="hidden" name="notify_auth_burst" value="{{if .Settings.NotifyAuthBurst}}on{{end}}">
+
+      <label class="check-row">
+        <input type="checkbox" name="smtp_enabled" {{if .Settings.SMTPEnabled}}checked{{end}}>
+        <span>Включить SMTP для восстановления пароля</span>
+      </label>
+
+      <div class="form-row">
+        <label>
+          <span>SMTP host</span>
+          <input type="text" name="smtp_host" value="{{.Settings.SMTPHost}}" placeholder="smtp.example.com" autocomplete="off">
+        </label>
+        <label>
+          <span>Port</span>
+          <input type="number" name="smtp_port" min="1" max="65535" value="{{.Settings.SMTPPort}}">
+        </label>
+      </div>
+
+      <label>
+        <span>Security</span>
+        <select name="smtp_security">
+          <option value="starttls" {{if eq .Settings.SMTPSecurity "starttls"}}selected{{end}}>STARTTLS</option>
+          <option value="tls" {{if eq .Settings.SMTPSecurity "tls"}}selected{{end}}>TLS / 465</option>
+          <option value="none" {{if eq .Settings.SMTPSecurity "none"}}selected{{end}}>None</option>
+        </select>
+      </label>
+
+      <div class="form-row">
+        <label>
+          <span>Username</span>
+          <input type="text" name="smtp_username" value="{{.Settings.SMTPUsername}}" autocomplete="off">
+        </label>
+        <label>
+          <span>Password</span>
+          <input type="password" name="smtp_password" placeholder="оставьте пустым, чтобы не менять" autocomplete="new-password">
+        </label>
+      </div>
+
+      <label>
+        <span>From</span>
+        <input type="email" name="smtp_from" value="{{.Settings.SMTPFrom}}" placeholder="step-ca-ui@example.com" autocomplete="off">
+      </label>
+
+      <div class="form-actions">
+        <button class="btn primary" type="submit">Сохранить SMTP</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
   <div class="card-header"><strong>Проверка</strong></div>
   <div class="card-body">
     <form method="POST" action="/admin/notifications/test">

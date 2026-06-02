@@ -530,13 +530,15 @@ Production-сервер обновлен до v1.4.7.
 
 Цель: восстановление доступа без ручного SQL.
 
-План:
+Реализовано:
 
-- SMTP config;
-- password reset tokens;
-- TTL reset tokens;
-- rate limit reset requests;
-- audit log reset flow.
+- SMTP config в `Admin -> Уведомления`;
+- публичная форма `Forgot password`;
+- password reset tokens с хранением только SHA-256 hash токена;
+- TTL reset tokens: 30 минут;
+- rate limit reset requests: 3 запроса на IP за 15 минут;
+- нейтральный ответ без раскрытия существования аккаунта;
+- audit log reset flow: unknown account, inactive account, SMTP missing/failure, email sent, reset completed.
 
 ### v1.7.0 — Admin web console
 

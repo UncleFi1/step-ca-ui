@@ -19,7 +19,7 @@ var StartedAt time.Time
 
 // Версионирование — переопределяется через ldflags при сборке
 var (
-	Version   = "1.6.1"
+	Version   = "1.6.2"
 	BuildDate = "2026-06-02"
 	GitCommit = "unknown"
 )
@@ -81,10 +81,13 @@ func (h *Handler) loadTemplates() {
 		}
 		h.tmpls[page] = t
 	}
-	if t, err := template.New("login.html").Funcs(funcs).ParseFiles("templates/login.html"); err == nil {
-		h.tmpls["login"] = t
-	} else {
-		log.Printf("login template error: %v", err)
+	for _, page := range []string{"login", "forgot_password", "reset_password"} {
+		file := fmt.Sprintf("templates/%s.html", page)
+		if t, err := template.New(fmt.Sprintf("%s.html", page)).Funcs(funcs).ParseFiles(file); err == nil {
+			h.tmpls[page] = t
+		} else {
+			log.Printf("%s template error: %v", page, err)
+		}
 	}
 }
 
@@ -245,8 +248,8 @@ func (h *Handler) render(w http.ResponseWriter, page string, data map[string]int
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	name := "layout"
-	if page == "login" {
-		name = "login.html"
+	if page == "login" || page == "forgot_password" || page == "reset_password" {
+		name = page + ".html"
 	} else if page == "admin" || (len(page) >= 6 && page[:6] == "admin_") {
 		name = "admin_layout"
 	}

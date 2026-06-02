@@ -28,6 +28,8 @@ func securityEventLabel(success bool, reason string) string {
 		return "2FA"
 	case strings.Contains(strings.ToLower(reason), "recovery code"):
 		return "2FA"
+	case strings.HasPrefix(reason, "Password reset"):
+		return "Reset"
 	case reason == "Выход":
 		return "Выход"
 	default:
@@ -40,6 +42,9 @@ func securityEventBadge(success bool, reason string) string {
 		return "danger"
 	}
 	if strings.HasPrefix(reason, adminAuditPrefix) {
+		return "warn"
+	}
+	if strings.HasPrefix(reason, "Password reset") {
 		return "warn"
 	}
 	return "ok"
