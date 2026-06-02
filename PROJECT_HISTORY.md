@@ -513,7 +513,20 @@ Production-сервер обновлен до v1.4.7.
 - enforcement policy для admin;
 - audit log для 2FA событий.
 
-### v1.6.1 — Password recovery
+### v1.6.1 — Admin audit hardening
+
+Цель: сделать критичные admin/manager действия прослеживаемыми в журнале безопасности.
+
+Реализовано:
+
+- audit всех admin user actions: create, delete, role change, block/unblock, reset password;
+- audit создания временных пользователей;
+- audit скачивания private key для локальных и Let's Encrypt сертификатов;
+- audit backup downloads;
+- audit changes для notification settings и Let's Encrypt settings без записи секретов;
+- отдельное отображение типов событий в security log: вход, выход, 2FA, аудит, отказ.
+
+### v1.6.2 — Password recovery
 
 Цель: восстановление доступа без ручного SQL.
 

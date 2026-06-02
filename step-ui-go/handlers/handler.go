@@ -19,8 +19,8 @@ var StartedAt time.Time
 
 // Версионирование — переопределяется через ldflags при сборке
 var (
-	Version   = "1.6.0"
-	BuildDate = "2026-05-28"
+	Version   = "1.6.1"
+	BuildDate = "2026-06-02"
 	GitCommit = "unknown"
 )
 
@@ -151,6 +151,8 @@ func (h *Handler) templateFuncs() template.FuncMap {
 			}
 			return s
 		},
+		"securityEventLabel": securityEventLabel,
+		"securityEventBadge": securityEventBadge,
 	}
 }
 

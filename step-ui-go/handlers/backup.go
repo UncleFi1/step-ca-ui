@@ -62,6 +62,7 @@ func (h *Handler) AdminBackupDownload(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/gzip")
 	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filename))
 	w.Header().Set("X-Content-Type-Options", "nosniff")
+	h.auditSecurity(r, "backup.download filename="+filename)
 	http.ServeFile(w, r, bundle)
 }
 

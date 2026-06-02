@@ -300,6 +300,7 @@ func (h *Handler) DownloadKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s.key", sanitizeName(c.Name)))
+	h.auditSecurity(r, fmt.Sprintf("certificate.key_download id=%d name=%s domain=%s", c.ID, c.Name, c.Domain))
 	http.ServeFile(w, r, c.KeyPath)
 }
 

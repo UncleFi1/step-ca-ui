@@ -70,6 +70,8 @@ func (h *Handler) AdminNotificationsPost(w http.ResponseWriter, r *http.Request)
 	if err := appdb.SaveNotificationSettings(h.db, settings); err != nil {
 		h.flash(w, r, "err", "Не удалось сохранить настройки: "+err.Error())
 	} else {
+		h.auditSecurity(r, fmt.Sprintf("notifications.save webhook_enabled=%t notify_expiry=%t notify_failures=%t notify_auth_burst=%t expiry_days=%d",
+			settings.WebhookEnabled, settings.NotifyExpiry, settings.NotifyFailures, settings.NotifyAuthBurst, settings.ExpiryDays))
 		h.flash(w, r, "ok", "Настройки уведомлений сохранены")
 	}
 	http.Redirect(w, r, "/admin/notifications", http.StatusSeeOther)
@@ -94,8 +96,10 @@ func (h *Handler) AdminNotificationsTest(w http.ResponseWriter, r *http.Request)
 		"remote_addr": r.RemoteAddr,
 	})
 	if err != nil {
+		h.auditSecurity(r, "notifications.test status=failed")
 		h.flash(w, r, "err", "Webhook test failed: "+err.Error())
 	} else {
+		h.auditSecurity(r, "notifications.test status=sent")
 		h.flash(w, r, "ok", "Webhook test отправлен")
 	}
 	http.Redirect(w, r, "/admin/notifications", http.StatusSeeOther)

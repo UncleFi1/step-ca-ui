@@ -190,6 +190,7 @@ func (h *Handler) LEDownloadKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s.key", cert.Domain))
+	h.auditSecurity(r, fmt.Sprintf("le.key_download id=%d domain=%s", cert.ID, cert.Domain))
 	http.ServeFile(w, r, cert.KeyPath)
 }
 
@@ -221,6 +222,8 @@ func (h *Handler) LESettingsPost(w http.ResponseWriter, r *http.Request) {
 	if err := appdb.SaveLESettings(h.db, settings); err != nil {
 		h.flash(w, r, "err", "Ошибка сохранения: "+err.Error())
 	} else {
+		h.auditSecurity(r, fmt.Sprintf("le.settings.save provider=%s email=%s cf_configured=%t r53_configured=%t",
+			settings.Provider, settings.Email, settings.CFToken != "" || settings.CFZoneID != "", settings.R53KeyID != "" || settings.R53SecretKey != ""))
 		h.flash(w, r, "ok", "Настройки сохранены")
 	}
 	http.Redirect(w, r, "/le/settings", http.StatusFound)

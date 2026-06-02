@@ -7,8 +7,8 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Made with Go](https://img.shields.io/badge/Made%20with-Go%201.22-00ADD8.svg)](https://go.dev)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED.svg)](https://docs.docker.com/compose/)
-[![Current version](https://img.shields.io/badge/version-v1.6.0-success.svg)](https://github.com/UncleFi1/step-ca-ui/releases/tag/v1.6.0)
-[![Latest release](https://img.shields.io/badge/release-v1.6.0-success.svg)](https://github.com/UncleFi1/step-ca-ui/releases/latest)
+[![Current version](https://img.shields.io/badge/version-v1.6.1-success.svg)](https://github.com/UncleFi1/step-ca-ui/releases/tag/v1.6.1)
+[![Latest release](https://img.shields.io/badge/release-v1.6.1-success.svg)](https://github.com/UncleFi1/step-ca-ui/releases/latest)
 
 🇬🇧 **English** · [🇷🇺 Русский](README.ru.md)
 
@@ -20,9 +20,11 @@
 
 ## Current Release
 
-**Latest stable:** [v1.6.0](https://github.com/UncleFi1/step-ca-ui/releases/tag/v1.6.0)
+**Latest stable:** [v1.6.1](https://github.com/UncleFi1/step-ca-ui/releases/tag/v1.6.1)
 
 Highlights:
+- admin audit hardening for user actions, key downloads, backups and settings changes
+- responsive top navigation with dropdown groups for narrow windows
 - TOTP 2FA with authenticator app enrollment, QR code and recovery codes
 - login 2FA challenge after password verification
 - polished main page, 2FA page and certificate list layout

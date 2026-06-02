@@ -46,6 +46,7 @@ func (h *Handler) UsersPost(w http.ResponseWriter, r *http.Request) {
 		if err := appdb.CreateUser(h.db, username, security.HashPassword(password), role); err != nil {
 			h.flash(w, r, "err", "Пользователь уже существует")
 		} else {
+			h.auditSecurity(r, fmt.Sprintf("user.create target=%s role=%s", username, role))
 			h.flash(w, r, "ok", "Пользователь "+username+" создан")
 		}
 
@@ -55,7 +56,13 @@ func (h *Handler) UsersPost(w http.ResponseWriter, r *http.Request) {
 			h.flash(w, r, "err", "Нельзя удалить себя")
 			break
 		}
+		target, _ := appdb.GetUserByID(h.db, uid)
 		appdb.DeleteUser(h.db, uid)
+		if target != nil {
+			h.auditSecurity(r, fmt.Sprintf("user.delete target=%s uid=%d", target.Username, uid))
+		} else {
+			h.auditSecurity(r, fmt.Sprintf("user.delete uid=%d", uid))
+		}
 		h.flash(w, r, "ok", "Пользователь удалён")
 
 	case "change_role":
@@ -67,6 +74,12 @@ func (h *Handler) UsersPost(w http.ResponseWriter, r *http.Request) {
 		}
 		if role == "viewer" || role == "manager" || role == "admin" {
 			appdb.UpdateUserRole(h.db, uid, role)
+			target, _ := appdb.GetUserByID(h.db, uid)
+			if target != nil {
+				h.auditSecurity(r, fmt.Sprintf("user.change_role target=%s uid=%d role=%s", target.Username, uid, role))
+			} else {
+				h.auditSecurity(r, fmt.Sprintf("user.change_role uid=%d role=%s", uid, role))
+			}
 			h.flash(w, r, "ok", "Роль обновлена")
 		}
 
@@ -81,8 +94,10 @@ func (h *Handler) UsersPost(w http.ResponseWriter, r *http.Request) {
 			newState := !u.IsActive
 			appdb.UpdateUserActive(h.db, uid, newState)
 			if newState {
+				h.auditSecurity(r, fmt.Sprintf("user.unblock target=%s uid=%d", u.Username, uid))
 				h.flash(w, r, "ok", "Пользователь разблокирован")
 			} else {
+				h.auditSecurity(r, fmt.Sprintf("user.block target=%s uid=%d", u.Username, uid))
 				h.flash(w, r, "ok", "Пользователь заблокирован")
 			}
 		}
@@ -91,6 +106,7 @@ func (h *Handler) UsersPost(w http.ResponseWriter, r *http.Request) {
 		ip := r.FormValue("target_ip")
 		if ip != "" {
 			security.RL.Clear(ip)
+			h.auditSecurity(r, fmt.Sprintf("ip.unblock target=%s", ip))
 			h.flash(w, r, "ok", fmt.Sprintf("IP %s разблокирован", ip))
 		}
 
@@ -102,6 +118,12 @@ func (h *Handler) UsersPost(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		appdb.UpdateUserPassword(h.db, uid, security.HashPassword(newPW))
+		target, _ := appdb.GetUserByID(h.db, uid)
+		if target != nil {
+			h.auditSecurity(r, fmt.Sprintf("user.reset_password target=%s uid=%d", target.Username, uid))
+		} else {
+			h.auditSecurity(r, fmt.Sprintf("user.reset_password uid=%d", uid))
+		}
 		h.flash(w, r, "ok", "Пароль сброшен")
 	}
 	returnTo := r.FormValue("return_to")

@@ -78,6 +78,10 @@ body.admin-mode {
 
 body.admin-mode * { box-sizing: border-box; }
 
+.admin-topnav {
+  display: none;
+}
+
 .admin-shell {
   display: flex;
   min-height: 100vh;
@@ -545,36 +549,140 @@ body.admin-mode .page-header h1 {
 }
 
 @media (max-width: 980px) {
+  .admin-topnav {
+    position: sticky;
+    top: 0;
+    z-index: 800;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    min-height: 58px;
+    padding: 0 16px;
+    background: var(--admin-side);
+    border-bottom: 1px solid var(--admin-border);
+    box-shadow: 0 8px 22px var(--admin-shadow);
+    overflow: visible;
+  }
+
+  .admin-topbrand {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    flex: 0 0 auto;
+    color: var(--admin-text);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .admin-topbrand-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--admin-accent);
+    background: var(--admin-accent-soft);
+    border: 1px solid color-mix(in srgb, var(--admin-accent) 28%, transparent);
+  }
+
+  .admin-topmenu {
+    display: flex;
+    align-items: stretch;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
+    overflow: visible;
+    white-space: nowrap;
+  }
+
+  .admin-dd {
+    position: relative;
+    flex: 0 0 auto;
+  }
+
+  .admin-dd > summary {
+    display: flex;
+    align-items: center;
+    min-height: 58px;
+    padding: 0 12px;
+    color: var(--admin-muted);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    list-style: none;
+    border-bottom: 2px solid transparent;
+  }
+
+  .admin-dd > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .admin-dd > summary::after {
+    content: "";
+    width: 6px;
+    height: 6px;
+    margin-left: 7px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(45deg) translateY(-2px);
+  }
+
+  .admin-dd[open] > summary::after {
+    transform: rotate(225deg) translateY(-1px);
+  }
+
+  .admin-dd > summary:hover,
+  .admin-dd[open] > summary {
+    color: var(--admin-accent);
+    background: var(--admin-accent-soft);
+    border-bottom-color: var(--admin-accent);
+  }
+
+  .admin-dd-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 220px;
+    padding: 6px;
+    background: var(--admin-side);
+    border: 1px solid var(--admin-border);
+    border-radius: 8px;
+    box-shadow: 0 18px 35px var(--admin-shadow);
+  }
+
+  .admin-dd-menu a {
+    display: block;
+    padding: 10px 12px;
+    border-radius: 6px;
+    color: var(--admin-muted);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 650;
+  }
+
+  .admin-dd-menu a:hover,
+  .admin-dd-menu a.active {
+    color: var(--admin-text);
+    background: var(--admin-card-soft);
+  }
+
+  .admin-dd-menu a.admin-danger-link {
+    color: var(--admin-danger);
+  }
+
+  .admin-dd-right .admin-dd-menu {
+    left: auto;
+    right: 0;
+  }
+
   .admin-shell {
     display: block;
   }
 
   .admin-side {
-    position: static;
-    width: 100%;
-    height: auto;
-    border-right: 0;
-    border-bottom: 1px solid var(--admin-border);
-  }
-
-  .admin-nav {
-    display: flex;
-    gap: 6px;
-    padding: 8px;
-    overflow-x: auto;
-    overflow-y: hidden;
-  }
-
-  .admin-nav-section {
-    display: none;
-  }
-
-  .admin-nav a {
-    flex: 0 0 auto;
-    white-space: nowrap;
-  }
-
-  .admin-side-footer {
     display: none;
   }
 
@@ -586,6 +694,26 @@ body.admin-mode .page-header h1 {
 @media (max-width: 640px) {
   .admin-side-header {
     padding: 12px;
+  }
+
+  .admin-topnav {
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 10px;
+  }
+
+  .admin-topmenu {
+    flex-wrap: wrap;
+  }
+
+  .admin-topbrand span:last-child {
+    display: none;
+  }
+
+  .admin-dd > summary {
+    min-height: 38px;
+    padding: 0 9px;
+    font-size: 12px;
   }
 
   .admin-main {

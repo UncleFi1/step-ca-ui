@@ -93,6 +93,8 @@ body:not(.admin-mode) .burger:hover span {background:var(--text)}
 
 body:not(.admin-mode) .main {flex:1;overflow-y:auto;padding:24px 28px}
 
+.mobile-topnav{display:none}
+
 body:not(.admin-mode) .page-header {display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
 
 h1{font-size:22px;font-weight:700}
@@ -182,4 +184,42 @@ code{font-family:var(--mono);font-size:11px;background:var(--border);padding:2px
 .theme-dot.blue{background:#0f1f3d}
 
 .theme-dot.auto{background:linear-gradient(135deg,#1a1a1a 50%,#f0f0f0 50%);border-color:rgba(128,128,128,.3)}
+
+@media (max-width: 980px){
+  body:not(.admin-mode){display:block;height:auto;min-height:100vh;overflow-x:hidden;overflow-y:auto}
+  body:not(.admin-mode) .sidebar,
+  body:not(.admin-mode) .burger,
+  body:not(.admin-mode) .burger-float{display:none!important}
+  body:not(.admin-mode).sb-collapsed .main,
+  body:not(.admin-mode) .main{padding:16px;overflow:visible}
+  .mobile-topnav{position:sticky;top:0;z-index:700;display:flex;align-items:flex-start;gap:12px;min-height:58px;padding:8px 12px;background:var(--card);border-bottom:1px solid var(--border);box-shadow:0 8px 22px var(--shadow);overflow:visible}
+  .mobile-brand{display:flex;align-items:center;gap:9px;flex:0 0 auto;color:var(--text);text-decoration:none;font-size:15px;font-weight:800;white-space:nowrap}
+  .mobile-brand-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;background:var(--accent);color:#fff}
+  .mobile-brand-icon svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .mobile-menu{display:flex;align-items:stretch;gap:2px;min-width:0;flex:1;overflow:visible;white-space:nowrap;flex-wrap:wrap}
+  .mobile-menu>a,
+  .mobile-dd>summary{display:flex;align-items:center;min-height:42px;padding:0 10px;color:var(--muted);text-decoration:none;font-size:12px;font-weight:650;cursor:pointer;list-style:none;border-bottom:2px solid transparent}
+  .mobile-menu>a:hover,
+  .mobile-menu>a.active,
+  .mobile-dd[open]>summary,
+  .mobile-dd>summary:hover{color:var(--accent);background:var(--active-nav);border-bottom-color:var(--accent)}
+  .mobile-dd{position:relative;flex:0 0 auto}
+  .mobile-dd>summary::-webkit-details-marker{display:none}
+  .mobile-dd>summary::after{content:"";width:6px;height:6px;margin-left:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg) translateY(-2px)}
+  .mobile-dd[open]>summary::after{transform:rotate(225deg) translateY(-1px)}
+  .mobile-dd-menu{position:absolute;top:100%;left:0;min-width:210px;padding:6px;background:var(--card);border:1px solid var(--border);border-radius:8px;box-shadow:0 18px 35px var(--shadow)}
+  .mobile-dd-menu a{display:block;padding:10px 12px;border-radius:6px;color:var(--muted);text-decoration:none;font-size:13px;font-weight:600}
+  .mobile-dd-menu a:hover,
+  .mobile-dd-menu a.active{color:var(--text);background:var(--hover-nav)}
+  .mobile-dd-menu a.danger-link{color:var(--danger)}
+  .mobile-dd-right .mobile-dd-menu{left:auto;right:0}
+}
+
+@media (max-width: 640px){
+  .mobile-topnav{gap:10px;padding:8px 10px}
+  .mobile-brand span:last-child{display:none}
+  .mobile-menu>a,
+  .mobile-dd>summary{min-height:38px;padding:0 9px;font-size:12px}
+  body:not(.admin-mode) .main{padding:12px}
+}
 

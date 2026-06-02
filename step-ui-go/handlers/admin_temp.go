@@ -161,6 +161,7 @@ func (h *Handler) AdminUsersTempPost(w http.ResponseWriter, r *http.Request) {
 	})
 
 	h.flash(w, r, "ok", "Временный пользователь создан")
+	h.auditSecurity(r, fmt.Sprintf("temp_user.create target=%s role=%s expires_at=%s", username, role, expiresAt.UTC().Format(time.RFC3339)))
 	http.Redirect(w, r, fmt.Sprintf("/admin/users-temp?new_id=%d", id), http.StatusSeeOther)
 }
 

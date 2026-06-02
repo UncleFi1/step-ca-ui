@@ -15,6 +15,52 @@
 </head>
 <body>
 
+<header class="mobile-topnav">
+  <a href="/" class="mobile-brand" aria-label="Step-CA home">
+    <span class="mobile-brand-icon">
+      <svg viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="8" rx="2"/><path d="M5 7V5a3 3 0 0 1 6 0v2"/></svg>
+    </span>
+    <span>Step-CA</span>
+  </a>
+  <nav class="mobile-menu" aria-label="Основная навигация">
+    <a href="/" class="{{isActive "home" .ActivePage}}">Главная</a>
+    <a href="/dashboard" class="{{isActive "dash" .ActivePage}}">Дашборд</a>
+    <a href="/certificates" class="{{isActive "certs" .ActivePage}}">Сертификаты</a>
+    {{if hasRole .Session.Role "manager"}}
+    <details class="mobile-dd">
+      <summary>Локальный CA</summary>
+      <div class="mobile-dd-menu">
+        <a href="/issue" class="{{isActive "issue" .ActivePage}}">Выпустить</a>
+        <a href="/import" class="{{isActive "import" .ActivePage}}">Импорт</a>
+      </div>
+    </details>
+    {{end}}
+    <details class="mobile-dd">
+      <summary>Управление CA</summary>
+      <div class="mobile-dd-menu">
+        <a href="/provisioners" class="{{isActive "prov" .ActivePage}}">Провижионеры</a>
+        <a href="/history" class="{{isActive "history" .ActivePage}}">История операций</a>
+      </div>
+    </details>
+    <details class="mobile-dd">
+      <summary>Let's Encrypt</summary>
+      <div class="mobile-dd-menu">
+        <a href="/le" class="{{isActive "le" .ActivePage}}">Сертификаты LE</a>
+        <a href="/le/issue" class="{{isActive "le-issue" .ActivePage}}">Выпустить</a>
+        <a href="/le/settings" class="{{isActive "le-settings" .ActivePage}}">Настройки LE</a>
+      </div>
+    </details>
+    <details class="mobile-dd mobile-dd-right">
+      <summary>Аккаунт</summary>
+      <div class="mobile-dd-menu">
+        <a href="/profile" class="{{isActive "profile" .ActivePage}}">Профиль</a>
+        {{if hasRole .Session.Role "admin"}}<a href="/admin">Админ-панель</a>{{end}}
+        <a href="/logout" class="danger-link">Выйти</a>
+      </div>
+    </details>
+  </nav>
+</header>
+
 <button class="burger-float" id="burgerFloat" onclick="toggleSidebar()" title="Открыть меню"><span></span><span></span><span></span></button>
 
 <aside class="sidebar" id="sidebar">
@@ -148,6 +194,7 @@
 </div>
   <script src="/static/js/select.js"></script>
   <script src="/static/js/datepicker.js" defer></script>
+  <script src="/static/js/topnav.js" defer></script>
 </body>
 </html>
 {{end}}
