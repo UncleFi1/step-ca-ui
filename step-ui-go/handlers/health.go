@@ -45,13 +45,13 @@ type SystemInfo struct {
 	SessionSecure bool
 }
 
-func (h *Handler) systemInfo() SystemInfo {
+func (h *Handler) systemInfo(lang string) SystemInfo {
 	return SystemInfo{
 		Version:       Version,
 		BuildDate:     BuildDate,
 		GitCommit:     GitCommit,
 		StartedAt:     StartedAt,
-		Uptime:        fmtUptime(time.Since(StartedAt)),
+		Uptime:        fmtUptime(lang, time.Since(StartedAt)),
 		CAURL:         h.cfg.CAURL,
 		RootCert:      h.cfg.RootCert,
 		Provisioner:   h.cfg.Provisioner,
@@ -77,10 +77,10 @@ func (h *Handler) preflight(ctx context.Context) ([]HealthCheck, HealthSummary) 
 		add("PostgreSQL", "ok", "database connection is alive", true)
 	}
 
-	if out, err := runCheck(ctx, 5*time.Second, "step", "ca", "health", "--ca-url", h.cfg.CAURL, "--root", h.cfg.RootCert); err != nil {
-		add("Step-CA API", "err", cleanCheckOutput(out, err), true)
-	} else {
+	if h.caIsOnline() {
 		add("Step-CA API", "ok", "CA health endpoint is reachable", true)
+	} else {
+		add("Step-CA API", "err", "CA health endpoint is not reachable", true)
 	}
 
 	h.checkFile(&checks, "Root CA certificate", h.cfg.RootCert, true)
@@ -112,10 +112,10 @@ func (h *Handler) preflight(ctx context.Context) ([]HealthCheck, HealthSummary) 
 func (h *Handler) caIntegrity(ctx context.Context) ([]HealthCheck, HealthSummary) {
 	var checks []HealthCheck
 
-	if out, err := runCheck(ctx, 5*time.Second, "step", "ca", "health", "--ca-url", h.cfg.CAURL, "--root", h.cfg.RootCert); err != nil {
-		checks = append(checks, HealthCheck{Name: "Step-CA API", Status: "err", Detail: cleanCheckOutput(out, err), Critical: true})
-	} else {
+	if h.caIsOnline() {
 		checks = append(checks, HealthCheck{Name: "Step-CA API", Status: "ok", Detail: "CA health endpoint is reachable", Critical: true})
+	} else {
+		checks = append(checks, HealthCheck{Name: "Step-CA API", Status: "err", Detail: "CA health endpoint is not reachable", Critical: true})
 	}
 
 	h.checkCAChain(&checks)

@@ -1,7 +1,7 @@
 {{define "content"}}
 <div class="admin-page-header">
-  <h1 class="admin-page-title">О системе</h1>
-  <p class="admin-page-subtitle">Версия, окружение и preflight-проверки production readiness</p>
+  <h1 class="admin-page-title">{{tr .Lang "О системе"}}</h1>
+  <p class="admin-page-subtitle">{{tr .Lang "Версия, окружение и preflight-проверки production readiness"}}</p>
 </div>
 
 <div class="admin-stats" style="margin-bottom:14px">
@@ -12,23 +12,23 @@
 </div>
 
 <div class="card">
-  <div class="card-header"><strong>Система</strong></div>
+  <div class="card-header"><strong>{{tr .Lang "Система"}}</strong></div>
   <div class="card-body">
     <table class="tbl admin-kv-table">
       <tbody>
-        <tr><td><strong>Продукт</strong></td><td>Step-CA UI</td></tr>
-        <tr><td><strong>Версия</strong></td><td><code>{{.System.Version}}</code></td></tr>
-        <tr><td><strong>Билд</strong></td><td><code>{{.System.BuildDate}}</code> · <code>{{.System.GitCommit}}</code></td></tr>
-        <tr><td><strong>Аптайм</strong></td><td>{{.System.Uptime}}</td></tr>
-        <tr><td><strong>Запущен</strong></td><td>{{fmtLog .System.StartedAt}}</td></tr>
-        <tr><td><strong>Репозиторий</strong></td><td><a href="https://github.com/UncleFi1/step-ca-ui" target="_blank" rel="noopener">UncleFi1/step-ca-ui</a></td></tr>
+        <tr><td><strong>{{tr .Lang "Продукт"}}</strong></td><td>Step-CA UI</td></tr>
+        <tr><td><strong>{{tr .Lang "Версия"}}</strong></td><td><code>{{.System.Version}}</code></td></tr>
+        <tr><td><strong>{{tr .Lang "Билд"}}</strong></td><td><code>{{.System.BuildDate}}</code> · <code>{{.System.GitCommit}}</code></td></tr>
+        <tr><td><strong>{{tr .Lang "Аптайм"}}</strong></td><td>{{.System.Uptime}}</td></tr>
+        <tr><td><strong>{{tr .Lang "Запущен"}}</strong></td><td>{{fmtLog .System.StartedAt}}</td></tr>
+        <tr><td><strong>{{tr .Lang "Репозиторий"}}</strong></td><td><a href="https://github.com/UncleFi1/step-ca-ui" target="_blank" rel="noopener">UncleFi1/step-ca-ui</a></td></tr>
       </tbody>
     </table>
   </div>
 </div>
 
 <div class="card">
-  <div class="card-header"><strong>Конфигурация</strong></div>
+  <div class="card-header"><strong>{{tr .Lang "Конфигурация"}}</strong></div>
   <div class="card-body">
     <table class="tbl admin-kv-table">
       <tbody>
@@ -57,7 +57,7 @@
           <col>
         </colgroup>
         <thead>
-          <tr><th>Проверка</th><th>Статус</th><th>Детали</th></tr>
+          <tr><th>{{tr .Lang "Проверка"}}</th><th>{{tr .Lang "Статус"}}</th><th>{{tr .Lang "Детали"}}</th></tr>
         </thead>
         <tbody>
           {{range .Checks}}

@@ -1,7 +1,7 @@
 {{define "content"}}
 <div class="admin-page-header">
   <h1 class="admin-page-title">CA integrity</h1>
-  <p class="admin-page-subtitle">Проверка цепочки CA, provisioner claims, password sync и безопасного обновления step-ca</p>
+  <p class="admin-page-subtitle">{{tr .Lang "Проверка цепочки CA, provisioner claims, password sync и безопасного обновления step-ca"}}</p>
 </div>
 
 <div class="admin-stats" style="margin-bottom:14px">
@@ -37,7 +37,7 @@
           <col>
         </colgroup>
         <thead>
-          <tr><th>Проверка</th><th>Статус</th><th>Детали</th></tr>
+          <tr><th>{{tr .Lang "Проверка"}}</th><th>{{tr .Lang "Статус"}}</th><th>{{tr .Lang "Детали"}}</th></tr>
         </thead>
         <tbody>
           {{range .Checks}}

@@ -2,15 +2,19 @@ package handlers
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/gorilla/sessions"
 	"step-ui/config"
 	appdb "step-ui/db"
+	"step-ui/i18n"
 	"step-ui/models"
 	"step-ui/security"
 )
@@ -154,6 +158,12 @@ func (h *Handler) templateFuncs() template.FuncMap {
 			}
 			return s
 		},
+		"tr": func(lang, msg string) string {
+			return i18n.T(lang, msg)
+		},
+		"trf": func(lang, format string, args ...interface{}) string {
+			return i18n.Tf(lang, format, args...)
+		},
 		"securityEventLabel": securityEventLabel,
 		"securityEventBadge": securityEventBadge,
 	}
@@ -173,28 +183,81 @@ func (h *Handler) sessionInfo(r *http.Request) *models.SessionInfo {
 	username, _ := s.Values["username"].(string)
 	role, _ := s.Values["role"].(string)
 	theme := "dark"
+	userLang := ""
 	if id > 0 {
-		if u, err := appdb.GetUserByID(h.db, id); err == nil && u != nil && u.Theme != "" {
-			theme = u.Theme
+		if u, err := appdb.GetUserByID(h.db, id); err == nil && u != nil {
+			if u.Theme != "" {
+				theme = u.Theme
+			}
+			userLang = u.Language
 		}
 	}
-	return &models.SessionInfo{UserID: id, Username: username, Role: role, Theme: theme}
+	lang := i18n.Resolve(r, userLang)
+	return &models.SessionInfo{UserID: id, Username: username, Role: role, Theme: theme, Language: lang}
+}
+
+func (h *Handler) T(r *http.Request, msg string) string {
+	return i18n.T(h.sessionInfo(r).Language, msg)
+}
+
+func (h *Handler) Tf(r *http.Request, format string, args ...interface{}) string {
+	return i18n.Tf(h.sessionInfo(r).Language, format, args...)
+}
+
+// SetLanguage speichert Sprache in Cookie (und optional in User-Profil).
+func (h *Handler) SetLanguage(w http.ResponseWriter, r *http.Request) {
+	lang := i18n.Normalize(r.FormValue("lang"))
+	if lang == "" {
+		lang = i18n.Normalize(r.URL.Query().Get("lang"))
+	}
+	i18n.SetCookie(w, lang)
+	si := h.sessionInfo(r)
+	if si.UserID > 0 {
+		_ = appdb.UpdateUserLanguage(h.db, si.UserID, lang)
+	}
+	next := r.FormValue("next")
+	if next == "" {
+		next = r.Header.Get("Referer")
+	}
+	if next == "" {
+		next = "/"
+	}
+	if strings.HasPrefix(next, "http://") || strings.HasPrefix(next, "https://") {
+		if u, err := url.Parse(next); err == nil && u.Path != "" {
+			next = u.Path
+			if u.RawQuery != "" {
+				next += "?" + u.RawQuery
+			}
+		} else {
+			next = "/"
+		}
+	}
+	if !strings.HasPrefix(next, "/") {
+		next = "/"
+	}
+	http.Redirect(w, r, next, http.StatusSeeOther)
 }
 
 func (h *Handler) flash(w http.ResponseWriter, r *http.Request, t, text string) {
 	s := h.sess(r)
 	s.AddFlash(models.FlashMsg{Type: t, Text: text})
-	s.Save(r, w)
+	if err := s.Save(r, w); err != nil {
+		log.Printf("flash save failed: %v", err)
+	}
 }
 
 func (h *Handler) popFlash(w http.ResponseWriter, r *http.Request) []models.FlashMsg {
 	s := h.sess(r)
 	flashes := s.Flashes()
-	s.Save(r, w)
+	if err := s.Save(r, w); err != nil {
+		log.Printf("flash pop save failed: %v", err)
+	}
 	var msgs []models.FlashMsg
 	for _, f := range flashes {
 		if m, ok := f.(models.FlashMsg); ok {
 			msgs = append(msgs, m)
+		} else {
+			log.Printf("flash type assert failed: %T", f)
 		}
 	}
 	return msgs
@@ -226,17 +289,35 @@ func (h *Handler) requireCSRF(w http.ResponseWriter, r *http.Request, redirectTo
 	if h.csrfOK(r) {
 		return true
 	}
-	h.flash(w, r, "err", "Ошибка сессии. Обновите страницу.")
+	h.flash(w, r, "err", h.T(r, "Ошибка сессии. Обновите страницу."))
 	http.Redirect(w, r, redirectTo, http.StatusSeeOther)
 	return false
 }
 
 func (h *Handler) base(w http.ResponseWriter, r *http.Request, activePage string) map[string]interface{} {
+	si := h.sessionInfo(r)
+	jsKeys := []string{
+		"Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
+		"Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь",
+		"пн", "вт", "ср", "чт", "пт", "сб", "вс",
+		"Выберите дату и время", "Предыдущий месяц", "Следующий месяц",
+		"Время:", "Очистить", "Готово", "Укажите часы и минуты",
+		"чч", "мм",
+		"Подтвердите действие", "Отмена", "Подтвердить",
+		"Тёмная", "Светлая", "Синяя", "Авто (системная)",
+	}
+	jsJSON, err := json.Marshal(i18n.CatalogForJS(si.Language, jsKeys))
+	if err != nil || len(jsJSON) == 0 {
+		jsJSON = []byte("{}")
+	}
 	return map[string]interface{}{
-		"Session":    h.sessionInfo(r),
+		"Session":    si,
+		"Lang":       si.Language,
 		"Msgs":       h.popFlash(w, r),
 		"ActivePage": activePage,
 		"CSRFToken":  h.csrf(w, r),
+		"I18NJSON":   template.JS(jsJSON),
+		"CAOnline":   h.caIsOnline(),
 	}
 }
 

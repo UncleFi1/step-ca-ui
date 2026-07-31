@@ -1,31 +1,31 @@
 {{define "content"}}
 <div class="admin-page-header">
-  <h1 class="admin-page-title">Панель управления</h1>
-  <p class="admin-page-subtitle">Сводка по пользователям, сертификатам и безопасности</p>
+  <h1 class="admin-page-title">{{tr .Lang "Панель управления"}}</h1>
+  <p class="admin-page-subtitle">{{tr .Lang "Сводка по пользователям, сертификатам и безопасности"}}</p>
 </div>
 
 <div class="card">
   <div class="card-header">
-    <strong>Пользователи</strong>
-    <a href="/admin/users" class="btn btn-ghost" style="margin-left:auto">Управление →</a>
+    <strong>{{tr .Lang "Пользователи"}}</strong>
+    <a href="/admin/users" class="btn btn-ghost" style="margin-left:auto">{{tr .Lang "Управление →"}}</a>
   </div>
   <div class="card-body">
     <div class="admin-stats">
-      <div class="admin-stat"><div class="admin-stat-value">{{.Stats.TotalUsers}}</div><div class="admin-stat-label">Всего</div></div>
-      <div class="admin-stat ok"><div class="admin-stat-value">{{.Stats.ActiveUsers}}</div><div class="admin-stat-label">Активных</div></div>
-      <div class="admin-stat warn"><div class="admin-stat-value">{{.Stats.BlockedUsers}}</div><div class="admin-stat-label">Заблокированных</div></div>
-      <div class="admin-stat"><div class="admin-stat-value">{{.Stats.AdminsCount}}</div><div class="admin-stat-label">Администраторы</div></div>
-      <div class="admin-stat"><div class="admin-stat-value">{{.Stats.ManagersCount}}</div><div class="admin-stat-label">Менеджеры</div></div>
-      <div class="admin-stat"><div class="admin-stat-value">{{.Stats.ViewersCount}}</div><div class="admin-stat-label">Наблюдатели</div></div>
+      <div class="admin-stat"><div class="admin-stat-value">{{.Stats.TotalUsers}}</div><div class="admin-stat-label">{{tr .Lang "Всего"}}</div></div>
+      <div class="admin-stat ok"><div class="admin-stat-value">{{.Stats.ActiveUsers}}</div><div class="admin-stat-label">{{tr .Lang "Активных"}}</div></div>
+      <div class="admin-stat warn"><div class="admin-stat-value">{{.Stats.BlockedUsers}}</div><div class="admin-stat-label">{{tr .Lang "Заблокированных"}}</div></div>
+      <div class="admin-stat"><div class="admin-stat-value">{{.Stats.AdminsCount}}</div><div class="admin-stat-label">{{tr .Lang "Администраторы"}}</div></div>
+      <div class="admin-stat"><div class="admin-stat-value">{{.Stats.ManagersCount}}</div><div class="admin-stat-label">{{tr .Lang "Менеджеры"}}</div></div>
+      <div class="admin-stat"><div class="admin-stat-value">{{.Stats.ViewersCount}}</div><div class="admin-stat-label">{{tr .Lang "Наблюдатели"}}</div></div>
     </div>
   </div>
 </div>
 
 <div class="card">
-  <div class="card-header"><strong>Сертификаты</strong></div>
+  <div class="card-header"><strong>{{tr .Lang "Сертификаты"}}</strong></div>
   <div class="card-body">
     <div class="admin-stats">
-      <div class="admin-stat ok"><div class="admin-stat-value">{{.Stats.ActiveCerts}}</div><div class="admin-stat-label">Активных локальных</div></div>
+      <div class="admin-stat ok"><div class="admin-stat-value">{{.Stats.ActiveCerts}}</div><div class="admin-stat-label">{{tr .Lang "Активных локальных"}}</div></div>
       <div class="admin-stat"><div class="admin-stat-value">{{.Stats.LeCerts}}</div><div class="admin-stat-label">Let's Encrypt</div></div>
     </div>
   </div>
@@ -33,15 +33,15 @@
 
 <div class="card">
   <div class="card-header">
-    <strong>Безопасность</strong>
-    <a href="/admin/security" class="btn btn-ghost" style="margin-left:auto">Журнал →</a>
+    <strong>{{tr .Lang "Безопасность"}}</strong>
+    <a href="/admin/security" class="btn btn-ghost" style="margin-left:auto">{{tr .Lang "Журнал →"}}</a>
   </div>
   <div class="card-body">
     <div class="admin-stats">
-      <div class="admin-stat ok"><div class="admin-stat-value">{{.Stats.LoginsToday}}</div><div class="admin-stat-label">Входов за 24ч</div></div>
-      <div class="admin-stat {{if gt .Stats.FailedLogins 0}}warn{{end}}"><div class="admin-stat-value">{{.Stats.FailedLogins}}</div><div class="admin-stat-label">Неудачных за 24ч</div></div>
+      <div class="admin-stat ok"><div class="admin-stat-value">{{.Stats.LoginsToday}}</div><div class="admin-stat-label">{{tr .Lang "Входов за 24ч"}}</div></div>
+      <div class="admin-stat {{if gt .Stats.FailedLogins 0}}warn{{end}}"><div class="admin-stat-value">{{.Stats.FailedLogins}}</div><div class="admin-stat-label">{{tr .Lang "Неудачных за 24ч"}}</div></div>
     </div>
-    <h3 style="margin-top:18px;margin-bottom:10px;font-size:14px;font-weight:600">Последние успешные входы</h3>
+    <h3 style="margin-top:18px;margin-bottom:10px;font-size:14px;font-weight:600">{{tr .Lang "Последние успешные входы"}}</h3>
     {{if .RecentLogins}}
     <div class="table-wrap"><div class="tbl-wrap">
   <table class="tbl">
@@ -51,7 +51,7 @@
           <col>
         </colgroup>
     
-      <thead><tr><th>Пользователь</th><th>IP</th><th>Время</th></tr></thead>
+      <thead><tr><th>{{tr .Lang "Пользователь"}}</th><th>IP</th><th>{{tr .Lang "Время"}}</th></tr></thead>
       <tbody>
         {{range .RecentLogins}}
         <tr><td>{{.Username}}</td><td><code>{{.IP}}</code></td><td>{{.CreatedAt.Format "2006-01-02 15:04:05"}}</td></tr>
@@ -59,7 +59,7 @@
       </tbody>
     </table>
   </div></div>
-    {{else}}<p class="muted">Нет записей о недавних входах.</p>{{end}}
+    {{else}}<p class="muted">{{tr .Lang "Нет записей о недавних входах."}}</p>{{end}}
   </div>
 </div>
 {{end}}

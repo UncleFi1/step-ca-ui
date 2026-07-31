@@ -30,7 +30,7 @@ type notificationPayload struct {
 func (h *Handler) AdminNotificationsGet(w http.ResponseWriter, r *http.Request) {
 	settings, err := appdb.GetNotificationSettings(h.db)
 	if err != nil {
-		h.flash(w, r, "err", "Не удалось загрузить настройки уведомлений: "+err.Error())
+		h.flash(w, r, "err", h.T(r, "Не удалось загрузить настройки уведомлений: ")+err.Error())
 		settings = &models.NotificationSettings{NotifyExpiry: true, ExpiryDays: 30, NotifyFailures: true, NotifyAuthBurst: true}
 	}
 	logs, _ := appdb.GetNotificationLogs(h.db, 25)
@@ -92,25 +92,25 @@ func (h *Handler) AdminNotificationsPost(w http.ResponseWriter, r *http.Request)
 	}
 	if settings.WebhookEnabled {
 		if _, err := url.ParseRequestURI(settings.WebhookURL); err != nil {
-			h.flash(w, r, "err", "Webhook URL некорректен")
+			h.flash(w, r, "err", h.T(r, "Webhook URL некорректен"))
 			http.Redirect(w, r, "/admin/notifications", http.StatusSeeOther)
 			return
 		}
 	}
 	if settings.SMTPEnabled {
 		if settings.SMTPHost == "" || settings.SMTPFrom == "" {
-			h.flash(w, r, "err", "Для SMTP укажите host и from")
+			h.flash(w, r, "err", h.T(r, "Для SMTP укажите host и from"))
 			http.Redirect(w, r, "/admin/notifications", http.StatusSeeOther)
 			return
 		}
 	}
 	if err := appdb.SaveNotificationSettings(h.db, settings); err != nil {
-		h.flash(w, r, "err", "Не удалось сохранить настройки: "+err.Error())
+		h.flash(w, r, "err", h.T(r, "Не удалось сохранить настройки: ")+err.Error())
 	} else {
 		h.auditSecurity(r, fmt.Sprintf("notifications.save webhook_enabled=%t smtp_enabled=%t smtp_host=%s smtp_security=%s notify_expiry=%t notify_failures=%t notify_auth_burst=%t expiry_days=%d",
 			settings.WebhookEnabled, settings.SMTPEnabled, settings.SMTPHost, settings.SMTPSecurity,
 			settings.NotifyExpiry, settings.NotifyFailures, settings.NotifyAuthBurst, settings.ExpiryDays))
-		h.flash(w, r, "ok", "Настройки уведомлений сохранены")
+		h.flash(w, r, "ok", h.T(r, "Настройки уведомлений сохранены"))
 	}
 	http.Redirect(w, r, "/admin/notifications", http.StatusSeeOther)
 }
@@ -121,12 +121,12 @@ func (h *Handler) AdminNotificationsTest(w http.ResponseWriter, r *http.Request)
 	}
 	settings, err := appdb.GetNotificationSettings(h.db)
 	if err != nil {
-		h.flash(w, r, "err", "Не удалось загрузить настройки: "+err.Error())
+		h.flash(w, r, "err", h.T(r, "Не удалось загрузить настройки: ")+err.Error())
 		http.Redirect(w, r, "/admin/notifications", http.StatusSeeOther)
 		return
 	}
 	if !settings.WebhookEnabled || strings.TrimSpace(settings.WebhookURL) == "" {
-		h.flash(w, r, "err", "Сначала включите webhook и укажите URL")
+		h.flash(w, r, "err", h.T(r, "Сначала включите webhook и укажите URL"))
 		http.Redirect(w, r, "/admin/notifications", http.StatusSeeOther)
 		return
 	}
@@ -135,10 +135,10 @@ func (h *Handler) AdminNotificationsTest(w http.ResponseWriter, r *http.Request)
 	})
 	if err != nil {
 		h.auditSecurity(r, "notifications.test status=failed")
-		h.flash(w, r, "err", "Webhook test failed: "+err.Error())
+		h.flash(w, r, "err", h.T(r, "Webhook test failed: ")+err.Error())
 	} else {
 		h.auditSecurity(r, "notifications.test status=sent")
-		h.flash(w, r, "ok", "Webhook test отправлен")
+		h.flash(w, r, "ok", h.T(r, "Webhook test отправлен"))
 	}
 	http.Redirect(w, r, "/admin/notifications", http.StatusSeeOther)
 }

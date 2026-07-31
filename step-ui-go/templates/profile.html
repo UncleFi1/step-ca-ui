@@ -61,7 +61,7 @@
 </style>
 {{define "content"}}
 <div class="page-header">
-  <div><div class="breadcrumb">account &middot; profile</div><h1>Мой профиль</h1></div>
+  <div><div class="breadcrumb">account &middot; profile</div><h1>{{tr .Lang "Мой профиль"}}</h1></div>
 </div>
 
 <div style="display:grid;grid-template-columns:minmax(280px,1fr) minmax(320px,1.4fr);gap:14px">
@@ -69,22 +69,22 @@
   <!-- ═ Информация о пользователе ═ -->
   <div data-profile-left-col="1" style="display:flex;flex-direction:column;gap:14px">
 <div class="card" style="margin-bottom:0">
-    <div class="card-header"><h3>Обо мне</h3></div>
+    <div class="card-header"><h3>{{tr .Lang "Обо мне"}}</h3></div>
     <div class="card-body">
       <div class="info-row">
-        <div class="info-key">Логин</div>
+        <div class="info-key">{{tr .Lang "Логин"}}</div>
         <div class="info-val"><strong>{{.U.Username}}</strong></div>
       </div>
       <div class="info-row">
-        <div class="info-key">Имя</div>
-        <div class="info-val">{{if .U.DisplayName}}{{.U.DisplayName}}{{else}}<span style="color:var(--muted)">не указано</span>{{end}}</div>
+        <div class="info-key">{{tr .Lang "Имя"}}</div>
+        <div class="info-val">{{if .U.DisplayName}}{{.U.DisplayName}}{{else}}<span style="color:var(--muted)">{{tr .Lang "не указано"}}</span>{{end}}</div>
       </div>
       <div class="info-row">
         <div class="info-key">Email</div>
-        <div class="info-val">{{if .U.Email}}<code>{{.U.Email}}</code>{{else}}<span style="color:var(--muted)">не указан</span>{{end}}</div>
+        <div class="info-val">{{if .U.Email}}<code>{{.U.Email}}</code>{{else}}<span style="color:var(--muted)">{{tr .Lang "не указан"}}</span>{{end}}</div>
       </div>
       <div class="info-row">
-        <div class="info-key">Роль</div>
+        <div class="info-key">{{tr .Lang "Роль"}}</div>
         <div class="info-val">
           {{if eq .U.Role "admin"}}<span class="badge purple">admin</span>
           {{else if eq .U.Role "manager"}}<span class="badge blue">manager</span>
@@ -93,59 +93,59 @@
         </div>
       </div>
       <div class="info-row">
-        <div class="info-key">Статус</div>
+        <div class="info-key">{{tr .Lang "Статус"}}</div>
         <div class="info-val">
-          {{if .U.IsActive}}<span class="badge ok">активен</span>
-          {{else}}<span class="badge danger">заблокирован</span>
+          {{if .U.IsActive}}<span class="badge ok">{{tr .Lang "активен"}}</span>
+          {{else}}<span class="badge danger">{{tr .Lang "заблокирован"}}</span>
 {{end}}
         </div>
       </div>
       <div class="info-row">
         <div class="info-key">2FA</div>
         <div class="info-val">
-          {{if .U.TOTPEnabled}}<span class="badge ok">включена</span>
-          {{else}}<span class="badge warn">выключена</span>{{end}}
+          {{if .U.TOTPEnabled}}<span class="badge ok">{{tr .Lang "включена"}}</span>
+          {{else}}<span class="badge warn">{{tr .Lang "выключена"}}</span>{{end}}
         </div>
       </div>
       <div class="info-row">
-        <div class="info-key">Аккаунт создан</div>
+        <div class="info-key">{{tr .Lang "Аккаунт создан"}}</div>
         <div class="info-val">{{fmtTime .U.CreatedAt}}</div>
       </div>
       <div class="info-row">
-        <div class="info-key">Последний вход</div>
+        <div class="info-key">{{tr .Lang "Последний вход"}}</div>
         <div class="info-val" style="color:var(--muted)">{{fmtTime .U.LastLogin}}</div>
       </div>
       <div class="info-row">
-        <div class="info-key">Последний IP</div>
+        <div class="info-key">{{tr .Lang "Последний IP"}}</div>
         <div class="info-val" style="color:var(--muted)">{{if .U.LastIP}}{{deref .U.LastIP}}{{else}}&mdash;{{end}}</div>
       </div>
     </div>
   </div>
 {{if eq .U.Role "admin"}}
 <div class="card" style="margin-bottom:0;border-color:color-mix(in srgb, #f59e0b 40%, var(--border))">
-  <div class="card-header"><h3 style="margin:0">Администрирование</h3></div>
+  <div class="card-header"><h3 style="margin:0">{{tr .Lang "Администрирование"}}</h3></div>
   <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
     <div style="display:flex;align-items:center;gap:12px">
       <div style="flex-shrink:0;width:44px;height:44px;border-radius:10px;background:color-mix(in srgb, #f59e0b 18%, transparent);color:#f59e0b;display:flex;align-items:center;justify-content:center">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 7v5c0 5 3.5 9.5 9 11 5.5-1.5 9-6 9-11V7l-9-5z"/></svg>
       </div>
       <div style="flex:1;min-width:0">
-        <div style="font-weight:700;line-height:1.2">Админ-панель</div>
-        <div class="muted" style="font-size:12px;margin-top:2px">Доступно только администраторам</div>
+        <div style="font-weight:700;line-height:1.2">{{tr .Lang "Админ-панель"}}</div>
+        <div class="muted" style="font-size:12px;margin-top:2px">{{tr .Lang "Доступно только администраторам"}}</div>
       </div>
     </div>
-    <a href="/admin" class="btn btn-primary" style="background:#f59e0b;border-color:#f59e0b;color:#111;text-align:center;font-weight:700">Войти →</a>
+    <a href="/admin" class="btn btn-primary" style="background:#f59e0b;border-color:#f59e0b;color:#111;text-align:center;font-weight:700">{{tr .Lang "Войти"}} &rarr;</a>
   </div>
 </div>
 {{end}}
 <div class="card" style="margin-bottom:0">
-  <div class="card-header"><h3 style="margin:0">Двухфакторная защита</h3></div>
+  <div class="card-header"><h3 style="margin:0">{{tr .Lang "Двухфакторная защита"}}</h3></div>
   <div class="card-body" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
     <div>
-      <div style="font-weight:700">{{if .U.TOTPEnabled}}2FA включена{{else}}2FA не включена{{end}}</div>
-      <div class="muted" style="font-size:12px;margin-top:2px">TOTP через authenticator app и recovery-коды</div>
+      <div style="font-weight:700">{{if .U.TOTPEnabled}}{{tr .Lang "2FA включена"}}{{else}}{{tr .Lang "2FA не включена"}}{{end}}</div>
+      <div class="muted" style="font-size:12px;margin-top:2px">{{tr .Lang "TOTP через authenticator app и recovery-коды"}}</div>
     </div>
-    <a href="/profile/2fa" class="btn btn-ghost">Настроить</a>
+    <a href="/profile/2fa" class="btn btn-ghost">{{tr .Lang "Настроить"}}</a>
   </div>
 </div>
 </div>
@@ -158,98 +158,117 @@
 
     <!-- ── Редактировать профиль ── -->
     <div class="card" style="margin-bottom:0">
-      <div class="card-header"><h3>Редактировать профиль</h3></div>
+      <div class="card-header"><h3>{{tr .Lang "Редактировать профиль"}}</h3></div>
       <div class="card-body">
         <form method="POST" action="/profile">
           <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
           <input type="hidden" name="action" value="update_info">
           <div class="form-full">
-            <label>Логин</label>
+            <label>{{tr .Lang "Логин"}}</label>
             <input type="text" name="username" value="{{.U.Username}}" required autocomplete="off">
-            <div style="font-size:10px;color:var(--muted);margin-top:4px">Используется для входа в систему</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:4px">{{tr .Lang "Используется для входа в систему"}}</div>
           </div>
           <div class="form-full">
-            <label>Имя</label>
-            <input type="text" name="display_name" value="{{.U.DisplayName}}" placeholder="Иван Петров" autocomplete="off">
-            <div style="font-size:10px;color:var(--muted);margin-top:4px">Отображается в интерфейсе</div>
+            <label>{{tr .Lang "Имя"}}</label>
+            <input type="text" name="display_name" value="{{.U.DisplayName}}" placeholder='{{tr .Lang "Иван Петров"}}' autocomplete="off">
+            <div style="font-size:10px;color:var(--muted);margin-top:4px">{{tr .Lang "Отображается в интерфейсе"}}</div>
           </div>
           <div class="form-full">
             <label>Email</label>
             <input type="email" name="email" value="{{.U.Email}}" placeholder="user@example.com" autocomplete="off">
-            <div style="font-size:10px;color:var(--muted);margin-top:4px">Для уведомлений и восстановления доступа</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:4px">{{tr .Lang "Для уведомлений и восстановления доступа"}}</div>
           </div>
-          <button type="submit" class="btn" style="padding:8px 18px;font-weight:600">Сохранить изменения</button>
+          <button type="submit" class="btn" style="padding:8px 18px;font-weight:600">{{tr .Lang "Сохранить изменения"}}</button>
         </form>
       </div>
     </div>
 
     <!-- ── Сменить пароль ── -->
     <div class="card" style="margin-bottom:0">
-      <div class="card-header"><h3>Сменить пароль</h3></div>
+      <div class="card-header"><h3>{{tr .Lang "Сменить пароль"}}</h3></div>
       <div class="card-body">
         <form method="POST" action="/profile">
           <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
           <input type="hidden" name="action" value="change_password">
           <div class="form-full">
-            <label>Текущий пароль</label>
-            <input type="password" name="current_password" required autocomplete="current-password">
+            <label>{{tr .Lang "Текущий пароль"}}</label>
+            <input type="password" name="current_password" required autocomplete="current-password" data-1p-ignore data-lpignore="true">
           </div>
           <div class="form-row">
             <div>
-              <label>Новый пароль</label>
-              <input type="password" name="new_password" placeholder="Мин. 8 симв. + цифра + спецсимвол" required autocomplete="new-password">
+              <label>{{tr .Lang "Новый пароль"}}</label>
+              <input type="password" name="new_password" placeholder='{{tr .Lang "Мин. 8 симв. + цифра + спецсимвол"}}' required autocomplete="off" data-1p-ignore data-lpignore="true">
             </div>
             <div>
-              <label>Подтвердить</label>
-              <input type="password" name="confirm_password" required autocomplete="new-password">
+              <label>{{tr .Lang "Подтвердить"}}</label>
+              <input type="password" name="confirm_password" required autocomplete="off" data-1p-ignore data-lpignore="true">
             </div>
           </div>
-          <button type="submit" class="btn btn-warn" style="padding:8px 18px;font-weight:600">Сохранить пароль</button>
+          <button type="submit" class="btn btn-warn" style="padding:8px 18px;font-weight:600">{{tr .Lang "Сохранить пароль"}}</button>
         </form>
       </div>
     </div>
     <!-- ── Внешний вид ── -->
     <div class="card" style="margin-bottom:0;overflow:visible">
-      <div class="card-header"><h3>Внешний вид</h3></div>
+      <div class="card-header"><h3>{{tr .Lang "Внешний вид"}}</h3></div>
       <div class="card-body">
         <form method="POST" action="/profile" id="themeForm">
           <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
           <input type="hidden" name="action" value="theme">
-          <label>Тема оформления</label>
+          <label>{{tr .Lang "Тема оформления"}}</label>
           {{$cur := .U.Theme}}
           <div class="theme-select" id="themeSelect">
             <div class="ts-box" id="tsBox">
               <div class="ts-preview ts-{{$cur}}"><span></span><span></span></div>
               <div class="ts-label" id="tsLabel">
-                {{if eq $cur "dark"}}Тёмная
-                {{else if eq $cur "light"}}Светлая
-                {{else if eq $cur "blue"}}Синяя
-                {{else if eq $cur "auto"}}Авто (системная)
-                {{else}}Тёмная{{end}}
+                {{if eq $cur "dark"}}{{tr .Lang "Тёмная"}}
+                {{else if eq $cur "light"}}{{tr .Lang "Светлая"}}
+                {{else if eq $cur "blue"}}{{tr .Lang "Синяя"}}
+                {{else if eq $cur "auto"}}{{tr .Lang "Авто (системная)"}}
+                {{else}}{{tr .Lang "Тёмная"}}{{end}}
               </div>
               <span class="ts-arrow"></span>
             </div>
             <div class="ts-dropdown" id="tsDropdown">
               <div class="ts-opt {{if eq $cur "dark"}}selected{{end}}"  data-val="dark">
                 <div class="ts-preview ts-dark"><span></span><span></span></div>
-                <div><div class="ts-opt-name">Тёмная</div><div class="ts-opt-sub">Классическая, по умолчанию</div></div>
+                <div><div class="ts-opt-name">{{tr .Lang "Тёмная"}}</div><div class="ts-opt-sub">{{tr .Lang "Классическая, по умолчанию"}}</div></div>
               </div>
               <div class="ts-opt {{if eq $cur "light"}}selected{{end}}" data-val="light">
                 <div class="ts-preview ts-light"><span></span><span></span></div>
-                <div><div class="ts-opt-name">Светлая</div><div class="ts-opt-sub">Для дневной работы</div></div>
+                <div><div class="ts-opt-name">{{tr .Lang "Светлая"}}</div><div class="ts-opt-sub">{{tr .Lang "Для дневной работы"}}</div></div>
               </div>
               <div class="ts-opt {{if eq $cur "blue"}}selected{{end}}"  data-val="blue">
                 <div class="ts-preview ts-blue"><span></span><span></span></div>
-                <div><div class="ts-opt-name">Синяя</div><div class="ts-opt-sub">Морская ночь</div></div>
+                <div><div class="ts-opt-name">{{tr .Lang "Синяя"}}</div><div class="ts-opt-sub">{{tr .Lang "Морская ночь"}}</div></div>
               </div>
               <div class="ts-opt {{if eq $cur "auto"}}selected{{end}}"  data-val="auto">
                 <div class="ts-preview ts-auto"><span></span><span></span></div>
-                <div><div class="ts-opt-name">Авто</div><div class="ts-opt-sub">Следит за системной темой</div></div>
+                <div><div class="ts-opt-name">{{tr .Lang "Авто"}}</div><div class="ts-opt-sub">{{tr .Lang "Следит за системной темой"}}</div></div>
               </div>
             </div>
           </div>
           <input type="hidden" name="theme" id="themeInput" value="{{$cur}}">
-          <button type="submit" class="btn" style="margin-top:14px;padding:8px 18px;font-weight:600">Сохранить тему</button>
+          <button type="submit" class="btn" style="margin-top:14px;padding:8px 18px;font-weight:600">{{tr .Lang "Сохранить тему"}}</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ── Язык ── -->
+    <div class="card" style="margin-bottom:0">
+      <div class="card-header"><h3>{{tr .Lang "Язык"}}</h3></div>
+      <div class="card-body">
+        <form method="POST" action="/profile">
+          <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+          <input type="hidden" name="action" value="language">
+          {{$lang := .Lang}}
+          <label>{{tr .Lang "Язык интерфейса"}}</label>
+          <select name="language" style="width:100%;max-width:360px;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px">
+            <option value="en" {{if eq $lang "en"}}selected{{end}}>English</option>
+            <option value="de" {{if eq $lang "de"}}selected{{end}}>Deutsch</option>
+            <option value="ru" {{if eq $lang "ru"}}selected{{end}}>{{tr .Lang "Русский"}}</option>
+          </select>
+          <button type="submit" class="btn" style="margin-top:14px;padding:8px 18px;font-weight:600">{{tr .Lang "Сохранить"}}</button>
         </form>
       </div>
     </div>
@@ -287,7 +306,13 @@
   var input = document.getElementById('themeInput');
   var label = document.getElementById('tsLabel');
   var preview = box.querySelector('.ts-preview');
-  var LABELS = {dark:'Тёмная', light:'Светлая', blue:'Синяя', auto:'Авто (системная)'};
+  var I18N = window.__I18N || {};
+  var LABELS = {
+    dark: I18N['Тёмная'] || 'Тёмная',
+    light: I18N['Светлая'] || 'Светлая',
+    blue: I18N['Синяя'] || 'Синяя',
+    auto: I18N['Авто (системная)'] || 'Авто (системная)'
+  };
   box.addEventListener('click', function(){
     box.classList.toggle('open');
     drop.classList.toggle('open');

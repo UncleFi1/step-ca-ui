@@ -19,7 +19,7 @@ func (h *Handler) LoginGet(w http.ResponseWriter, r *http.Request) {
 		data["NeedTOTP"] = true
 	}
 	if security.RL.IsBlocked(ip) {
-		data["Error"] = "Слишком много попыток. Подождите 15 минут."
+		data["Error"] = h.T(r, "Слишком много попыток. Подождите 15 минут.")
 		data["Blocked"] = true
 	}
 	h.render(w, "login", data)
@@ -30,7 +30,7 @@ func (h *Handler) LoginPost(w http.ResponseWriter, r *http.Request) {
 
 	if security.RL.IsBlocked(ip) {
 		data := h.base(w, r, "")
-		data["Error"] = "Слишком много попыток. Подождите 15 минут."
+		data["Error"] = h.T(r, "Слишком много попыток. Подождите 15 минут.")
 		data["Blocked"] = true
 		h.render(w, "login", data)
 		return
@@ -38,7 +38,7 @@ func (h *Handler) LoginPost(w http.ResponseWriter, r *http.Request) {
 
 	if !h.csrfOK(r) {
 		data := h.base(w, r, "")
-		data["Error"] = "Ошибка сессии. Обновите страницу."
+		data["Error"] = h.T(r, "Ошибка сессии. Обновите страницу.")
 		h.render(w, "login", data)
 		return
 	}
@@ -57,13 +57,13 @@ func (h *Handler) LoginPost(w http.ResponseWriter, r *http.Request) {
 		left := security.RL.Left(ip)
 		appdb.LogAuth(h.db, username, ip, false, fmt.Sprintf("Неверный пароль (%d попыток осталось)", left))
 		if left > 0 {
-			h.flash(w, r, "err", fmt.Sprintf("Неверный логин или пароль. Осталось попыток: %d", left))
+			h.flash(w, r, "err", h.Tf(r, "Неверный логин или пароль. Осталось попыток: %d", left))
 		} else {
 			h.notifyAsync("auth-burst:"+ip+":"+time.Now().Format("2006-01-02T15:04"), "auth.failed_burst", "warn",
 				"Failed login burst",
 				fmt.Sprintf("IP %s заблокирован после серии неудачных входов", ip),
 				map[string]string{"username": username, "ip": ip})
-			h.flash(w, r, "err", "Слишком много попыток. Подождите 15 минут.")
+			h.flash(w, r, "err", h.T(r, "Слишком много попыток. Подождите 15 минут."))
 		}
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
@@ -71,7 +71,7 @@ func (h *Handler) LoginPost(w http.ResponseWriter, r *http.Request) {
 
 	if !user.IsActive {
 		appdb.LogAuth(h.db, username, ip, false, "Аккаунт заблокирован")
-		h.flash(w, r, "err", "Аккаунт заблокирован. Обратитесь к администратору.")
+		h.flash(w, r, "err", h.T(r, "Аккаунт заблокирован. Обратитесь к администратору."))
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
@@ -98,7 +98,7 @@ func (h *Handler) loginPost2FA(w http.ResponseWriter, r *http.Request, uid int) 
 	user, _ := appdb.GetUserByID(h.db, uid)
 	if user == nil || !user.IsActive || !user.TOTPEnabled {
 		h.clearPending2FA(w, r)
-		h.flash(w, r, "err", "2FA сессия недействительна")
+		h.flash(w, r, "err", h.T(r, "2FA сессия недействительна"))
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
@@ -114,7 +114,7 @@ func (h *Handler) loginPost2FA(w http.ResponseWriter, r *http.Request, uid int) 
 		security.RL.Register(ip)
 		left := security.RL.Left(ip)
 		appdb.LogAuth(h.db, user.Username, ip, false, fmt.Sprintf("Неверный 2FA код (%d попыток осталось)", left))
-		h.flash(w, r, "err", "Неверный 2FA или recovery код")
+		h.flash(w, r, "err", h.T(r, "Неверный 2FA или recovery код"))
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}

@@ -2,14 +2,14 @@
 <div class="security-hero">
   <div class="security-hero-main">
     <div class="breadcrumb">account &middot; security</div>
-    <h1>Двухфакторная защита</h1>
-    <p>TOTP-код из authenticator app добавляет второй фактор при входе в Step-CA UI.</p>
+    <h1>{{tr .Lang "Двухфакторная защита"}}</h1>
+    <p>{{tr .Lang "TOTP-код из authenticator app добавляет второй фактор при входе в Step-CA UI."}}</p>
   </div>
   <div class="security-state {{if .U.TOTPEnabled}}enabled{{else}}disabled{{end}}">
     <span class="security-state-dot"></span>
     <div>
-      <strong>{{if .U.TOTPEnabled}}Защита включена{{else}}Защита выключена{{end}}</strong>
-      <span>{{if .U.TOTPEnabled}}При входе потребуется одноразовый код{{else}}Аккаунт защищён только паролем{{end}}</span>
+      <strong>{{if .U.TOTPEnabled}}{{tr .Lang "Защита включена"}}{{else}}{{tr .Lang "Защита выключена"}}{{end}}</strong>
+      <span>{{if .U.TOTPEnabled}}{{tr .Lang "При входе потребуется одноразовый код"}}{{else}}{{tr .Lang "Аккаунт защищён только паролем"}}{{end}}</span>
     </div>
   </div>
 </div>
@@ -22,11 +22,11 @@
 <div class="card security-card highlight">
   <div class="card-header"><h3>Recovery codes</h3></div>
   <div class="card-body">
-    <p class="security-copy">Сохраните эти коды сейчас. После ухода со страницы они больше не будут показаны.</p>
+    <p class="security-copy">{{tr .Lang "Сохраните эти коды сейчас. После ухода со страницы они больше не будут показаны."}}</p>
     <div class="recovery-grid">
       {{range .RecoveryCodes}}<code>{{.}}</code>{{end}}
     </div>
-    <a href="/profile" class="btn primary">Готово</a>
+    <a href="/profile" class="btn primary">{{tr .Lang "Готово"}}</a>
   </div>
 </div>
 {{end}}
@@ -34,43 +34,43 @@
 {{if .U.TOTPEnabled}}
 <div class="security-grid">
   <div class="card security-card">
-    <div class="card-header"><h3>Текущая защита</h3></div>
+    <div class="card-header"><h3>{{tr .Lang "Текущая защита"}}</h3></div>
     <div class="card-body">
       <div class="security-check">
         <div class="security-check-icon">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
         </div>
         <div>
-          <strong>TOTP активен</strong>
-          <span>Следующий вход потребует пароль и одноразовый код.</span>
+          <strong>{{tr .Lang "TOTP активен"}}</strong>
+          <span>{{tr .Lang "Следующий вход потребует пароль и одноразовый код."}}</span>
         </div>
       </div>
     </div>
   </div>
 
   <div class="card security-card">
-    <div class="card-header"><h3>Отключить 2FA</h3></div>
+    <div class="card-header"><h3>{{tr .Lang "Отключить 2FA"}}</h3></div>
     <div class="card-body">
       <form method="POST" action="/profile/2fa/disable">
         <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
         <div class="form-row">
           <div>
-            <label>Текущий пароль</label>
+            <label>{{tr .Lang "Текущий пароль"}}</label>
             <input type="password" name="current_password" required autocomplete="current-password">
           </div>
           <div>
-            <label>TOTP код</label>
+            <label>{{tr .Lang "TOTP код"}}</label>
             <input type="text" name="totp_code" inputmode="numeric" autocomplete="one-time-code" required>
           </div>
         </div>
-        <button class="btn btn-danger" type="submit">Отключить 2FA</button>
+        <button class="btn btn-danger" type="submit">{{tr .Lang "Отключить 2FA"}}</button>
       </form>
     </div>
   </div>
 </div>
 {{else}}
 <div class="card security-card">
-  <div class="card-header"><h3>Подключить приложение-аутентификатор</h3></div>
+  <div class="card-header"><h3>{{tr .Lang "Подключить приложение-аутентификатор"}}</h3></div>
   <div class="card-body">
     {{if .U.TOTPPendingSecret}}
       <div class="totp-setup-grid">
@@ -78,7 +78,7 @@
           <img src="/profile/2fa/qr" width="220" height="220" alt="TOTP QR">
         </div>
         <div class="totp-confirm">
-          <div class="security-copy">Отсканируйте QR-код в authenticator app или добавьте secret вручную.</div>
+          <div class="security-copy">{{tr .Lang "Отсканируйте QR-код в authenticator app или добавьте secret вручную."}}</div>
           <div class="form-full">
             <label>Manual secret</label>
             <input type="text" value="{{.U.TOTPPendingSecret}}" readonly>
@@ -86,10 +86,10 @@
           <form method="POST" action="/profile/2fa/confirm">
             <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
             <div class="form-full">
-              <label>6-значный код</label>
+              <label>{{tr .Lang "6-значный код"}}</label>
               <input type="text" name="totp_code" inputmode="numeric" autocomplete="one-time-code" required autofocus>
             </div>
-            <button class="btn primary" type="submit">Включить 2FA</button>
+            <button class="btn primary" type="submit">{{tr .Lang "Включить 2FA"}}</button>
           </form>
         </div>
       </div>
@@ -99,19 +99,19 @@
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.5 9 8 11 4.5-2 8-6 8-11V5l-8-3Z"/><path d="M9 12l2 2 4-5"/></svg>
         </div>
         <div>
-          <strong>Приложение-аутентификатор</strong>
-          <p>Будет создан TOTP secret для Google Authenticator, Microsoft Authenticator, 1Password, Bitwarden или совместимого приложения.</p>
+          <strong>{{tr .Lang "Приложение-аутентификатор"}}</strong>
+          <p>{{tr .Lang "Будет создан TOTP secret для Google Authenticator, Microsoft Authenticator, 1Password, Bitwarden или совместимого приложения."}}</p>
         </div>
       </div>
       <form method="POST" action="/profile/2fa/start">
         <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-        <button class="btn primary" type="submit">Начать настройку</button>
+        <button class="btn primary" type="submit">{{tr .Lang "Начать настройку"}}</button>
       </form>
     {{end}}
   </div>
 </div>
 {{end}}
 <div class="page-actions">
-  <a href="/profile" class="btn btn-ghost">Вернуться в профиль</a>
+  <a href="/profile" class="btn btn-ghost">{{tr .Lang "Вернуться в профиль"}}</a>
 </div>
 {{end}}

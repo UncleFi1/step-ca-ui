@@ -7,26 +7,17 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strconv"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	appdb "step-ui/db"
+	"step-ui/i18n"
 	"step-ui/models"
 )
 
 func (h *Handler) Home(w http.ResponseWriter, r *http.Request) {
-	// Статус CA: проверяем через step ca health
-	caOnline := true
-	_, err := exec.Command("step", "ca", "health",
-		"--ca-url", h.cfg.CAURL,
-		"--root", h.cfg.RootCert).Output()
-	if err != nil {
-		caOnline = false
-	}
-
 	// Быстрая статистика по активным сертификатам
 	certs, _ := appdb.GetCerts(h.db, "active")
 	var activeCount, expiringCount int
@@ -44,8 +35,7 @@ func (h *Handler) Home(w http.ResponseWriter, r *http.Request) {
 	h.db.QueryRow("SELECT COUNT(*) FROM le_certificates WHERE status='active'").Scan(&leCount)
 
 	data := h.base(w, r, "home")
-	data["CAOnline"] = caOnline
-	data["Uptime"] = fmtUptime(time.Since(StartedAt))
+	data["Uptime"] = fmtUptime(h.sessionInfo(r).Language, time.Since(StartedAt))
 	data["ActiveCerts"] = activeCount
 	data["ExpiringCerts"] = expiringCount
 	data["LECerts"] = leCount
@@ -94,7 +84,7 @@ func (h *Handler) Dashboard(w http.ResponseWriter, r *http.Request) {
 	data["AllCerts"] = allCerts
 	data["LECerts"] = leCerts
 	data["UsersCount"] = usersCount
-	data["Uptime"] = fmtUptime(uptime)
+	data["Uptime"] = fmtUptime(h.sessionInfo(r).Language, uptime)
 	data["StartedAt"] = StartedAt.Format("2006-01-02 15:04")
 	data["Version"] = Version
 	data["BuildDate"] = BuildDate
@@ -126,18 +116,18 @@ func dashCountActions(db *sql.DB, since time.Duration) map[string]int {
 	return result
 }
 
-// ─── helper: форматирует длительность ───────────────────────────────────────
-func fmtUptime(d time.Duration) string {
+// ─── helper: formatiert Laufzeit lokalisiert ────────────────────────────────
+func fmtUptime(lang string, d time.Duration) string {
 	days := int(d.Hours()) / 24
 	hours := int(d.Hours()) % 24
 	mins := int(d.Minutes()) % 60
 	if days > 0 {
-		return fmt.Sprintf("%dд %dч %dм", days, hours, mins)
+		return i18n.Tf(lang, "%dд %dч %dм", days, hours, mins)
 	}
 	if hours > 0 {
-		return fmt.Sprintf("%dч %dм", hours, mins)
+		return i18n.Tf(lang, "%dч %dм", hours, mins)
 	}
-	return fmt.Sprintf("%dм", mins)
+	return i18n.Tf(lang, "%dм", mins)
 }
 
 func (h *Handler) Certificates(w http.ResponseWriter, r *http.Request) {
@@ -161,12 +151,12 @@ func (h *Handler) IssuePost(w http.ResponseWriter, r *http.Request) {
 	policy, policyErr := normalizeIssuePolicy(r.FormValue("template"), r.FormValue("duration"), r.FormValue("key_type"), domain)
 	data := h.base(w, r, "issue")
 	if name == "" || domain == "" {
-		data["Msgs"] = []models.FlashMsg{{Type: "err", Text: "Заполните все поля"}}
+		data["Msgs"] = []models.FlashMsg{{Type: "err", Text: h.T(r, "Заполните все поля")}}
 		h.render(w, "issue", data)
 		return
 	}
 	if policyErr != nil {
-		data["Msgs"] = []models.FlashMsg{{Type: "err", Text: "Ошибка policy: " + policyErr.Error()}}
+		data["Msgs"] = []models.FlashMsg{{Type: "err", Text: h.T(r, "Ошибка policy: ") + policyErr.Error()}}
 		h.render(w, "issue", data)
 		return
 	}
@@ -179,7 +169,7 @@ func (h *Handler) IssuePost(w http.ResponseWriter, r *http.Request) {
 			"Certificate issue failed",
 			fmt.Sprintf("Не удалось выпустить сертификат %s для %s: %s", name, domain, err.Error()),
 			map[string]string{"name": name, "domain": domain, "template": policy.Template, "key_type": policy.KeyType})
-		data["Msgs"] = []models.FlashMsg{{Type: "err", Text: "Ошибка: " + err.Error()}}
+		data["Msgs"] = []models.FlashMsg{{Type: "err", Text: h.T(r, "Ошибка: ") + err.Error()}}
 		h.render(w, "issue", data)
 		return
 	}
@@ -189,7 +179,7 @@ func (h *Handler) IssuePost(w http.ResponseWriter, r *http.Request) {
 		IssuedAt: issued, ExpiresAt: expires, Serial: serial, KeyType: policy.KeyType,
 	})
 	appdb.InsertHistory(h.db, "issue", name, domain, fmt.Sprintf("Шаблон: %s, тип: %s, срок: %s", policy.Template, policy.KeyType, policy.Duration), si.Username, si.Role)
-	h.flash(w, r, "ok", fmt.Sprintf("Сертификат %s для %s выпущен (%s)!", name, domain, policy.KeyType))
+	h.flash(w, r, "ok", h.Tf(r, "Сертификат %s для %s выпущен (%s)!", name, domain, policy.KeyType))
 	http.Redirect(w, r, "/issue", http.StatusFound)
 }
 
@@ -209,13 +199,13 @@ func (h *Handler) Renew(w http.ResponseWriter, r *http.Request) {
 				IssuedAt: issued, ExpiresAt: expires, Serial: serial, KeyType: keyType,
 			})
 			appdb.InsertHistory(h.db, "renew", c.Name, c.Domain, "Перевыпуск, тип: "+keyType, si.Username, si.Role)
-			h.flash(w, r, "ok", "Сертификат перевыпущен")
+			h.flash(w, r, "ok", h.T(r, "Сертификат перевыпущен"))
 		} else {
 			h.notifyAsync("", "certificate.renew_failed", "error",
 				"Certificate renew failed",
 				fmt.Sprintf("Не удалось перевыпустить сертификат %s для %s: %s", c.Name, c.Domain, err.Error()),
 				map[string]string{"id": strconv.Itoa(c.ID), "name": c.Name, "domain": c.Domain, "key_type": keyType})
-			h.flash(w, r, "err", "Ошибка: "+err.Error())
+			h.flash(w, r, "err", h.T(r, "Ошибка: ")+err.Error())
 		}
 	}
 	http.Redirect(w, r, "/certificates", http.StatusFound)
@@ -229,7 +219,7 @@ func (h *Handler) Revoke(w http.ResponseWriter, r *http.Request) {
 		revokeStep(c.CertPath, c.KeyPath, h.cfg)
 		appdb.UpdateCertStatus(h.db, id, "revoked")
 		appdb.InsertHistory(h.db, "revoke", c.Name, c.Domain, "Отозван (CRL)", si.Username, si.Role)
-		h.flash(w, r, "ok", "Сертификат отозван")
+		h.flash(w, r, "ok", h.T(r, "Сертификат отозван"))
 	}
 	http.Redirect(w, r, "/certificates", http.StatusFound)
 }
@@ -336,7 +326,7 @@ func (h *Handler) importUpload(w http.ResponseWriter, r *http.Request, si *model
 	data["ActiveTab"] = "upload"
 	certFile, _, err := r.FormFile("cert_file")
 	if name == "" || domain == "" || err != nil {
-		data["Msgs"] = []models.FlashMsg{{Type: "err", Text: "Заполните имя, домен и загрузите .crt файл"}}
+		data["Msgs"] = []models.FlashMsg{{Type: "err", Text: h.T(r, "Заполните имя, домен и загрузите .crt файл")}}
 		h.render(w, "import", data)
 		return
 	}
@@ -346,7 +336,7 @@ func (h *Handler) importUpload(w http.ResponseWriter, r *http.Request, si *model
 	certPath := filepath.Join(certDir, "certificate.crt")
 	keyPath := filepath.Join(certDir, "private.key")
 	if err := saveUploadedFile(certFile, certPath); err != nil {
-		data["Msgs"] = []models.FlashMsg{{Type: "err", Text: "Ошибка сохранения файла"}}
+		data["Msgs"] = []models.FlashMsg{{Type: "err", Text: h.T(r, "Ошибка сохранения файла")}}
 		h.render(w, "import", data)
 		return
 	}
@@ -358,7 +348,7 @@ func (h *Handler) importUpload(w http.ResponseWriter, r *http.Request, si *model
 	}
 	issued, expires, serial, err := parseCertDates(certPath)
 	if err != nil || serial == "" {
-		data["Msgs"] = []models.FlashMsg{{Type: "err", Text: "Не удалось прочитать сертификат"}}
+		data["Msgs"] = []models.FlashMsg{{Type: "err", Text: h.T(r, "Не удалось прочитать сертификат")}}
 		h.render(w, "import", data)
 		return
 	}
@@ -367,12 +357,12 @@ func (h *Handler) importUpload(w http.ResponseWriter, r *http.Request, si *model
 		Name: name, Domain: domain, CertPath: certPath, KeyPath: keyPath,
 		IssuedAt: issued, ExpiresAt: expires, Serial: serial, KeyType: kt,
 	}); err != nil {
-		data["Msgs"] = []models.FlashMsg{{Type: "err", Text: "Сертификат уже есть в базе"}}
+		data["Msgs"] = []models.FlashMsg{{Type: "err", Text: h.T(r, "Сертификат уже есть в базе")}}
 		h.render(w, "import", data)
 		return
 	}
 	appdb.InsertHistory(h.db, "import", name, domain, "Загрузка с ПК, тип: "+kt, si.Username, si.Role)
-	h.flash(w, r, "ok", fmt.Sprintf("Сертификат %s загружен!", name))
+	h.flash(w, r, "ok", h.Tf(r, "Сертификат %s загружен!", name))
 	http.Redirect(w, r, "/import?tab=upload", http.StatusFound)
 }
 
@@ -394,9 +384,9 @@ func (h *Handler) importScan(w http.ResponseWriter, r *http.Request, si *models.
 		}
 	}
 	if count > 0 {
-		h.flash(w, r, "ok", fmt.Sprintf("Найдено и импортировано: %d", count))
+		h.flash(w, r, "ok", h.Tf(r, "Найдено и импортировано: %d", count))
 	} else {
-		h.flash(w, r, "ok", "Новых сертификатов не найдено")
+		h.flash(w, r, "ok", h.T(r, "Новых сертификатов не найдено"))
 	}
 	http.Redirect(w, r, "/import?tab=scan", http.StatusFound)
 }
@@ -409,12 +399,12 @@ func (h *Handler) importManual(w http.ResponseWriter, r *http.Request, si *model
 	data := h.base(w, r, "import")
 	data["ActiveTab"] = "manual"
 	if name == "" || domain == "" || certPath == "" {
-		data["Msgs"] = []models.FlashMsg{{Type: "err", Text: "Заполните все поля"}}
+		data["Msgs"] = []models.FlashMsg{{Type: "err", Text: h.T(r, "Заполните все поля")}}
 		h.render(w, "import", data)
 		return
 	}
 	if _, err := os.Stat(certPath); err != nil {
-		data["Msgs"] = []models.FlashMsg{{Type: "err", Text: "Файл не найден: " + certPath}}
+		data["Msgs"] = []models.FlashMsg{{Type: "err", Text: h.T(r, "Файл не найден: ")+certPath}}
 		h.render(w, "import", data)
 		return
 	}
@@ -424,12 +414,12 @@ func (h *Handler) importManual(w http.ResponseWriter, r *http.Request, si *model
 		Name: name, Domain: domain, CertPath: certPath, KeyPath: keyPath,
 		IssuedAt: issued, ExpiresAt: expires, Serial: serial, KeyType: kt,
 	}); err != nil {
-		data["Msgs"] = []models.FlashMsg{{Type: "err", Text: "Уже в базе"}}
+		data["Msgs"] = []models.FlashMsg{{Type: "err", Text: h.T(r, "Уже в базе")}}
 		h.render(w, "import", data)
 		return
 	}
 	appdb.InsertHistory(h.db, "import", name, domain, "Путь вручную", si.Username, si.Role)
-	h.flash(w, r, "ok", fmt.Sprintf("Сертификат %s импортирован", name))
+	h.flash(w, r, "ok", h.Tf(r, "Сертификат %s импортирован", name))
 	http.Redirect(w, r, "/import?tab=manual", http.StatusFound)
 }
 

@@ -5,7 +5,7 @@
     <h1>{{.Cert.Name}}</h1>
   </div>
   <div style="display:flex;gap:8px;align-items:center">
-    <a href="/certificates" class="btn btn-ghost">← Назад</a>
+    <a href="/certificates" class="btn btn-ghost">{{tr .Lang "← Назад"}}</a>
     <a href="/download/cert/{{.Cert.ID}}" class="btn btn-ghost">CRT</a>
     {{if .Cert.KeyPath}}<a href="/download/key/{{.Cert.ID}}" class="btn btn-ghost">KEY</a>{{end}}
   </div>
@@ -14,19 +14,19 @@
 {{if .Detail}}
 <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px">
   <div class="stat-card">
-    <div class="stat-label">Статус</div>
+    <div class="stat-label">{{tr .Lang "Статус"}}</div>
     <div class="stat-value {{if eq .Cert.Status "active"}}ok{{else}}danger{{end}}">{{.Cert.Status}}</div>
   </div>
   <div class="stat-card">
-    <div class="stat-label">Осталось дней</div>
+    <div class="stat-label">{{tr .Lang "Осталось дней"}}</div>
     <div class="stat-value {{badgeClass .Cert.ExpiresAt}}">{{.Detail.DaysLeft}}</div>
   </div>
   <div class="stat-card">
-    <div class="stat-label">Ключ</div>
+    <div class="stat-label">{{tr .Lang "Ключ"}}</div>
     <div class="stat-value" style="font-size:18px">{{.Detail.PublicKey}}</div>
   </div>
   <div class="stat-card">
-    <div class="stat-label">Домен</div>
+    <div class="stat-label">{{tr .Lang "Домен"}}</div>
     <div class="stat-value" style="font-size:18px;overflow-wrap:anywhere">{{.Cert.Domain}}</div>
   </div>
 </div>
@@ -37,7 +37,7 @@
   <div class="card-body" style="padding:0">
     <div class="tbl-wrap">
       <table class="tbl">
-        <thead><tr><th>Проверка</th><th>Статус</th><th>Детали</th></tr></thead>
+        <thead><tr><th>{{tr .Lang "Проверка"}}</th><th>{{tr .Lang "Статус"}}</th><th>{{tr .Lang "Детали"}}</th></tr></thead>
         <tbody>
           {{range .Validations}}
           <tr>

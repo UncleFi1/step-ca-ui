@@ -9,27 +9,27 @@
 </div>
 {{end}}
 <div class="page-header">
-  <h1 style="margin:0 0 4px;font-size:22px;font-weight:700">Временные пользователи</h1>
-  <p class="muted" style="margin:0">Краткосрочные аккаунты для подрядчиков и гостей</p>
+  <h1 style="margin:0 0 4px;font-size:22px;font-weight:700">{{tr .Lang "Временные пользователи"}}</h1>
+  <p class="muted" style="margin:0">{{tr .Lang "Краткосрочные аккаунты для подрядчиков и гостей"}}</p>
 </div>
 
 {{if .NewUsername}}
 <div class="card" style="margin-top:18px;border-color:color-mix(in srgb, #16a34a 50%, var(--admin-border))">
   <div class="card-header">
-    <strong style="color:#16a34a">Аккаунт создан — передайте эти данные пользователю</strong>
+    <strong style="color:#16a34a">{{tr .Lang "Аккаунт создан — передайте эти данные пользователю"}}</strong>
   </div>
   <div class="card-body">
     <p class="muted" style="margin:0 0 12px">
-      Это единственный раз, когда отображается пароль. Сохраните или передайте его сейчас.
+      {{tr .Lang "Это единственный раз, когда отображается пароль. Сохраните или передайте его сейчас."}}
     </p>
     <table class="tbl" style="margin-bottom:12px">
       <tbody>
         <tr>
-          <td style="width:140px"><strong>Логин</strong></td>
+          <td style="width:140px"><strong>{{tr .Lang "Логин"}}</strong></td>
           <td><code style="font-size:14px">{{.NewUsername}}</code></td>
         </tr>
         <tr>
-          <td><strong>Пароль</strong></td>
+          <td><strong>{{tr .Lang "Пароль"}}</strong></td>
           <td>
             <code id="newpwd" style="font-size:14px;user-select:all">{{.NewPassword}}</code>
           </td>
@@ -37,11 +37,11 @@
       </tbody>
     </table>
     <details>
-      <summary class="muted" style="cursor:pointer;font-size:12px">Готовая строка для передачи</summary>
-<div style="display:flex;justify-content:flex-end;margin:6px 0"><button type="button" class="btn btn-sm btn-ghost" onclick="copyShareLine(this)">📋 Скопировать строку</button></div>
+      <summary class="muted" style="cursor:pointer;font-size:12px">{{tr .Lang "Готовая строка для передачи"}}</summary>
+<div style="display:flex;justify-content:flex-end;margin:6px 0"><button type="button" class="btn btn-sm btn-ghost" onclick="copyShareLine(this)">{{tr .Lang "📋 Скопировать строку"}}</button></div>
 
       <div style="margin-top:10px;padding:10px;background:var(--admin-bg);border:1px solid var(--admin-border);border-radius:6px;font-family:var(--mono,monospace);font-size:12px" id="credShareLine">
-        Логин: <b>{{.NewUsername}}</b> · Пароль: <b>{{.NewPassword}}</b> · URL: <code>{{.LoginURL}}</code>
+        {{tr .Lang "Логин:"}} <b>{{.NewUsername}}</b> {{tr .Lang "· Пароль:"}} <b>{{.NewPassword}}</b> · URL: <code>{{.LoginURL}}</code>
       </div>
     </details>
   </div>
@@ -50,52 +50,52 @@
 {{end}}
 
 <div class="card" style="margin-top:18px">
-  <div class="card-header"><strong>Создать временного пользователя</strong></div>
+  <div class="card-header"><strong>{{tr .Lang "Создать временного пользователя"}}</strong></div>
   <div class="card-body">
     <form method="post" action="/admin/users-temp">
       <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
         <div>
-          <label>Роль</label>
+          <label>{{tr .Lang "Роль"}}</label>
           <select name="role">
-            <option value="viewer" selected>viewer — только просмотр</option>
-            <option value="manager">manager — может выпускать сертификаты</option>
-            <option value="admin">admin — полный доступ</option>
+            <option value="viewer" selected>{{tr .Lang "viewer — только просмотр"}}</option>
+            <option value="manager">{{tr .Lang "manager — может выпускать сертификаты"}}</option>
+            <option value="admin">{{tr .Lang "admin — полный доступ"}}</option>
           </select>
         </div>
         <div>
-          <label>Срок действия — пресет</label>
+          <label>{{tr .Lang "Срок действия — пресет"}}</label>
           <select name="preset">
-            <option value="30m">30 минут</option>
-            <option value="1h">1 час</option>
-            <option value="4h">4 часа</option>
-            <option value="24h" selected>1 день</option>
-            <option value="7d">7 дней</option>
-            <option value="30d">30 дней</option>
+            <option value="30m">{{tr .Lang "30 минут"}}</option>
+            <option value="1h">{{tr .Lang "1 час"}}</option>
+            <option value="4h">{{tr .Lang "4 часа"}}</option>
+            <option value="24h" selected>{{tr .Lang "1 день"}}</option>
+            <option value="7d">{{tr .Lang "7 дней"}}</option>
+            <option value="30d">{{tr .Lang "30 дней"}}</option>
           </select>
         </div>
       </div>
 
       <div style="margin-bottom:14px">
-        <label>Или точная дата и время (переопределяет пресет)</label>
-        <div class="dp-wrap" data-datepicker data-name="custom_datetime" data-min="now" data-placeholder="Выберите дату и время"></div>
+        <label>{{tr .Lang "Или точная дата и время (переопределяет пресет)"}}</label>
+        <div class="dp-wrap" data-datepicker data-name="custom_datetime" data-min="now" data-placeholder='{{tr .Lang "Выберите дату и время"}}'></div>
       </div>
 
       <div style="margin-bottom:14px">
-        <label>Заметка (для чего/кому)</label>
-        <input type="text" name="note" placeholder="напр. Иванов И. — аудит 19 апреля" maxlength="200">
+        <label>{{tr .Lang "Заметка (для чего/кому)"}}</label>
+        <input type="text" name="note" placeholder='{{tr .Lang "напр. Иванов И. — аудит 19 апреля"}}' maxlength="200">
       </div>
 
-      <button type="submit" class="btn btn-primary">Создать</button>
+      <button type="submit" class="btn btn-primary">{{tr .Lang "Создать"}}</button>
     </form>
   </div>
 </div>
 
 <div class="card" style="margin-top:18px">
   <div class="card-header">
-    <strong>Список временных пользователей</strong>
-    <span class="muted" style="margin-left:auto;font-size:12px">Всего: {{len .Users}}</span>
+    <strong>{{tr .Lang "Список временных пользователей"}}</strong>
+    <span class="muted" style="margin-left:auto;font-size:12px">{{tr .Lang "Всего"}}: {{len .Users}}</span>
   </div>
   <div class="card-body">
     {{if .Users}}
@@ -111,12 +111,12 @@
         </colgroup>
         <thead>
           <tr>
-            <th>Логин</th>
-            <th>Роль</th>
-            <th>Статус</th>
-            <th>Создан</th>
-            <th>Истекает</th>
-            <th>Заметка</th>
+            <th>{{tr .Lang "Логин"}}</th>
+            <th>{{tr .Lang "Роль"}}</th>
+            <th>{{tr .Lang "Статус"}}</th>
+            <th>{{tr .Lang "Создан"}}</th>
+            <th>{{tr .Lang "Истекает"}}</th>
+            <th>{{tr .Lang "Заметка"}}</th>
           </tr>
         </thead>
                 <tbody>
@@ -126,11 +126,11 @@
             <td>{{.Role}}</td>
             <td>
               {{if eq .Status "active"}}
-                <span class="badge ok">активен</span>
+                <span class="badge ok">{{tr .Lang "активен"}}</span>
               {{else if eq .Status "expired"}}
-                <span class="badge danger">истёк</span>
+                <span class="badge danger">{{tr .Lang "истёк"}}</span>
               {{else}}
-                <span class="badge">заблок.</span>
+                <span class="badge">{{tr .Lang "заблок."}}</span>
               {{end}}
             </td>
             <td>{{.CreatedAt}}</td>
@@ -142,7 +142,7 @@
       </table>
     </div>
     {{else}}
-    <p class="muted" style="margin:0">Ещё не создано ни одного временного пользователя.</p>
+    <p class="muted" style="margin:0">{{tr .Lang "Ещё не создано ни одного временного пользователя."}}</p>
     {{end}}
   </div>
 </div>

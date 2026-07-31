@@ -11,6 +11,7 @@ import (
 	"time"
 
 	appdb "step-ui/db"
+	"step-ui/i18n"
 )
 
 const (
@@ -77,7 +78,7 @@ func (h *Handler) AdminConsolePost(w http.ResponseWriter, r *http.Request) {
 	c, ok := findAdminConsoleCommand(commandID)
 	if !ok {
 		h.auditSecurity(r, "console.denied command_id="+commandID)
-		data["ConsoleError"] = "Команда не входит в allowlist."
+		data["ConsoleError"] = h.T(r, "Команда не входит в allowlist.")
 		h.render(w, "admin_console", data)
 		return
 	}
@@ -91,7 +92,13 @@ func (h *Handler) AdminConsolePost(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) adminConsoleData(w http.ResponseWriter, r *http.Request) map[string]interface{} {
 	data := h.base(w, r, "admin_console")
-	data["Commands"] = adminConsoleCommands()
+	lang := h.sessionInfo(r).Language
+	cmds := adminConsoleCommands()
+	for i := range cmds {
+		cmds[i].Label = i18n.T(lang, cmds[i].Label)
+		cmds[i].Description = i18n.T(lang, cmds[i].Description)
+	}
+	data["Commands"] = cmds
 	data["Timeout"] = adminConsoleTimeout.String()
 	data["MaxOutputKB"] = adminConsoleMaxOut / 1024
 

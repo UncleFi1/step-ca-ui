@@ -1,10 +1,10 @@
 {{define "login.html"}}
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="{{.Lang}}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Step-CA &middot; Вход</title>
+<title>Step-CA &middot; {{tr .Lang "Вход"}}</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#0d0d0d;color:#e8e8e8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh}
@@ -31,7 +31,7 @@ input:focus{outline:none;border-color:#4493f8}
     <span>Certificate Manager</span>
   </div>
   <div class="card">
-    <h2>Вход в систему</h2>
+    <h2>{{tr .Lang "Вход в систему"}}</h2>
     {{if .Error}}
     <div class="error">{{.Error}}</div>
     {{end}}
@@ -42,29 +42,36 @@ input:focus{outline:none;border-color:#4493f8}
       <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
       {{if .NeedTOTP}}
       <div class="form-group">
-        <label>Код 2FA</label>
+        <label>{{tr .Lang "Код 2FA"}}</label>
         <input type="text" name="totp_code" inputmode="numeric" autocomplete="one-time-code" placeholder="123456" autofocus {{if .Blocked}}disabled{{end}}>
       </div>
       <div class="form-group">
         <label>Recovery code</label>
-        <input type="text" name="recovery_code" autocomplete="off" placeholder="если нет доступа к authenticator" {{if .Blocked}}disabled{{end}}>
+        <input type="text" name="recovery_code" autocomplete="off" placeholder="{{tr .Lang "если нет доступа к authenticator"}}" {{if .Blocked}}disabled{{end}}>
       </div>
-      <button class="btn" type="submit" {{if .Blocked}}disabled{{end}}>Подтвердить &rarr;</button>
+      <button class="btn" type="submit" {{if .Blocked}}disabled{{end}}>{{tr .Lang "Подтвердить"}} &rarr;</button>
       {{else}}
       <div class="form-group">
-        <label>Логин</label>
+        <label>{{tr .Lang "Логин"}}</label>
         <input type="text" name="username" required autofocus {{if .Blocked}}disabled{{end}}>
       </div>
       <div class="form-group">
-        <label>Пароль</label>
+        <label>{{tr .Lang "Пароль"}}</label>
         <input type="password" name="password" required {{if .Blocked}}disabled{{end}}>
       </div>
-      <button class="btn" type="submit" {{if .Blocked}}disabled{{end}}>Войти &rarr;</button>
+      <button class="btn" type="submit" {{if .Blocked}}disabled{{end}}>{{tr .Lang "Войти"}} &rarr;</button>
       <div style="margin-top:14px;text-align:center">
-        <a href="/forgot-password" style="color:#8a8f98;font-size:12px;text-decoration:none">Забыли пароль?</a>
+        <a href="/forgot-password" style="color:#8a8f98;font-size:12px;text-decoration:none">{{tr .Lang "Забыли пароль?"}}</a>
       </div>
       {{end}}
     </form>
+    <div style="margin-top:18px;text-align:center;font-size:11px;letter-spacing:.5px">
+      <a href="/lang?lang=en" style="text-decoration:none;color:{{if eq .Lang "en"}}#4493f8{{else}}#666{{end}};font-weight:{{if eq .Lang "en"}}700{{else}}400{{end}}">EN</a>
+      <span style="color:#444;margin:0 4px">|</span>
+      <a href="/lang?lang=de" style="text-decoration:none;color:{{if eq .Lang "de"}}#4493f8{{else}}#666{{end}};font-weight:{{if eq .Lang "de"}}700{{else}}400{{end}}">DE</a>
+      <span style="color:#444;margin:0 4px">|</span>
+      <a href="/lang?lang=ru" style="text-decoration:none;color:{{if eq .Lang "ru"}}#4493f8{{else}}#666{{end}};font-weight:{{if eq .Lang "ru"}}700{{else}}400{{end}}">RU</a>
+    </div>
   </div>
 </div>
 </body>

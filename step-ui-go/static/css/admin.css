@@ -209,7 +209,8 @@ body.admin-mode * { box-sizing: border-box; }
   border-top: 1px solid var(--admin-border);
 }
 
-.admin-side-footer a {
+/* Nur direkte Footer-Links (Zurück/Logout), nicht der Sprachumschalter */
+.admin-side-footer > a {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -222,14 +223,60 @@ body.admin-mode * { box-sizing: border-box; }
   font-weight: 600;
 }
 
-.admin-side-footer a:hover {
+.admin-side-footer > a:hover {
   color: var(--admin-text);
   border-color: var(--admin-border-strong);
 }
 
-.admin-side-footer a.admin-danger-link {
+.admin-side-footer > a.admin-danger-link {
   color: var(--admin-danger);
   border-color: color-mix(in srgb, var(--admin-danger) 30%, var(--admin-border));
+}
+
+.admin-side-footer .lang-switch,
+.admin-dd-menu .lang-switch {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0;
+  white-space: nowrap;
+  font-size: 10px;
+  letter-spacing: .5px;
+  padding: 2px 4px 6px;
+  color: var(--admin-muted);
+}
+
+.admin-side-footer .lang-switch a,
+.admin-dd-menu .lang-switch a {
+  display: inline;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--admin-muted);
+  font-size: inherit;
+  font-weight: 400;
+  text-decoration: none;
+}
+
+.admin-side-footer .lang-switch a:hover,
+.admin-dd-menu .lang-switch a:hover {
+  color: var(--admin-text);
+  background: transparent;
+  border-color: transparent;
+}
+
+.admin-side-footer .lang-switch a.is-active,
+.admin-dd-menu .lang-switch a.is-active {
+  color: var(--admin-accent);
+  font-weight: 700;
+}
+
+.admin-side-footer .lang-switch .lang-sep,
+.admin-dd-menu .lang-switch .lang-sep {
+  color: var(--admin-muted);
+  margin: 0 4px;
+  opacity: .7;
 }
 
 .admin-main {

@@ -20,8 +20,10 @@ import (
 	"step-ui/config"
 	appdb "step-ui/db"
 	"step-ui/handlers"
+	"step-ui/i18n"
 	"step-ui/le"
 	mw "step-ui/middleware"
+	"step-ui/models"
 	"strings"
 )
 
@@ -101,10 +103,11 @@ func init() {
 
 func main() {
 	handlers.StartedAt = time.Now()
-	// Регистрируем типы для gob (gorilla/sessions)
+	// Typen für gorilla/sessions (gob) registrieren — sonst gehen Flash-Messages verloren
 	gob.Register(int(0))
 	gob.Register(int64(0))
 	gob.Register("")
+	gob.Register(models.FlashMsg{})
 	cfg := config.Load()
 
 	// ─── Database ────────────────────────────────────────────────────────────
@@ -125,6 +128,10 @@ func main() {
 	}
 	if err := appdb.InitPasswordResetSchema(conn); err != nil {
 		log.Fatalf("Cannot init password reset schema: %v", err)
+	}
+
+	if err := i18n.Load("locales"); err != nil {
+		log.Fatalf("Cannot load locales: %v", err)
 	}
 
 	// ─── Sessions ────────────────────────────────────────────────────────────
@@ -160,6 +167,8 @@ func main() {
 	r.Get("/reset-password", h.ResetPasswordGet)
 	r.Post("/reset-password", h.ResetPasswordPost)
 	r.Get("/logout", h.Logout)
+	r.Get("/lang", h.SetLanguage)
+	r.Post("/lang", h.SetLanguage)
 
 	// Авторизованные маршруты
 	r.Group(func(r chi.Router) {

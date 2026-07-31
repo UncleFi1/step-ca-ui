@@ -84,6 +84,10 @@ func InitSchema(d *sql.DB) error {
 	if _, err := d.Exec(`ALTER TABLE users ADD COLUMN IF NOT EXISTS theme VARCHAR(10) DEFAULT 'dark'`); err != nil {
 		return err
 	}
+	// migration: users.language (en|de|ru), leer = Browser-/Cookie-Fallback
+	if _, err := d.Exec(`ALTER TABLE users ADD COLUMN IF NOT EXISTS language VARCHAR(10) DEFAULT ''`); err != nil {
+		return err
+	}
 
 	// -- migration: user profile fields
 	if _, err := d.Exec(`ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name VARCHAR(100) DEFAULT ''`); err != nil {
@@ -156,13 +160,13 @@ func GetUserByUsername(d *sql.DB, username string) (*models.User, error) {
 
 func GetUserByID(d *sql.DB, id int) (*models.User, error) {
 	u := &models.User{}
-	var displayName, email, theme sql.NullString
+	var displayName, email, theme, language sql.NullString
 	err := d.QueryRow(`SELECT id, username, password_hash, role, is_active, created_at, last_login, last_ip,
-		COALESCE(display_name,''), COALESCE(email,''), COALESCE(theme,'dark'),
+		COALESCE(display_name,''), COALESCE(email,''), COALESCE(theme,'dark'), COALESCE(language,'en'),
 		COALESCE(totp_enabled,false), COALESCE(totp_secret,''), COALESCE(totp_pending_secret,'')
 		FROM users WHERE id=$1`, id).Scan(
 		&u.ID, &u.Username, &u.PasswordHash, &u.Role, &u.IsActive,
-		&u.CreatedAt, &u.LastLogin, &u.LastIP, &displayName, &email, &theme,
+		&u.CreatedAt, &u.LastLogin, &u.LastIP, &displayName, &email, &theme, &language,
 		&u.TOTPEnabled, &u.TOTPSecret, &u.TOTPPendingSecret,
 	)
 	if err != nil {
@@ -174,6 +178,7 @@ func GetUserByID(d *sql.DB, id int) (*models.User, error) {
 	if u.Theme == "" {
 		u.Theme = "dark"
 	}
+	u.Language = language.String
 	return u, nil
 }
 
@@ -221,6 +226,11 @@ func UpdateUserInfo(d *sql.DB, id int, username, displayName, email string) erro
 
 func UpdateUserTheme(d *sql.DB, id int, theme string) error {
 	_, err := d.Exec(`UPDATE users SET theme=$1 WHERE id=$2`, theme, id)
+	return err
+}
+
+func UpdateUserLanguage(d *sql.DB, id int, language string) error {
+	_, err := d.Exec(`UPDATE users SET language=$1 WHERE id=$2`, language, id)
 	return err
 }
 

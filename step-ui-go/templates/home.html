@@ -1,20 +1,20 @@
 {{define "content"}}
 <div class="home-hero">
   <div class="home-hero-text">
-    <div class="home-greeting">Добро пожаловать, <strong>{{if .Session.Username}}{{.Session.Username}}{{else}}гость{{end}}</strong></div>
+    <div class="home-greeting">{{tr .Lang "Добро пожаловать,"}} <strong>{{if .Session.Username}}{{.Session.Username}}{{else}}гость{{end}}</strong></div>
     <h1>Step-CA Manager</h1>
-    <p>Операционная панель для локального CA, публичных сертификатов и контроля состояния PKI.</p>
+    <p>{{tr .Lang "Операционная панель для локального CA, публичных сертификатов и контроля состояния PKI."}}</p>
     <div class="home-hero-actions">
-      {{if hasRole .Session.Role "manager"}}<a href="/issue" class="btn primary">Выпустить сертификат</a>{{end}}
-      <a href="/certificates" class="btn btn-ghost">Все сертификаты</a>
+      {{if hasRole .Session.Role "manager"}}<a href="/issue" class="btn primary">{{tr .Lang "Выпустить сертификат"}}</a>{{end}}
+      <a href="/certificates" class="btn btn-ghost">{{tr .Lang "Все сертификаты"}}</a>
     </div>
   </div>
   <div class="home-status {{if .CAOnline}}ok{{else}}danger{{end}}">
     <div class="status-dot"></div>
     <div>
-      <div class="status-label">Центр сертификации</div>
-      <div class="status-value">{{if .CAOnline}}Онлайн{{else}}Недоступен{{end}}</div>
-      <div class="status-sub">Аптайм: {{.Uptime}}</div>
+      <div class="status-label">{{tr .Lang "Центр сертификации"}}</div>
+      <div class="status-value">{{if .CAOnline}}{{tr .Lang "Онлайн"}}{{else}}{{tr .Lang "Недоступен"}}{{end}}</div>
+      <div class="status-sub">{{tr .Lang "Аптайм"}}: {{.Uptime}}</div>
     </div>
   </div>
 </div>
@@ -22,11 +22,11 @@
 <div class="home-summary">
   <div class="home-stat">
     <div class="stat-num">{{.ActiveCerts}}</div>
-    <div class="stat-cap">Активных сертификатов</div>
+    <div class="stat-cap">{{tr .Lang "Активных сертификатов"}}</div>
   </div>
   <div class="home-stat">
     <div class="stat-num {{if gt .ExpiringCerts 0}}warn{{end}}">{{.ExpiringCerts}}</div>
-    <div class="stat-cap">Истекают в 30 дней</div>
+    <div class="stat-cap">{{tr .Lang "Истекают в 30 дней"}}</div>
   </div>
   <div class="home-stat">
     <div class="stat-num">{{.LECerts}}</div>
@@ -34,7 +34,7 @@
   </div>
 </div>
 
-<div class="home-section-title">Быстрые действия</div>
+<div class="home-section-title">{{tr .Lang "Быстрые действия"}}</div>
 <div class="home-actions">
   {{if hasRole .Session.Role "manager"}}
   <a href="/issue" class="action-card c-blue">
@@ -45,8 +45,8 @@
         <line x1="9" y1="12" x2="15" y2="12"/>
       </svg>
     </div>
-    <div class="action-title">Выпустить сертификат</div>
-    <div class="action-sub">Локальный CA, EC или RSA</div>
+    <div class="action-title">{{tr .Lang "Выпустить сертификат"}}</div>
+    <div class="action-sub">{{tr .Lang "Локальный CA, EC или RSA"}}</div>
   </a>
   {{end}}
 
@@ -57,7 +57,7 @@
       </svg>
     </div>
     <div class="action-title">Let's Encrypt</div>
-    <div class="action-sub">Публичные сертификаты на 90 дней</div>
+    <div class="action-sub">{{tr .Lang "Публичные сертификаты на 90 дней"}}</div>
   </a>
 
   {{if eq .Session.Role "admin"}}
@@ -68,8 +68,8 @@
         <line x1="5" y1="21" x2="19" y2="21"/>
       </svg>
     </div>
-    <div class="action-title">Скачать CA certs</div>
-    <div class="action-sub">Root, Intermediate и Full Chain</div>
+    <div class="action-title">{{tr .Lang "Скачать CA certs"}}</div>
+    <div class="action-sub">{{tr .Lang "Root, Intermediate и Full Chain"}}</div>
   </a>
   {{end}}
 
@@ -82,27 +82,25 @@
         <rect x="3" y="16" width="7" height="5" rx="1"/>
       </svg>
     </div>
-    <div class="action-title">Открыть дашборд</div>
-    <div class="action-sub">Полная статистика и активность</div>
+    <div class="action-title">{{tr .Lang "Открыть дашборд"}}</div>
+    <div class="action-sub">{{tr .Lang "Полная статистика и активность"}}</div>
   </a>
 </div>
 
-<div class="home-section-title">О проекте</div>
+<div class="home-section-title">{{tr .Lang "О проекте"}}</div>
 <div class="card home-about-card">
   <div class="home-about-grid">
     <div>
       <div class="home-about-title">Step-CA Manager</div>
       <p>
-        Веб-интерфейс для удобного управления центром сертификации на базе <strong style="color:var(--text)">Smallstep CA</strong>.
-        Выпуск, отзыв, ротация и хранение SSL/TLS сертификатов в едином окне.
+        {{tr .Lang "Веб-интерфейс для удобного управления центром сертификации на базе"}} <strong style="color:var(--text)">Smallstep CA</strong>{{tr .Lang ". Выпуск, отзыв, ротация и хранение SSL/TLS сертификатов в едином окне."}}
       </p>
       <p>
-        Поддержка <strong style="color:var(--text)">Let's Encrypt</strong> с автоматическим обновлением.
-        Встроенный аудит безопасности и ролевая модель доступа.
+        {{tr .Lang "Поддержка"}} <strong style="color:var(--text)">Let's Encrypt</strong> {{tr .Lang "с автоматическим обновлением. Встроенный аудит безопасности и ролевая модель доступа."}}
       </p>
     </div>
     <div>
-      <div class="home-about-title">Стек технологий</div>
+      <div class="home-about-title">{{tr .Lang "Стек технологий"}}</div>
       <div class="tech-chips">
         <span class="tech-chip">Go</span>
         <span class="tech-chip">PostgreSQL</span>
@@ -111,7 +109,7 @@
         <span class="tech-chip">lego (LE)</span>
       </div>
       <div class="home-version">
-        Версия <code>v{{.Version}}</code> &middot;
+        {{tr .Lang "Версия"}} <code>v{{.Version}}</code> &middot;
         <a href="https://github.com/UncleFi1/step-ca-ui" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">GitHub &rarr;</a>
       </div>
     </div>

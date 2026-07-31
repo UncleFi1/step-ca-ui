@@ -1,22 +1,22 @@
 {{define "content"}}
 <div class="page-header">
-  <div><div class="breadcrumb">let's encrypt &middot; settings</div><h1>Настройки Let's Encrypt</h1></div>
+  <div><div class="breadcrumb">let's encrypt &middot; settings</div><h1>{{tr .Lang "Настройки Let's Encrypt"}}</h1></div>
 </div>
 
 <div style="max-width:600px">
   <div class="card">
-    <div class="card-header"><h3>Общие настройки</h3></div>
+    <div class="card-header"><h3>{{tr .Lang "Общие настройки"}}</h3></div>
     <div class="card-body">
       <form method="POST" action="/le/settings">
         <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
         <div class="form-full">
-          <label>Email для уведомлений</label>
+          <label>{{tr .Lang "Email для уведомлений"}}</label>
           <input type="email" name="email" placeholder="admin@example.com"
             value="{{if .LESettings}}{{.LESettings.Email}}{{end}}">
-          <div style="font-size:10px;color:var(--muted);margin-top:4px">Let's Encrypt будет слать уведомления об истечении</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px">{{tr .Lang "Let's Encrypt будет слать уведомления об истечении"}}</div>
         </div>
         <div class="form-full">
-          <label>Провайдер по умолчанию</label>
+          <label>{{tr .Lang "Провайдер по умолчанию"}}</label>
           <select name="provider" id="provSelect" onchange="showSettings(this.value)">
             <option value="http01"     {{if eq .LESettings.Provider "http01"}}selected{{end}}>HTTP-01</option>
             <option value="cloudflare" {{if eq .LESettings.Provider "cloudflare"}}selected{{end}}>DNS-01 &mdash; Cloudflare</option>
@@ -35,7 +35,7 @@
             <div style="font-size:10px;color:var(--muted);margin-top:4px">Permissions: Zone &mdash; DNS &mdash; Edit</div>
           </div>
           <div class="form-full">
-            <label>Zone ID (опционально)</label>
+            <label>{{tr .Lang "Zone ID (опционально)"}}</label>
             <input type="text" name="cf_zone_id" placeholder="Cloudflare Zone ID"
               value="{{if .LESettings}}{{.LESettings.CFZoneID}}{{end}}">
           </div>
@@ -64,7 +64,7 @@
           </div>
         </div>
 
-        <button type="submit" class="btn" style="margin-top:8px;padding:10px 22px;font-weight:600">Сохранить настройки</button>
+        <button type="submit" class="btn" style="margin-top:8px;padding:10px 22px;font-weight:600">{{tr .Lang "Сохранить настройки"}}</button>
       </form>
     </div>
   </div>

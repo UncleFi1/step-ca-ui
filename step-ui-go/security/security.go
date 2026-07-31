@@ -55,6 +55,7 @@ func NeedsPasswordRehash(hash string) bool {
 }
 
 func ValidatePassword(pw string) (bool, string) {
+	// Rückgabe-Strings sind i18n-Quellschlüssel (Russisch) und müssen mit i18n.T übersetzt werden.
 	if len(pw) < 8 {
 		return false, "Минимум 8 символов"
 	}

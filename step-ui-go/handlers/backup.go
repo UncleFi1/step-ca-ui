@@ -53,7 +53,7 @@ func (h *Handler) AdminBackupDownload(w http.ResponseWriter, r *http.Request) {
 
 	bundle, filename, err := h.buildBackupBundle(r.Context())
 	if err != nil {
-		h.flash(w, r, "err", "Не удалось создать backup: "+err.Error())
+		h.flash(w, r, "err", h.T(r, "Не удалось создать backup: ")+err.Error())
 		http.Redirect(w, r, "/admin/backup", http.StatusSeeOther)
 		return
 	}
