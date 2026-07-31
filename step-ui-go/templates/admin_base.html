@@ -1,9 +1,9 @@
 {{define "admin_layout"}}<!DOCTYPE html>
-<html lang="ru" data-theme="{{if .Session.Theme}}{{if eq .Session.Theme "auto"}}dark{{else}}{{.Session.Theme}}{{end}}{{else}}dark{{end}}">
+<html lang="{{.Lang}}" data-theme="{{if .Session.Theme}}{{if eq .Session.Theme "auto"}}dark{{else}}{{.Session.Theme}}{{end}}{{else}}dark{{end}}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Админ-панель · Step-CA</title>
+  <title>{{tr .Lang "Админ-панель · Step-CA"}}</title>
   <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
   <link rel="stylesheet" href="/static/css/themes.css">
   <link rel="stylesheet" href="/static/css/base.css">
@@ -17,44 +17,51 @@
     <span class="admin-topbrand-icon">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 7v5c0 5 3.5 9.5 9 11 5.5-1.5 9-6 9-11V7l-9-5z"/></svg>
     </span>
-    <span>Админ-панель</span>
+    <span>{{tr .Lang "Админ-панель"}}</span>
   </a>
-  <nav class="admin-topmenu" aria-label="Админ-навигация">
+  <nav class="admin-topmenu" aria-label="{{tr .Lang "Админ-навигация"}}">
     <details class="admin-dd">
-      <summary>Обзор</summary>
+      <summary>{{tr .Lang "Обзор"}}</summary>
       <div class="admin-dd-menu">
-        <a href="/admin" class="{{if eq .ActivePage "admin"}}active{{end}}">Панель управления</a>
-        <a href="/admin/activity" class="{{if eq .ActivePage "admin_activity"}}active{{end}}">Активность CA</a>
+        <a href="/admin" class="{{if eq .ActivePage "admin"}}active{{end}}">{{tr .Lang "Панель управления"}}</a>
+        <a href="/admin/activity" class="{{if eq .ActivePage "admin_activity"}}active{{end}}">{{tr .Lang "Активность CA"}}</a>
       </div>
     </details>
     <details class="admin-dd">
-      <summary>Пользователи</summary>
+      <summary>{{tr .Lang "Пользователи"}}</summary>
       <div class="admin-dd-menu">
-        <a href="/admin/users" class="{{if eq .ActivePage "admin_users"}}active{{end}}">Все пользователи</a>
-        <a href="/admin/users-temp" class="{{if eq .ActivePage "admin_users_temp"}}active{{end}}">Временные пользователи</a>
+        <a href="/admin/users" class="{{if eq .ActivePage "admin_users"}}active{{end}}">{{tr .Lang "Все пользователи"}}</a>
+        <a href="/admin/users-temp" class="{{if eq .ActivePage "admin_users_temp"}}active{{end}}">{{tr .Lang "Временные пользователи"}}</a>
       </div>
     </details>
     <details class="admin-dd">
-      <summary>Безопасность</summary>
+      <summary>{{tr .Lang "Безопасность"}}</summary>
       <div class="admin-dd-menu">
-        <a href="/admin/security" class="{{if eq .ActivePage "admin_security"}}active{{end}}">Журнал безопасности</a>
+        <a href="/admin/security" class="{{if eq .ActivePage "admin_security"}}active{{end}}">{{tr .Lang "Журнал безопасности"}}</a>
       </div>
     </details>
     <details class="admin-dd">
-      <summary>Сервер</summary>
+      <summary>{{tr .Lang "Сервер"}}</summary>
       <div class="admin-dd-menu">
-        <a href="/admin/console" class="{{if eq .ActivePage "admin_console"}}active{{end}}">Консоль сервера</a>
-        <a href="/admin/about" class="{{if eq .ActivePage "admin_about"}}active{{end}}">О системе</a>
+        <a href="/admin/console" class="{{if eq .ActivePage "admin_console"}}active{{end}}">{{tr .Lang "Консоль сервера"}}</a>
+        <a href="/admin/about" class="{{if eq .ActivePage "admin_about"}}active{{end}}">{{tr .Lang "О системе"}}</a>
         <a href="/admin/integrity" class="{{if eq .ActivePage "admin_integrity"}}active{{end}}">CA integrity</a>
-        <a href="/admin/backup" class="{{if eq .ActivePage "admin_backup"}}active{{end}}">Бэкап</a>
-        <a href="/admin/notifications" class="{{if eq .ActivePage "admin_notifications"}}active{{end}}">Уведомления</a>
+        <a href="/admin/backup" class="{{if eq .ActivePage "admin_backup"}}active{{end}}">{{tr .Lang "Бэкап"}}</a>
+        <a href="/admin/notifications" class="{{if eq .ActivePage "admin_notifications"}}active{{end}}">{{tr .Lang "Уведомления"}}</a>
       </div>
     </details>
     <details class="admin-dd admin-dd-right">
-      <summary>Аккаунт</summary>
+      <summary>{{tr .Lang "Аккаунт"}}</summary>
       <div class="admin-dd-menu">
-        <a href="/">Вернуться в приложение</a>
-        <a href="/logout" class="admin-danger-link">Выйти</a>
+        <a href="/">{{tr .Lang "Вернуться в приложение"}}</a>
+        <div class="lang-switch" style="padding:8px 12px;font-size:11px">
+          <a href="/lang?lang=en" class="{{if eq .Lang "en"}}is-active{{end}}">EN</a>
+          <span class="lang-sep">|</span>
+          <a href="/lang?lang=de" class="{{if eq .Lang "de"}}is-active{{end}}">DE</a>
+          <span class="lang-sep">|</span>
+          <a href="/lang?lang=ru" class="{{if eq .Lang "ru"}}is-active{{end}}">RU</a>
+        </div>
+        <a href="/logout" class="admin-danger-link">{{tr .Lang "Выйти"}}</a>
       </div>
     </details>
   </nav>
@@ -66,47 +73,47 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 7v5c0 5 3.5 9.5 9 11 5.5-1.5 9-6 9-11V7l-9-5z"/></svg>
       </div>
       <div class="admin-title">
-        <b>Админ-панель</b>
+        <b>{{tr .Lang "Админ-панель"}}</b>
         <span>Step-CA · Control</span>
       </div>
     </div>
 
     <nav class="admin-nav">
-      <div class="admin-nav-section">Обзор</div>
+      <div class="admin-nav-section">{{tr .Lang "Обзор"}}</div>
       <a href="/admin" class="{{if eq .ActivePage "admin"}}active{{end}}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-        <span>Панель управления</span>
+        <span>{{tr .Lang "Панель управления"}}</span>
       </a>
       <a href="/admin/activity" class="{{if eq .ActivePage "admin_activity"}}active{{end}}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        <span>Активность CA</span>
-        <span class="stub-badge">СКОРО</span>
+        <span>{{tr .Lang "Активность CA"}}</span>
+        <span class="stub-badge">{{tr .Lang "СКОРО"}}</span>
       </a>
 
-      <div class="admin-nav-section">Пользователи</div>
+      <div class="admin-nav-section">{{tr .Lang "Пользователи"}}</div>
       <a href="/admin/users" class="{{if eq .ActivePage "admin_users"}}active{{end}}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        <span>Все пользователи</span>
+        <span>{{tr .Lang "Все пользователи"}}</span>
       </a>
       <a href="/admin/users-temp" class="{{if eq .ActivePage "admin_users_temp"}}active{{end}}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        <span>Временные пользователи</span>
+        <span>{{tr .Lang "Временные пользователи"}}</span>
       </a>
 
-      <div class="admin-nav-section">Безопасность</div>
+      <div class="admin-nav-section">{{tr .Lang "Безопасность"}}</div>
       <a href="/admin/security" class="{{if eq .ActivePage "admin_security"}}active{{end}}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        <span>Журнал безопасности</span>
+        <span>{{tr .Lang "Журнал безопасности"}}</span>
       </a>
 
-      <div class="admin-nav-section">Сервер</div>
+      <div class="admin-nav-section">{{tr .Lang "Сервер"}}</div>
       <a href="/admin/console" class="{{if eq .ActivePage "admin_console"}}active{{end}}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
-        <span>Консоль сервера</span>
+        <span>{{tr .Lang "Консоль сервера"}}</span>
       </a>
       <a href="/admin/about" class="{{if eq .ActivePage "admin_about"}}active{{end}}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-        <span>О системе</span>
+        <span>{{tr .Lang "О системе"}}</span>
       </a>
       <a href="/admin/integrity" class="{{if eq .ActivePage "admin_integrity"}}active{{end}}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 8-8 9-4.5-1-8-4-8-9V5l8-3 8 3v8Z"/><path d="m9 12 2 2 4-5"/></svg>
@@ -114,22 +121,29 @@
       </a>
       <a href="/admin/backup" class="{{if eq .ActivePage "admin_backup"}}active{{end}}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        <span>Бэкап</span>
+        <span>{{tr .Lang "Бэкап"}}</span>
       </a>
       <a href="/admin/notifications" class="{{if eq .ActivePage "admin_notifications"}}active{{end}}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        <span>Уведомления</span>
+        <span>{{tr .Lang "Уведомления"}}</span>
       </a>
     </nav>
 
     <div class="admin-side-footer">
+      <div class="lang-switch">
+        <a href="/lang?lang=en" class="{{if eq .Lang "en"}}is-active{{end}}">EN</a>
+        <span class="lang-sep">|</span>
+        <a href="/lang?lang=de" class="{{if eq .Lang "de"}}is-active{{end}}">DE</a>
+        <span class="lang-sep">|</span>
+        <a href="/lang?lang=ru" class="{{if eq .Lang "ru"}}is-active{{end}}">RU</a>
+      </div>
       <a href="/">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-        <span>Вернуться в приложение</span>
+        <span>{{tr .Lang "Вернуться в приложение"}}</span>
       </a>
       <a href="/logout" class="admin-danger-link">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        <span>Выйти</span>
+        <span>{{tr .Lang "Выйти"}}</span>
       </a>
     </div>
   </aside>
@@ -137,13 +151,14 @@
   <main class="admin-main">
     <div class="admin-header-banner">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 7v5c0 5 3.5 9.5 9 11 5.5-1.5 9-6 9-11V7l-9-5z"/></svg>
-      <span>Защищённая зона администратора. Критичные действия фиксируются в журнале.</span>
+      <span>{{tr .Lang "Защищённая зона администратора. Критичные действия фиксируются в журнале."}}</span>
     </div>
 
     {{template "content" .}}
   </main>
 </div>
 
+<script>window.__I18N = {{.I18NJSON}};</script>
 <script>
   (function(){
     const t = {{if .Session.Theme}}"{{.Session.Theme}}"{{else}}"dark"{{end}};
@@ -162,11 +177,11 @@
 
 <div class="modal-overlay" id="confirmModal">
   <div class="modal-box">
-    <div class="modal-title" id="modalTitle">Подтвердите действие</div>
+    <div class="modal-title" id="modalTitle">{{tr .Lang "Подтвердите действие"}}</div>
     <div class="modal-msg" id="modalMsg"></div>
     <div class="modal-actions">
-      <button class="modal-btn-cancel" onclick="closeModal()">Отмена</button>
-      <button class="modal-btn-confirm danger" id="modalConfirmBtn" onclick="modalConfirm()">Подтвердить</button>
+      <button class="modal-btn-cancel" onclick="closeModal()">{{tr .Lang "Отмена"}}</button>
+      <button class="modal-btn-confirm danger" id="modalConfirmBtn" onclick="modalConfirm()">{{tr .Lang "Подтвердить"}}</button>
     </div>
   </div>
 </div>

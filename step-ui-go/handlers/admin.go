@@ -90,7 +90,7 @@ func (h *Handler) AdminActivityGet(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) AdminAboutGet(w http.ResponseWriter, r *http.Request) {
 	data := h.base(w, r, "admin_about")
 	checks, summary := h.preflight(r.Context())
-	data["System"] = h.systemInfo()
+	data["System"] = h.systemInfo(h.sessionInfo(r).Language)
 	data["Checks"] = checks
 	data["Summary"] = summary
 	h.render(w, "admin_about", data)
@@ -100,7 +100,7 @@ func (h *Handler) AdminAboutGet(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) AdminIntegrityGet(w http.ResponseWriter, r *http.Request) {
 	data := h.base(w, r, "admin_integrity")
 	checks, summary := h.caIntegrity(r.Context())
-	data["System"] = h.systemInfo()
+	data["System"] = h.systemInfo(h.sessionInfo(r).Language)
 	data["Checks"] = checks
 	data["Summary"] = summary
 	h.render(w, "admin_integrity", data)

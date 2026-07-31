@@ -1,41 +1,40 @@
 {{define "content"}}
 <div class="admin-page-header">
-  <h1 class="admin-page-title">Бэкап</h1>
-  <p class="admin-page-subtitle">Экспорт критичных данных CA и Step-CA UI для ручного восстановления</p>
+  <h1 class="admin-page-title">{{tr .Lang "Бэкап"}}</h1>
+  <p class="admin-page-subtitle">{{tr .Lang "Экспорт критичных данных CA и Step-CA UI для ручного восстановления"}}</p>
 </div>
 
 <div class="card">
   <div class="card-header"><strong>Backup bundle</strong></div>
   <div class="card-body">
     <p class="muted" style="margin-top:0;margin-bottom:14px">
-      Архив содержит manifest с SHA-256 checksums, дамп PostgreSQL и архивы Docker volumes,
-      доступные контейнеру Step-CA UI.
+      {{tr .Lang "Архив содержит manifest с SHA-256 checksums, дамп PostgreSQL и архивы Docker volumes, доступные контейнеру Step-CA UI."}}
     </p>
 
     <table class="tbl admin-kv-table" style="margin-bottom:16px">
       <tbody>
         <tr><td><strong>PostgreSQL</strong></td><td><code>postgres-stepui.sql</code></td></tr>
-        <tr><td><strong>Step-CA data</strong></td><td><code>step-ca-data.tgz</code> из <code>/home/step</code></td></tr>
+        <tr><td><strong>Step-CA data</strong></td><td><code>step-ca-data.tgz</code> {{tr .Lang "из"}} <code>/home/step</code></td></tr>
         <tr><td><strong>Step-UI data</strong></td><td><code>step-ui-data.tgz</code>, <code>step-ui-certs.tgz</code>, <code>step-ui-uploads.tgz</code></td></tr>
-        <tr><td><strong>Manifest</strong></td><td><code>manifest.json</code> с версиями, размерами и checksums</td></tr>
+        <tr><td><strong>Manifest</strong></td><td><code>manifest.json</code> {{tr .Lang "с версиями, размерами и checksums"}}</td></tr>
       </tbody>
     </table>
 
     <form method="POST" action="/admin/backup/download">
       <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-      <button class="btn primary" type="submit">Скачать backup bundle</button>
+      <button class="btn primary" type="submit">{{tr .Lang "Скачать backup bundle"}}</button>
     </form>
   </div>
 </div>
 
 <div class="card">
-  <div class="card-header"><strong>Важные условия</strong></div>
+  <div class="card-header"><strong>{{tr .Lang "Важные условия"}}</strong></div>
   <div class="card-body">
     <ul class="admin-note-list">
-      <li>Backup содержит приватные ключи CA. Храните архив как секрет.</li>
-      <li>Restore из UI намеренно не реализован: восстановление может перезаписать CA keys и базу.</li>
-      <li>Проверенная ручная процедура описана в <code>BACKUP_RESTORE.md</code>.</li>
-      <li>Перед обновлениями можно также использовать CLI: <code>sudo ./install.sh --mode backup --lang ru</code>.</li>
+      <li>{{tr .Lang "Backup содержит приватные ключи CA. Храните архив как секрет."}}</li>
+      <li>{{tr .Lang "Restore из UI намеренно не реализован: восстановление может перезаписать CA keys и базу."}}</li>
+      <li>{{tr .Lang "Проверенная ручная процедура описана в"}} <code>BACKUP_RESTORE.md</code>.</li>
+      <li>{{tr .Lang "Перед обновлениями можно также использовать CLI:"}} <code>sudo ./install.sh --mode backup --lang ru</code>.</li>
     </ul>
   </div>
 </div>

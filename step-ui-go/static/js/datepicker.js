@@ -20,9 +20,21 @@
 (function () {
   'use strict';
 
-  const MONTHS = ['Январь','Февраль','Март','Апрель','Май','Июнь',
-                  'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
-  const WEEKDAYS = ['пн','вт','ср','чт','пт','сб','вс'];
+  function t(key, fallback) {
+    var dict = window.__I18N || {};
+    if (dict[key]) return dict[key];
+    return fallback || key;
+  }
+
+  const MONTHS = [
+    t('Январь','Январь'), t('Февраль','Февраль'), t('Март','Март'), t('Апрель','Апрель'),
+    t('Май','Май'), t('Июнь','Июнь'), t('Июль','Июль'), t('Август','Август'),
+    t('Сентябрь','Сентябрь'), t('Октябрь','Октябрь'), t('Ноябрь','Ноябрь'), t('Декабрь','Декабрь')
+  ];
+  const WEEKDAYS = [
+    t('пн','пн'), t('вт','вт'), t('ср','ср'), t('чт','чт'),
+    t('пт','пт'), t('сб','сб'), t('вс','вс')
+  ];
 
   function pad(n) { return String(n).padStart(2, '0'); }
 
@@ -43,7 +55,7 @@
     wrap.dataset.dpInit = '1';
 
     const name        = wrap.dataset.name || 'custom_datetime';
-    const placeholder = wrap.dataset.placeholder || 'Выберите дату и время';
+    const placeholder = wrap.dataset.placeholder || t('Выберите дату и время', 'Выберите дату и время');
     const minMode     = wrap.dataset.min || ''; // "now" — запрещает прошлое
 
     // Состояние
@@ -68,26 +80,26 @@
       <input type="hidden" name="${name}" value="">
       <div class="dp-pop">
         <div class="dp-head">
-          <button type="button" class="dp-nav dp-prev" aria-label="Предыдущий месяц">‹</button>
+          <button type="button" class="dp-nav dp-prev" aria-label="${t('Предыдущий месяц','Предыдущий месяц')}">‹</button>
           <div class="dp-title"></div>
-          <button type="button" class="dp-nav dp-next" aria-label="Следующий месяц">›</button>
+          <button type="button" class="dp-nav dp-next" aria-label="${t('Следующий месяц','Следующий месяц')}">›</button>
         </div>
         <div class="dp-weekdays">
           ${WEEKDAYS.map(w => `<div class="dp-weekday">${w}</div>`).join('')}
         </div>
         <div class="dp-grid"></div>
         <div class="dp-time">
-          <span class="dp-time-label">Время:</span>
-          <input type="number" class="dp-hh" min="0" max="23" placeholder="чч" inputmode="numeric">
+          <span class="dp-time-label">${t('Время:','Время:')}</span>
+          <input type="number" class="dp-hh" min="0" max="23" placeholder="${t('чч','чч')}" inputmode="numeric">
           <span class="dp-time-sep">:</span>
-          <input type="number" class="dp-mm" min="0" max="59" placeholder="мм" inputmode="numeric">
+          <input type="number" class="dp-mm" min="0" max="59" placeholder="${t('мм','мм')}" inputmode="numeric">
         </div>
         <div class="dp-foot">
-          <button type="button" class="dp-clear">Очистить</button>
-          <button type="button" class="dp-ok">Готово</button>
+          <button type="button" class="dp-clear">${t('Очистить','Очистить')}</button>
+          <button type="button" class="dp-ok">${t('Готово','Готово')}</button>
         </div>
       </div>
-      <div class="dp-error">Укажите часы и минуты</div>
+      <div class="dp-error">${t('Укажите часы и минуты','Укажите часы и минуты')}</div>
     `;
 
     const inputDisplay = wrap.querySelector('.dp-input');

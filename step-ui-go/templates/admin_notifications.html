@@ -1,7 +1,7 @@
 {{define "content"}}
 <div class="admin-page-header">
-  <h1 class="admin-page-title">Уведомления</h1>
-  <p class="admin-page-subtitle">Webhook для критичных событий CA, ошибок выпуска и истекающих сертификатов</p>
+  <h1 class="admin-page-title">{{tr .Lang "Уведомления"}}</h1>
+  <p class="admin-page-subtitle">{{tr .Lang "Webhook для критичных событий CA, ошибок выпуска и истекающих сертификатов"}}</p>
 </div>
 
 {{range .Msgs}}
@@ -16,7 +16,7 @@
 
       <label class="check-row">
         <input type="checkbox" name="webhook_enabled" {{if .Settings.WebhookEnabled}}checked{{end}}>
-        <span>Включить webhook отправку</span>
+        <span>{{tr .Lang "Включить webhook отправку"}}</span>
       </label>
 
       <label>
@@ -27,26 +27,26 @@
       <div class="form-row">
         <label class="check-row">
           <input type="checkbox" name="notify_expiry" {{if .Settings.NotifyExpiry}}checked{{end}}>
-          <span>Сертификаты скоро истекают</span>
+          <span>{{tr .Lang "Сертификаты скоро истекают"}}</span>
         </label>
         <label>
-          <span>Порог, дней</span>
+          <span>{{tr .Lang "Порог, дней"}}</span>
           <input type="number" name="expiry_days" min="1" max="365" value="{{.Settings.ExpiryDays}}">
         </label>
       </div>
 
       <label class="check-row">
         <input type="checkbox" name="notify_failures" {{if .Settings.NotifyFailures}}checked{{end}}>
-        <span>Ошибки выпуска и перевыпуска сертификатов</span>
+        <span>{{tr .Lang "Ошибки выпуска и перевыпуска сертификатов"}}</span>
       </label>
 
       <label class="check-row">
         <input type="checkbox" name="notify_auth_burst" {{if .Settings.NotifyAuthBurst}}checked{{end}}>
-        <span>Серия неудачных входов до блокировки IP</span>
+        <span>{{tr .Lang "Серия неудачных входов до блокировки IP"}}</span>
       </label>
 
       <div class="form-actions">
-        <button class="btn primary" type="submit">Сохранить</button>
+        <button class="btn primary" type="submit">{{tr .Lang "Сохранить"}}</button>
       </div>
     </form>
   </div>
@@ -55,7 +55,7 @@
 <div class="card">
   <div class="card-header"><strong>SMTP</strong></div>
   <div class="card-body">
-    <p class="muted" style="margin-top:0">Используется для восстановления пароля. Пароль SMTP не выводится обратно в форму.</p>
+    <p class="muted" style="margin-top:0">{{tr .Lang "Используется для восстановления пароля. Пароль SMTP не выводится обратно в форму."}}</p>
     <form method="POST" action="/admin/notifications" class="form-grid">
       <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
       <input type="hidden" name="webhook_enabled" value="{{if .Settings.WebhookEnabled}}on{{end}}">
@@ -67,7 +67,7 @@
 
       <label class="check-row">
         <input type="checkbox" name="smtp_enabled" {{if .Settings.SMTPEnabled}}checked{{end}}>
-        <span>Включить SMTP для восстановления пароля</span>
+        <span>{{tr .Lang "Включить SMTP для восстановления пароля"}}</span>
       </label>
 
       <div class="form-row">
@@ -97,7 +97,7 @@
         </label>
         <label>
           <span>Password</span>
-          <input type="password" name="smtp_password" placeholder="оставьте пустым, чтобы не менять" autocomplete="new-password">
+          <input type="password" name="smtp_password" placeholder='{{tr .Lang "оставьте пустым, чтобы не менять"}}' autocomplete="new-password">
         </label>
       </div>
 
@@ -107,29 +107,29 @@
       </label>
 
       <div class="form-actions">
-        <button class="btn primary" type="submit">Сохранить SMTP</button>
+        <button class="btn primary" type="submit">{{tr .Lang "Сохранить SMTP"}}</button>
       </div>
     </form>
   </div>
 </div>
 
 <div class="card">
-  <div class="card-header"><strong>Проверка</strong></div>
+  <div class="card-header"><strong>{{tr .Lang "Проверка"}}</strong></div>
   <div class="card-body">
     <form method="POST" action="/admin/notifications/test">
       <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-      <button class="btn" type="submit">Отправить test webhook</button>
+      <button class="btn" type="submit">{{tr .Lang "Отправить test webhook"}}</button>
     </form>
   </div>
 </div>
 
 <div class="card">
-  <div class="card-header"><strong>Журнал отправок</strong></div>
+  <div class="card-header"><strong>{{tr .Lang "Журнал отправок"}}</strong></div>
   <div class="card-body" style="padding:0">
     <div class="tbl-wrap">
       <table class="tbl">
         <thead>
-          <tr><th>Время</th><th>Событие</th><th>Статус</th><th>Сообщение</th></tr>
+          <tr><th>{{tr .Lang "Время"}}</th><th>{{tr .Lang "Событие"}}</th><th>{{tr .Lang "Статус"}}</th><th>{{tr .Lang "Сообщение"}}</th></tr>
         </thead>
         <tbody>
           {{range .Logs}}
@@ -144,7 +144,7 @@
             </td>
           </tr>
           {{else}}
-          <tr><td colspan="4" class="muted">Событий пока нет</td></tr>
+          <tr><td colspan="4" class="muted">{{tr .Lang "Событий пока нет"}}</td></tr>
           {{end}}
         </tbody>
       </table>

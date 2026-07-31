@@ -1,6 +1,6 @@
 {{define "content"}}
 <div class="page-header">
-  <div><div class="breadcrumb">certificates &middot; issue</div><h1>Выпустить сертификат</h1></div>
+  <div><div class="breadcrumb">certificates &middot; issue</div><h1>{{tr .Lang "Выпустить сертификат"}}</h1></div>
 </div>
 
 <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(260px,1fr);gap:16px;align-items:start">
@@ -14,15 +14,15 @@
 
     <!-- ── Общие поля ── -->
     <div class="card">
-      <div class="card-header"><h3>Основные параметры</h3></div>
+      <div class="card-header"><h3>{{tr .Lang "Основные параметры"}}</h3></div>
       <div class="card-body">
         <div class="form-row">
           <div>
-            <label>Название</label>
+            <label>{{tr .Lang "Название"}}</label>
             <input type="text" name="name" id="fName" placeholder="my-service" autocomplete="off" required>
           </div>
           <div>
-            <label>Домен или IP</label>
+            <label>{{tr .Lang "Домен или IP"}}</label>
             <input type="text" name="domain" id="fDomain" placeholder="example.com" autocomplete="off" required>
           </div>
         </div>
@@ -31,24 +31,24 @@
 
     <!-- ── Шаблон выпуска ── -->
     <div class="card">
-      <div class="card-header"><h3>Шаблон и policy</h3></div>
+      <div class="card-header"><h3>{{tr .Lang "Шаблон и policy"}}</h3></div>
       <div class="card-body">
         <div class="template-grid">
           <button type="button" class="template-card active" data-template="server" data-key="EC:P-256" data-duration="8760h" data-placeholder="app.example.com">
             <span class="template-title">Server TLS</span>
-            <span class="template-sub">Обычный HTTPS/service сертификат на 1 год</span>
+            <span class="template-sub">{{tr .Lang "Обычный HTTPS/service сертификат на 1 год"}}</span>
           </button>
           <button type="button" class="template-card" data-template="internal" data-key="EC:P-256" data-duration="87600h" data-placeholder="service.home.local">
             <span class="template-title">Internal service</span>
-            <span class="template-sub">Внутренний сервис, срок до 10 лет</span>
+            <span class="template-sub">{{tr .Lang "Внутренний сервис, срок до 10 лет"}}</span>
           </button>
           <button type="button" class="template-card" data-template="wildcard" data-key="EC:P-256" data-duration="8760h" data-placeholder="*.example.com">
             <span class="template-title">Wildcard</span>
-            <span class="template-sub">Только имена вида *.example.com</span>
+            <span class="template-sub">{{tr .Lang "Только имена вида *.example.com"}}</span>
           </button>
           <button type="button" class="template-card" data-template="client" data-key="EC:P-256" data-duration="8760h" data-placeholder="client-01">
             <span class="template-title">Client identity</span>
-            <span class="template-sub">Идентификатор для mTLS/VPN сценариев</span>
+            <span class="template-sub">{{tr .Lang "Идентификатор для mTLS/VPN сценариев"}}</span>
           </button>
         </div>
       </div>
@@ -56,28 +56,28 @@
 
     <!-- ── Тип ключа (карточки) ── -->
     <div class="card">
-      <div class="card-header"><h3>Тип ключа</h3></div>
+      <div class="card-header"><h3>{{tr .Lang "Тип ключа"}}</h3></div>
       <div class="card-body">
         <div class="key-grid">
           <div class="key-card active" data-val="EC:P-256">
             <div class="key-title">EC P-256</div>
-            <div class="key-sub">Эллиптическая, 256 бит</div>
-            <div class="key-badge ok">Рекомендуется</div>
+            <div class="key-sub">{{tr .Lang "Эллиптическая, 256 бит"}}</div>
+            <div class="key-badge ok">{{tr .Lang "Рекомендуется"}}</div>
           </div>
           <div class="key-card" data-val="EC:P-384">
             <div class="key-title">EC P-384</div>
-            <div class="key-sub">Эллиптическая, 384 бит</div>
-            <div class="key-badge gray">Повышенная</div>
+            <div class="key-sub">{{tr .Lang "Эллиптическая, 384 бит"}}</div>
+            <div class="key-badge gray">{{tr .Lang "Повышенная"}}</div>
           </div>
           <div class="key-card" data-val="RSA:2048">
             <div class="key-title">RSA 2048</div>
-            <div class="key-sub">Совместимость</div>
-            <div class="key-badge gray">Классика</div>
+            <div class="key-sub">{{tr .Lang "Совместимость"}}</div>
+            <div class="key-badge gray">{{tr .Lang "Классика"}}</div>
           </div>
           <div class="key-card" data-val="RSA:4096">
             <div class="key-title">RSA 4096</div>
-            <div class="key-sub">Максимальная защита</div>
-            <div class="key-badge warn">Медленная</div>
+            <div class="key-sub">{{tr .Lang "Максимальная защита"}}</div>
+            <div class="key-badge warn">{{tr .Lang "Медленная"}}</div>
           </div>
         </div>
       </div>
@@ -85,33 +85,33 @@
 
     <!-- ── Срок действия (чипы) ── -->
     <div class="card">
-      <div class="card-header"><h3>Срок действия</h3></div>
+      <div class="card-header"><h3>{{tr .Lang "Срок действия"}}</h3></div>
       <div class="card-body">
         <div class="chip-row">
-          <button type="button" class="chip" data-val="720h">1 месяц</button>
-          <button type="button" class="chip" data-val="4380h">6 месяцев</button>
-          <button type="button" class="chip active" data-val="8760h">1 год</button>
-          <button type="button" class="chip" data-val="87600h">10 лет</button>
+          <button type="button" class="chip" data-val="720h">{{tr .Lang "1 месяц"}}</button>
+          <button type="button" class="chip" data-val="4380h">{{tr .Lang "6 месяцев"}}</button>
+          <button type="button" class="chip active" data-val="8760h">{{tr .Lang "1 год"}}</button>
+          <button type="button" class="chip" data-val="87600h">{{tr .Lang "10 лет"}}</button>
         </div>
       </div>
     </div>
 
     <!-- ── Submit ── -->
     <button type="submit" class="btn" style="padding:10px 24px;font-size:13px;font-weight:600">
-      Выпустить сертификат
+      {{tr .Lang "Выпустить сертификат"}}
     </button>
   </form>
 
   <!-- ═ Боковая панель — превью ═ -->
   <div class="card" style="position:sticky;top:16px">
-    <div class="card-header"><h3>Предпросмотр</h3></div>
+    <div class="card-header"><h3>{{tr .Lang "Предпросмотр"}}</h3></div>
     <div class="card-body">
-      <div class="info-row"><div class="info-key">Название</div><div class="info-val"><strong id="pvName" style="color:var(--muted)">—</strong></div></div>
-      <div class="info-row"><div class="info-key">Шаблон</div><div class="info-val"><span class="badge gray" id="pvTemplate">Server TLS</span></div></div>
-      <div class="info-row"><div class="info-key">Домен</div><div class="info-val"><code id="pvDomain">—</code></div></div>
-      <div class="info-row"><div class="info-key">Тип ключа</div><div class="info-val"><span class="badge blue" id="pvType">EC P-256</span></div></div>
-      <div class="info-row"><div class="info-key">Срок</div><div class="info-val"><span id="pvDuration">1 год</span></div></div>
-      <div class="info-row"><div class="info-key">Истекает</div><div class="info-val" style="color:var(--muted)" id="pvExpires">—</div></div>
+      <div class="info-row"><div class="info-key">{{tr .Lang "Название"}}</div><div class="info-val"><strong id="pvName" style="color:var(--muted)">—</strong></div></div>
+      <div class="info-row"><div class="info-key">{{tr .Lang "Шаблон"}}</div><div class="info-val"><span class="badge gray" id="pvTemplate">Server TLS</span></div></div>
+      <div class="info-row"><div class="info-key">{{tr .Lang "Домен"}}</div><div class="info-val"><code id="pvDomain">—</code></div></div>
+      <div class="info-row"><div class="info-key">{{tr .Lang "Тип ключа"}}</div><div class="info-val"><span class="badge blue" id="pvType">EC P-256</span></div></div>
+      <div class="info-row"><div class="info-key">{{tr .Lang "Срок"}}</div><div class="info-val"><span id="pvDuration">{{tr .Lang "1 год"}}</span></div></div>
+      <div class="info-row"><div class="info-key">{{tr .Lang "Истекает"}}</div><div class="info-val" style="color:var(--muted)" id="pvExpires">—</div></div>
     </div>
   </div>
 </div>

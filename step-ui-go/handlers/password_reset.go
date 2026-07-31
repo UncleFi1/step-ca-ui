@@ -37,25 +37,25 @@ func (h *Handler) ForgotPasswordGet(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ForgotPasswordPost(w http.ResponseWriter, r *http.Request) {
 	data := h.base(w, r, "")
 	if !h.csrfOK(r) {
-		data["Error"] = "Ошибка сессии. Обновите страницу."
+		data["Error"] = h.T(r, "Ошибка сессии. Обновите страницу.")
 		h.render(w, "forgot_password", data)
 		return
 	}
 	ip := clientIP(r)
 	if !passwordResetAllowed(ip) {
-		data["Info"] = passwordResetGenericInfo
+		data["Info"] = h.T(r, passwordResetGenericInfo)
 		_ = appdb.LogAuth(h.db, "password-reset", ip, false, "Password reset rate limited")
 		h.render(w, "forgot_password", data)
 		return
 	}
 	identifier := trimStr(r.FormValue("identifier"))
 	if identifier == "" {
-		data["Error"] = "Укажите логин или email."
+		data["Error"] = h.T(r, "Укажите логин или email.")
 		h.render(w, "forgot_password", data)
 		return
 	}
 
-	generic := passwordResetGenericInfo
+	generic := h.T(r, passwordResetGenericInfo)
 	user, err := appdb.GetUserByLoginOrEmail(h.db, identifier)
 	if err != nil || user == nil {
 		_ = appdb.LogAuth(h.db, identifier, ip, false, "Password reset requested for unknown account")
@@ -110,7 +110,7 @@ func (h *Handler) ResetPasswordGet(w http.ResponseWriter, r *http.Request) {
 	data := h.base(w, r, "")
 	token := trimStr(r.URL.Query().Get("token"))
 	if !h.passwordResetTokenOK(token) {
-		data["Error"] = "Ссылка сброса недействительна или истекла."
+		data["Error"] = h.T(r, "Ссылка сброса недействительна или истекла.")
 	} else {
 		data["Token"] = token
 	}
@@ -120,39 +120,39 @@ func (h *Handler) ResetPasswordGet(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ResetPasswordPost(w http.ResponseWriter, r *http.Request) {
 	data := h.base(w, r, "")
 	if !h.csrfOK(r) {
-		data["Error"] = "Ошибка сессии. Обновите страницу."
+		data["Error"] = h.T(r, "Ошибка сессии. Обновите страницу.")
 		h.render(w, "reset_password", data)
 		return
 	}
 	token := trimStr(r.FormValue("token"))
 	resetToken, err := appdb.GetValidPasswordResetToken(h.db, passwordResetTokenHash(token))
 	if err != nil || resetToken == nil {
-		data["Error"] = "Ссылка сброса недействительна или истекла."
+		data["Error"] = h.T(r, "Ссылка сброса недействительна или истекла.")
 		h.render(w, "reset_password", data)
 		return
 	}
 	newPW := trimStr(r.FormValue("new_password"))
 	confirm := trimStr(r.FormValue("confirm_password"))
 	if newPW != confirm {
-		data["Error"] = "Пароли не совпадают."
+		data["Error"] = h.T(r, "Пароли не совпадают.")
 		data["Token"] = token
 		h.render(w, "reset_password", data)
 		return
 	}
 	if ok, msg := security.ValidatePassword(newPW); !ok {
-		data["Error"] = msg
+		data["Error"] = h.T(r, msg)
 		data["Token"] = token
 		h.render(w, "reset_password", data)
 		return
 	}
 	user, err := appdb.GetUserByID(h.db, resetToken.UserID)
 	if err != nil || user == nil || !user.IsActive {
-		data["Error"] = "Аккаунт недоступен."
+		data["Error"] = h.T(r, "Аккаунт недоступен.")
 		h.render(w, "reset_password", data)
 		return
 	}
 	if err := appdb.UpdateUserPassword(h.db, user.ID, security.HashPassword(newPW)); err != nil {
-		data["Error"] = "Не удалось обновить пароль."
+		data["Error"] = h.T(r, "Не удалось обновить пароль.")
 		data["Token"] = token
 		h.render(w, "reset_password", data)
 		return
@@ -160,7 +160,7 @@ func (h *Handler) ResetPasswordPost(w http.ResponseWriter, r *http.Request) {
 	_ = appdb.MarkPasswordResetTokenUsed(h.db, resetToken.ID)
 	_ = appdb.InvalidatePasswordResetTokens(h.db, user.ID)
 	_ = appdb.LogAuth(h.db, user.Username, clientIP(r), true, "Password reset completed")
-	h.flash(w, r, "ok", "Пароль обновлён. Войдите с новым паролем.")
+	h.flash(w, r, "ok", h.T(r, "Пароль обновлён. Войдите с новым паролем."))
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 

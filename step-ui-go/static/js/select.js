@@ -116,9 +116,9 @@ var _mf=null;
 function showConfirm(form,msg,btn,cls,title){
   _mf=form;
   document.getElementById('modalMsg').textContent=msg;
-  document.getElementById('modalTitle').textContent=title||'Подтвердите действие';
+  document.getElementById('modalTitle').textContent=title||((window.__I18N&&window.__I18N['Подтвердите действие'])||'Подтвердите действие');
   var b=document.getElementById('modalConfirmBtn');
-  b.textContent=btn||'Подтвердить';
+  b.textContent=btn||((window.__I18N&&window.__I18N['Подтвердить'])||'Подтвердить');
   b.className='modal-btn-confirm '+(cls||'danger');
   document.getElementById('confirmModal').classList.add('active');
 }

@@ -1,16 +1,16 @@
 {{define "content"}}
 <div class="page-header">
-  <div><div class="breadcrumb">let's encrypt &middot; logs</div><h1>Журнал Let's Encrypt</h1></div>
+  <div><div class="breadcrumb">let's encrypt &middot; logs</div><h1>{{tr .Lang "Журнал Let's Encrypt"}}</h1></div>
 </div>
 
 <div class="card" style="margin-bottom:12px">
   <div class="card-body" style="padding:12px 16px">
     <form method="GET" action="/le/logs" id="leLogsForm" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-      <label style="margin-bottom:0;width:auto">Домен:</label>
+      <label style="margin-bottom:0;width:auto">{{tr .Lang "Домен:"}}</label>
       <input type="text" name="domain" id="leDomainFilter" placeholder="example.com"
         value="{{.FilterDomain}}" style="max-width:320px;flex:1" autocomplete="off">
       {{if .FilterDomain}}
-      <a href="/le/logs" class="btn btn-ghost btn-sm">Сбросить</a>
+      <a href="/le/logs" class="btn btn-ghost btn-sm">{{tr .Lang "Сбросить"}}</a>
       {{end}}
     </form>
   </div>
@@ -26,7 +26,7 @@
           <col>
         </colgroup>
     
-    <thead><tr><th>Время</th><th>Домен</th><th>Событие</th><th>Сообщение</th></tr></thead>
+    <thead><tr><th>{{tr .Lang "Время"}}</th><th>{{tr .Lang "Домен"}}</th><th>{{tr .Lang "Событие"}}</th><th>{{tr .Lang "Сообщение"}}</th></tr></thead>
     <tbody>
     {{range .LELogs}}
     <tr>
@@ -36,7 +36,7 @@
       <td style="color:var(--muted)">{{.Message}}</td>
     </tr>
     {{else}}
-    <tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px">Нет записей</td></tr>
+    <tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px">{{tr .Lang "Нет записей"}}</td></tr>
     {{end}}
     </tbody>
   </table>

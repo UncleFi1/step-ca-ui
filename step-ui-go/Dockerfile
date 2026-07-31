@@ -27,6 +27,7 @@ RUN apk add --no-cache curl openssl ca-certificates netcat-openbsd tzdata postgr
 COPY --from=builder /build/step-ui .
 COPY templates/ templates/
 COPY static/ static/
+COPY locales/ locales/
 
 RUN mkdir -p data certs uploads ssl
 

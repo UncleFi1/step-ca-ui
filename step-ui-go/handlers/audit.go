@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	appdb "step-ui/db"
+	"step-ui/i18n"
 )
 
 const adminAuditPrefix = "Audit: "
@@ -17,13 +18,13 @@ func (h *Handler) auditSecurity(r *http.Request, reason string) {
 	_ = appdb.LogAuth(h.db, si.Username, r.RemoteAddr, true, adminAuditPrefix+reason)
 }
 
-func securityEventLabel(success bool, reason string) string {
+func securityEventLabel(lang string, success bool, reason string) string {
 	if !success {
-		return "Отказ"
+		return i18n.T(lang, "Отказ")
 	}
 	switch {
 	case strings.HasPrefix(reason, adminAuditPrefix):
-		return "Аудит"
+		return i18n.T(lang, "Аудит")
 	case strings.HasPrefix(reason, "2FA"):
 		return "2FA"
 	case strings.Contains(strings.ToLower(reason), "recovery code"):
@@ -31,9 +32,9 @@ func securityEventLabel(success bool, reason string) string {
 	case strings.HasPrefix(reason, "Password reset"):
 		return "Reset"
 	case reason == "Выход":
-		return "Выход"
+		return i18n.T(lang, "Выход")
 	default:
-		return "Вход"
+		return i18n.T(lang, "Вход")
 	}
 }
 

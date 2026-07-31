@@ -112,7 +112,7 @@ func (h *Handler) AdminUsersTempPost(w http.ResponseWriter, r *http.Request) {
 		if t, err := time.ParseInLocation("2006-01-02 15:04", custom, time.Local); err == nil {
 			expiresAt = t
 		} else {
-			h.flash(w, r, "err", "Неверный формат даты/времени")
+			h.flash(w, r, "err", h.T(r, "Неверный формат даты/времени"))
 			http.Redirect(w, r, "/admin/users-temp", http.StatusSeeOther)
 			return
 		}
@@ -133,7 +133,7 @@ func (h *Handler) AdminUsersTempPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !expiresAt.After(time.Now().Add(1 * time.Minute)) {
-		h.flash(w, r, "err", "Срок действия должен быть в будущем (хотя бы через минуту)")
+		h.flash(w, r, "err", h.T(r, "Срок действия должен быть в будущем (хотя бы через минуту)"))
 		http.Redirect(w, r, "/admin/users-temp", http.StatusSeeOther)
 		return
 	}
@@ -145,7 +145,7 @@ func (h *Handler) AdminUsersTempPost(w http.ResponseWriter, r *http.Request) {
 	hash := security.HashPassword(password)
 	id, err := appdb.CreateTempUser(h.db, username, hash, role, expiresAt, note)
 	if err != nil {
-		h.flash(w, r, "err", "Не удалось создать пользователя: "+err.Error())
+		h.flash(w, r, "err", h.T(r, "Не удалось создать пользователя: ")+err.Error())
 		http.Redirect(w, r, "/admin/users-temp", http.StatusSeeOther)
 		return
 	}
@@ -160,7 +160,7 @@ func (h *Handler) AdminUsersTempPost(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 	})
 
-	h.flash(w, r, "ok", "Временный пользователь создан")
+	h.flash(w, r, "ok", h.T(r, "Временный пользователь создан"))
 	h.auditSecurity(r, fmt.Sprintf("temp_user.create target=%s role=%s expires_at=%s", username, role, expiresAt.UTC().Format(time.RFC3339)))
 	http.Redirect(w, r, fmt.Sprintf("/admin/users-temp?new_id=%d", id), http.StatusSeeOther)
 }
